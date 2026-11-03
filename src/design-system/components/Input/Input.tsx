@@ -63,13 +63,13 @@ export function Input({
       ) : null}
       {multiline ? (
         <textarea
+          {...(rest as unknown as React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
           {...common}
           rows={4}
           className={cn(classes, "h-auto min-h-24 py-3")}
-          {...(rest as unknown as React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
         />
       ) : (
-        <input {...common} className={classes} {...rest} />
+        <input {...rest} {...common} className={classes} />
       )}
       {error ? (
         <p id={messageId} className="text-caption text-danger-700">

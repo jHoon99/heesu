@@ -20,6 +20,7 @@ export interface CardProps {
   tone?: "raised" | "subtle";
   size?: "md" | "lg";
   as?: ElementType;
+  className?: string;
   children?: ReactNode;
 }
 
@@ -30,12 +31,13 @@ export function Card({
   tone,
   size = "md",
   as,
+  className,
   children,
 }: CardProps) {
   const Tag: ElementType = as ?? "div";
   const hasHeader = Boolean(title) || Boolean(subtitle) || Boolean(actions);
   return (
-    <Tag className={cn(card({ tone: tone ?? "default", size }))}>
+    <Tag className={cn(card({ tone: tone ?? "default", size }), className)}>
       {hasHeader ? (
         <div
           className={cn(

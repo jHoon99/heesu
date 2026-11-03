@@ -7,6 +7,10 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["src/test/setup.ts"],
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:56321",
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "test-publishable-key",
+    },
     include: ["src/**/*.test.{ts,tsx}"],
   },
 });

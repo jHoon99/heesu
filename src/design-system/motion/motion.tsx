@@ -58,18 +58,25 @@ export function Reveal({
   delay = 0,
   distance = "md",
   className,
+  immediate = false,
 }: {
   children: ReactNode;
   delay?: number;
   distance?: "sm" | "md";
   className?: string;
+  immediate?: boolean;
 }) {
+  const trigger = immediate
+    ? { animate: { opacity: 1, y: 0 } }
+    : {
+        whileInView: { opacity: 1, y: 0 },
+        viewport: { once: true, amount: 0.2, margin: "0px 0px -8% 0px" },
+      };
   return (
     <motion.div
       className={className}
       initial={{ opacity: 0, y: rise[distance] }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2, margin: "0px 0px -8% 0px" }}
+      {...trigger}
       transition={{ ...t.reveal, delay: delay / 1000 }}
     >
       {children}

@@ -29,4 +29,19 @@ describe("Input", () => {
     render(<Input label="궁금한 점" multiline />);
     expect(screen.getByLabelText("궁금한 점").tagName).toBe("TEXTAREA");
   });
+
+  it("does not let callers override the aria wiring", () => {
+    render(
+      <Input
+        label="연락처"
+        error="010-0000-0000 형식으로 입력해 주세요."
+        aria-describedby="evil"
+        aria-invalid={false}
+      />,
+    );
+    const input = screen.getByLabelText("연락처");
+    const msg = screen.getByText("010-0000-0000 형식으로 입력해 주세요.");
+    expect(input.getAttribute("aria-describedby")).toBe(msg.id);
+    expect(input).toHaveAttribute("aria-invalid", "true");
+  });
 });

@@ -11,6 +11,21 @@ describe("classifyError", () => {
     [{ code: "23505" }, "conflict", "이미 처리된 요청이에요."],
     [{ code: "23514" }, "invalid", INVALID],
     [{ code: "22001" }, "invalid", INVALID],
+    [{ code: "23502" }, "invalid", INVALID],
+    [{ code: "23503" }, "invalid", INVALID],
+    [{ code: "22P02" }, "invalid", INVALID],
+    [{ code: "22003" }, "invalid", INVALID],
+    [
+      { code: "P0001", message: "이미 제출했어요. 원장 확인을 기다려 주세요." },
+      "invalid",
+      "이미 제출했어요. 원장 확인을 기다려 주세요.",
+    ],
+    [{ code: "P0001", message: "" }, "invalid", INVALID],
+    [
+      { name: "AuthApiError", status: 400, code: "invalid_credentials" },
+      "credentials",
+      "아이디 또는 비밀번호가 맞지 않아요. 다시 입력해 주세요.",
+    ],
     [
       new TypeError("Failed to fetch"),
       "network",
