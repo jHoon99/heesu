@@ -5,7 +5,7 @@
 begin;
 set local client_min_messages = warning;
 create extension if not exists pgtap with schema extensions;
-select plan(63);
+select plan(73);
 
 -- 시드는 테스트 파일 사이에 남아 있다. 세는 테이블은 비우고 시작한다(rollback으로 되돌린다).
 delete from public.points;
@@ -285,6 +285,57 @@ select results_eq($$select student_id, name, grade::text, status::text, total
            ('10000000-0000-4000-8000-00000000e008'::uuid, '가짜포인트L', '중3', 'left', 0),
            ('10000000-0000-4000-8000-00000000f008'::uuid, '가짜포인트C', '중2', 'active', 0)$$,
   '원장 aal2: student_point_totals에 A·C·L 모두 (포인트 없는 학생 total 0)');
+
+-- ─── 키 옮기기 금지 (원장 aal2) ───────────────────────────────────────
+-- 옮기면 OLD 쌍의 자동 행이 남아 점수가 두 번 붙을 수 있다 → 거부하고 포인트는 그대로.
+select throws_ok($$update public.attendance set student_id = '10000000-0000-4000-8000-00000000f008'
+                   where session_id = '30000000-0000-4000-8000-00000000b008'
+                     and student_id = '10000000-0000-4000-8000-00000000c008'$$,
+  'P0001', '출결·숙제 기록은 다른 수업이나 학생으로 옮길 수 없어요.',
+  '원장 aal2: attendance 행의 student_id 옮기기는 거부');
+select throws_ok($$update public.attendance set session_id = '30000000-0000-4000-8000-00000000a008'
+                   where session_id = '30000000-0000-4000-8000-00000000b008'
+                     and student_id = '10000000-0000-4000-8000-00000000c008'$$,
+  'P0001', '출결·숙제 기록은 다른 수업이나 학생으로 옮길 수 없어요.',
+  '원장 aal2: attendance 행의 session_id 옮기기는 거부');
+select throws_ok($$update public.homework_checks set session_id = '30000000-0000-4000-8000-00000000b008'
+                   where session_id = '30000000-0000-4000-8000-00000000a008'
+                     and student_id = '10000000-0000-4000-8000-00000000f008'$$,
+  'P0001', '출결·숙제 기록은 다른 수업이나 학생으로 옮길 수 없어요.',
+  '원장 aal2: homework_checks 행의 session_id 옮기기는 거부');
+select throws_ok($$update public.homework_checks set student_id = '10000000-0000-4000-8000-00000000f008'
+                   where session_id = '30000000-0000-4000-8000-00000000b008'
+                     and student_id = '10000000-0000-4000-8000-00000000c008'$$,
+  'P0001', '출결·숙제 기록은 다른 수업이나 학생으로 옮길 수 없어요.',
+  '원장 aal2: homework_checks 행의 student_id 옮기기는 거부');
+select results_eq($$select student_id, session_id from public.points where session_id is not null
+                     order by session_id$$,
+  $$values ('10000000-0000-4000-8000-00000000c008'::uuid, '30000000-0000-4000-8000-00000000a008'::uuid),
+           ('10000000-0000-4000-8000-00000000c008'::uuid, '30000000-0000-4000-8000-00000000b008'::uuid)$$,
+  '키 옮기기 거부 뒤 자동 행은 A·S1, A·S2 그대로');
+-- 같은 키를 다시 넣는 PostgREST upsert(두 번 클릭)는 그대로 통과한다.
+select lives_ok($$insert into public.attendance (session_id, student_id, status)
+                   values ('30000000-0000-4000-8000-00000000b008', '10000000-0000-4000-8000-00000000c008', 'present')
+                   on conflict (session_id, student_id) do update
+                   set session_id = excluded.session_id, student_id = excluded.student_id, status = excluded.status$$,
+  '원장 aal2: 같은 키 upsert (1번째)는 통과');
+select lives_ok($$insert into public.attendance (session_id, student_id, status)
+                   values ('30000000-0000-4000-8000-00000000b008', '10000000-0000-4000-8000-00000000c008', 'present')
+                   on conflict (session_id, student_id) do update
+                   set session_id = excluded.session_id, student_id = excluded.student_id, status = excluded.status$$,
+  '원장 aal2: 같은 키 upsert (2번째)도 통과');
+select is((select count(*)::int from public.points where session_id = '30000000-0000-4000-8000-00000000b008'),
+  1, 'upsert 두 번 뒤 S2 자동 행 1행');
+
+-- ─── 행을 지우면 OLD 쌍을 다시 계산한다 (postgres로; 클라이언트는 delete 권한이 없다) ─
+reset role;
+delete from public.homework_checks
+ where session_id = '30000000-0000-4000-8000-00000000a008' and student_id = '10000000-0000-4000-8000-00000000c008';
+select is((select count(*)::int from public.points where session_id = '30000000-0000-4000-8000-00000000a008'),
+  0, '삭제: A·S1 숙제 행을 지우면 S1 자동 행도 지워진다');
+select is((select count(*)::int from public.points
+            where student_id = '10000000-0000-4000-8000-00000000c008' and session_id is null),
+  2, '삭제: 수동 행 2개는 그대로');
 
 -- ─── 트리거 함수는 직접 부를 수 없다 ─────────────────────────────────
 select is(has_function_privilege('authenticated', 'private.sync_session_points()', 'execute'), false,
