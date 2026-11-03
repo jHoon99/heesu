@@ -3,8 +3,11 @@ import { supabase } from "@/core/supabase/client";
 import { SaveNotAppliedError } from "@/core/supabase/saveNotApplied";
 import { saveStudentPrivate, setStudentClasses } from "./detail";
 
-vi.mock("@/core/supabase/client", () => ({ supabase: { from: vi.fn() } }));
+vi.mock("@/core/supabase/client", () => ({
+  supabase: { from: vi.fn(), rpc: vi.fn() },
+}));
 const from = vi.mocked(supabase.from);
+const rpc = vi.mocked(supabase.rpc);
 
 type Result = { data: unknown; error: unknown };
 function chain(result: Result) {
@@ -28,6 +31,7 @@ function chain(result: Result) {
 describe("setStudentClasses", () => {
   beforeEach(() => {
     from.mockReset();
+    rpc.mockReset();
   });
 
   it("does nothing when nothing changed", async () => {
@@ -54,7 +58,21 @@ describe("setStudentClasses", () => {
     from
       .mockReturnValueOnce(del.c as never)
       .mockReturnValueOnce(check.c as never);
+    rpc.mockResolvedValueOnce({ data: "admin", error: null } as never);
     await expect(setStudentClasses("s", ["a"], [])).resolves.toBeUndefined();
+    expect(rpc).toHaveBeenCalledWith("my_role");
+  });
+
+  it("throws SaveNotAppliedError when delete and re-query are empty but the caller is not an admin", async () => {
+    const del = chain({ data: [], error: null });
+    const check = chain({ data: [], error: null });
+    from
+      .mockReturnValueOnce(del.c as never)
+      .mockReturnValueOnce(check.c as never);
+    rpc.mockResolvedValueOnce({ data: "none", error: null } as never);
+    await expect(setStudentClasses("s", ["a"], [])).rejects.toBeInstanceOf(
+      SaveNotAppliedError,
+    );
   });
 
   it("throws SaveNotAppliedError when the delete touched 0 rows", async () => {

@@ -77,6 +77,10 @@ export async function setStudentClasses(
         .in("class_id", remove);
       if (left.error) throw left.error;
       if (left.data.length > 0) throw new SaveNotAppliedError();
+      // 재조회도 비면 원장이 아니라서 RLS가 둘 다 숨긴 것일 수 있어요.
+      const role = await supabase.rpc("my_role");
+      if (role.error) throw role.error;
+      if (role.data !== "admin") throw new SaveNotAppliedError();
     }
   }
 }
