@@ -27,6 +27,12 @@ isOneToOne: false
       foreignKeyName: "attendance_student_id_fkey"
       columns: ["student_id"]
 isOneToOne: false
+      referencedRelation: "student_point_totals"
+      referencedColumns: ["student_id"]
+    },{
+      foreignKeyName: "attendance_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
       referencedRelation: "students"
       referencedColumns: ["id"]
     }
@@ -49,6 +55,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "classes"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "class_members_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "student_point_totals"
+      referencedColumns: ["student_id"]
     },{
       foreignKeyName: "class_members_student_id_fkey"
       columns: ["student_id"]
@@ -84,6 +96,12 @@ isOneToOne: false
                   }
                   Relationships: [
                     {
+      foreignKeyName: "consents_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "student_point_totals"
+      referencedColumns: ["student_id"]
+    },{
       foreignKeyName: "consents_student_id_fkey"
       columns: ["student_id"]
 isOneToOne: false
@@ -125,6 +143,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     },{
       foreignKeyName: "homework_checks_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "student_point_totals"
+      referencedColumns: ["student_id"]
+    },{
+      foreignKeyName: "homework_checks_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"points": {
+                  Row: {
+                    "amount": number,"created_at": string,"id": string,"reason": string,"session_id": string | null,"student_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount": number,"created_at"?: string,"id"?: string,"reason": string,"session_id"?: string | null,"student_id": string
+                  }
+                  Update: {
+                    "amount"?: number,"created_at"?: string,"id"?: string,"reason"?: string,"session_id"?: string | null,"student_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "points_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "sessions"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "points_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "student_point_totals"
+      referencedColumns: ["student_id"]
+    },{
+      foreignKeyName: "points_student_id_fkey"
       columns: ["student_id"]
 isOneToOne: false
       referencedRelation: "students"
@@ -181,6 +237,12 @@ isOneToOne: false
       foreignKeyName: "student_private_student_id_fkey"
       columns: ["student_id"]
 isOneToOne: true
+      referencedRelation: "student_point_totals"
+      referencedColumns: ["student_id"]
+    },{
+      foreignKeyName: "student_private_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: true
       referencedRelation: "students"
       referencedColumns: ["id"]
     }
@@ -218,9 +280,23 @@ isOneToOne: false
       foreignKeyName: "class_members_student_id_fkey"
       columns: ["student_id"]
 isOneToOne: false
+      referencedRelation: "student_point_totals"
+      referencedColumns: ["student_id"]
+    },{
+      foreignKeyName: "class_members_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
       referencedRelation: "students"
       referencedColumns: ["id"]
     }
+                  ]
+                },"student_point_totals": {
+                  Row: {
+                    "grade": Database["public"]['Enums']["school_grade"] | null,"name": string | null,"status": Database["public"]['Enums']["student_status"] | null,"student_id": string | null,"total": number | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    
                   ]
                 }
           }
