@@ -21,10 +21,12 @@ export function useStudent(id: string | null) {
   });
 }
 
-// 초기 비밀번호는 mutation 변수로만 지나가고 결과(캐시)에는 id만 남아요.
+// 비밀번호는 mutation 변수로 지나가요. gcTime 0이라 끝나면 MutationCache에서 바로 지워지고,
+// 화면도 처리 뒤 reset()을 불러요.
 export function useCreateStudent() {
   const client = useQueryClient();
   return useMutation({
+    gcTime: 0,
     mutationFn: (input: StudentCreateOutput) => createStudent(input),
     onSuccess: () => client.invalidateQueries({ queryKey: studentKeys.all }),
   });
@@ -42,6 +44,7 @@ export function useUpdateStudent() {
 export function useResetStudentPassword() {
   const client = useQueryClient();
   return useMutation({
+    gcTime: 0,
     mutationFn: (vars: { studentId: string; password: string }) =>
       resetStudentPassword(vars.studentId, vars.password),
     onSuccess: () => client.invalidateQueries({ queryKey: studentKeys.all }),

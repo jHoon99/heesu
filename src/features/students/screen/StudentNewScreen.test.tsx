@@ -12,8 +12,9 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 vi.mock("../data/functions");
 const create = vi.mocked(createStudent);
 
+let client: QueryClient;
 function setup() {
-  const client = new QueryClient({
+  client = new QueryClient({
     defaultOptions: { mutations: { retry: false } },
   });
   render(
@@ -31,6 +32,16 @@ async function fill(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/초기 비밀번호/), "password1");
   await user.type(screen.getByLabelText(/이름/), "김하늘");
   await user.selectOptions(screen.getByLabelText(/학년/), "중1");
+}
+
+function expectNoPasswordCached() {
+  const cached = client
+    .getMutationCache()
+    .getAll()
+    .filter((m) =>
+      JSON.stringify(m.state.variables ?? null).includes("password1"),
+    );
+  expect(cached).toHaveLength(0);
 }
 
 describe("StudentNewScreen", () => {
@@ -73,6 +84,7 @@ describe("StudentNewScreen", () => {
     await waitFor(() =>
       expect(push).toHaveBeenCalledWith("/admin/students/detail?id=s1"),
     );
+    expectNoPasswordCached();
     expect(
       await screen.findByText(
         "학생을 추가했어요. 아이디와 초기 비밀번호를 학생에게 알려 주세요.",
@@ -91,6 +103,7 @@ describe("StudentNewScreen", () => {
       await screen.findByText("이미 쓰고 있는 아이디예요."),
     ).toBeInTheDocument();
     expect(push).not.toHaveBeenCalled();
+    expectNoPasswordCached();
   });
 
   it("shows an invalid server message as an alert", async () => {

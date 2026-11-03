@@ -44,6 +44,7 @@ export function StudentNewScreen() {
     setFormError(null);
     try {
       const id = await create.mutateAsync(input);
+      create.reset();
       toast.show({
         tone: "success",
         message:
@@ -51,6 +52,7 @@ export function StudentNewScreen() {
       });
       router.push(`/admin/students/detail?id=${encodeURIComponent(id)}`);
     } catch (e) {
+      create.reset();
       if (e instanceof StudentFunctionError) {
         if (e.code === "login_taken") {
           setError("loginId", { message: e.message });
