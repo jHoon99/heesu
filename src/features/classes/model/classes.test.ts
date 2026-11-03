@@ -95,14 +95,16 @@ describe("classFormSchema", () => {
 describe("parseClassRow", () => {
   it("flags an unreadable schedule instead of silently emptying it", () => {
     expect(
-      parseClassRow({
-        id: "a",
-        name: "A",
-        level: "high",
-        schedule: "x",
-        capacity: null,
-        class_members: [{ count: 3 }],
-      }),
+      parseClassRow(
+        {
+          id: "a",
+          name: "A",
+          level: "high",
+          schedule: "x",
+          capacity: null,
+        },
+        3,
+      ),
     ).toEqual({
       id: "a",
       name: "A",

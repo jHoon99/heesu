@@ -90,17 +90,8 @@ export function parseSchedule(
     : { invalid: true, schedule: [] };
 }
 
-function memberCountOf(value: unknown): number {
-  if (!Array.isArray(value)) return 0;
-  const first: unknown = value[0];
-  if (typeof first === "object" && first !== null && "count" in first) {
-    const count = (first as { count: unknown }).count;
-    if (typeof count === "number") return count;
-  }
-  return 0;
-}
-
-export function parseClassRow(row: unknown): ClassSummary {
+/** memberCount는 퇴원생을 뺀 인원(class_roster 기준)이에요. */
+export function parseClassRow(row: unknown, memberCount = 0): ClassSummary {
   const r = (row ?? {}) as Record<string, unknown>;
   const schedule = parseSchedule(r.schedule);
   return {
@@ -110,6 +101,6 @@ export function parseClassRow(row: unknown): ClassSummary {
     schedule: schedule.schedule,
     scheduleInvalid: schedule.invalid,
     capacity: typeof r.capacity === "number" ? r.capacity : null,
-    memberCount: memberCountOf(r.class_members),
+    memberCount,
   };
 }

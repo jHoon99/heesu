@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { supabase } from "@/core/supabase/client";
 import { SaveNotAppliedError } from "@/core/supabase/saveNotApplied";
-import { createClass, updateClass } from "./classes";
+import { createClass, getClass, listClasses, updateClass } from "./classes";
 
 vi.mock("@/core/supabase/client", () => ({ supabase: { from: vi.fn() } }));
 
@@ -83,5 +83,61 @@ describe("updateClass", () => {
     await expect(updateClass("c1", input)).rejects.toBeInstanceOf(
       SaveNotAppliedError,
     );
+  });
+});
+
+describe("member counts", () => {
+  beforeEach(() => {
+    from.mockReset();
+  });
+  const classRow = (id: string) => ({
+    id,
+    name: id,
+    level: "middle",
+    schedule: [],
+    capacity: null,
+  });
+  // class_roster는 퇴원생을 이미 뺀 view라, 거기 없는 학생은 세지 않아요.
+  const mockTables = (rosterRows: { class_id: string }[]) => {
+    const eq = vi.fn().mockResolvedValue({ data: rosterRows, error: null });
+    const rosterSelect = Object.assign(
+      Promise.resolve({ data: rosterRows, error: null }),
+      { eq },
+    );
+    from.mockImplementation(((table: string) => {
+      if (table === "class_roster") return { select: () => rosterSelect };
+      return {
+        select: () => ({
+          order: () =>
+            Promise.resolve({
+              data: [classRow("c1"), classRow("c2")],
+              error: null,
+            }),
+          eq: () => ({
+            maybeSingle: () =>
+              Promise.resolve({ data: classRow("c1"), error: null }),
+          }),
+        }),
+      };
+    }) as unknown as typeof supabase.from);
+    return { eq };
+  };
+
+  it("counts class_roster rows per class and never embeds class_members", async () => {
+    // c1: 재원 2명(퇴원생 1명은 view에서 빠져 있다), c2: 0명
+    mockTables([{ class_id: "c1" }, { class_id: "c1" }]);
+    const rows = await listClasses();
+    expect(rows.map((r) => [r.id, r.memberCount])).toEqual([
+      ["c1", 2],
+      ["c2", 0],
+    ]);
+    expect(from).not.toHaveBeenCalledWith("class_members");
+  });
+
+  it("getClass counts only that class's roster rows", async () => {
+    const { eq } = mockTables([{ class_id: "c1" }]);
+    const row = await getClass("c1");
+    expect(row?.memberCount).toBe(1);
+    expect(eq).toHaveBeenCalledWith("class_id", "c1");
   });
 });
