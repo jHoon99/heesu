@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Gowun_Batang } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Providers } from "./providers";
 
 const pretendard = localFont({
   src: "./fonts/PretendardVariable.woff2",
@@ -23,7 +24,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ko" className={`${pretendard.variable} ${gowun.variable}`}>
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
