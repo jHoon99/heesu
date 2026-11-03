@@ -283,6 +283,13 @@
   }
 }
 
+/* 부드러운 스크롤은 동작 줄이기를 켜지 않았을 때만 */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 /* 동작 줄이기: 모든 CSS 모션 끔 (Motion 컴포넌트는 <HeesuMotion>이 처리) */
 @media (prefers-reduced-motion: reduce) {
   *,
