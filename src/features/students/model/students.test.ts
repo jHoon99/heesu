@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { CONTROL_CHAR_MESSAGE } from "@/core/text";
 import {
   filterStudents,
   parseStudentRow,
   studentCreateSchema,
+  studentEditSchema,
   type StudentSummary,
 } from "./students";
 
@@ -15,6 +17,13 @@ const base = {
 };
 
 describe("studentCreateSchema", () => {
+  it("rejects a name with a control character", () => {
+    const r = studentCreateSchema.safeParse({ ...base, name: "하늘\u0000" });
+    expect(r.error?.issues.map((i) => i.message)).toEqual([
+      CONTROL_CHAR_MESSAGE,
+    ]);
+  });
+
   it("trims and lowercases the login id", () => {
     const r = studentCreateSchema.parse({ ...base, loginId: " Haneul " });
     expect(r.loginId).toBe("haneul");
@@ -91,5 +100,19 @@ describe("filterStudents", () => {
 
   it.each(["하 늘", "HANEUL"])("finds by %j", (q) => {
     expect(filterStudents(list, "all", q).map((s) => s.id)).toEqual(["1"]);
+  });
+});
+
+describe("studentEditSchema", () => {
+  it("rejects a name with a control character", () => {
+    const r = studentEditSchema.safeParse({
+      name: "하늘\u0000",
+      grade: "중1",
+      status: "active",
+      joinedAt: "2026-11-05",
+    });
+    expect(r.error?.issues.map((i) => i.message)).toEqual([
+      CONTROL_CHAR_MESSAGE,
+    ]);
   });
 });

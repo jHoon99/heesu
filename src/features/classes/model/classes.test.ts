@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { CONTROL_CHAR_MESSAGE } from "@/core/text";
 import {
   classFormSchema,
   formatSchedule,
@@ -72,6 +73,16 @@ describe("classFormSchema", () => {
         ],
       }).success,
     ).toBe(true);
+  });
+  it("rejects a name with a control character", () => {
+    const r = classFormSchema.safeParse({
+      ...base,
+      name: "반\u001b",
+      schedule: [],
+    });
+    expect(r.error?.issues.map((i) => i.message)).toEqual([
+      CONTROL_CHAR_MESSAGE,
+    ]);
   });
   it("rejects an empty name", () => {
     expect(

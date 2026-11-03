@@ -25,7 +25,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Client updates/deletes chain `.select(...)` and treat 0 rows as `SaveNotAppliedError` (`src/core/supabase/saveNotApplied.ts`).
 - Edit screens load fresh data (`refetchOnMount: "always"`, render after `isFetchedAfterMount`). Full-page error only when `isError && data === undefined`; a failed background refetch keeps the content.
 - Mutations carrying secrets (passwords) use `gcTime: 0` and `reset()` after settling; never keep plaintext in refs/state beyond the form.
-- User-visible `raise exception` (P0001) texts are Korean "-해요" (shown verbatim).
+- Client-facing `raise exception` (P0001) text must be Korean "-해요" with how to fix it — `classifyError` shows it verbatim.
+- Names shown in admin views reject control characters in both the DB (check constraint) and the zod schema (`hasControlChars` in `src/core/text.ts`).
 - Class-scoped student lists must exclude `status = 'left'` (filter in RLS/view, not per screen).
 - New RLS policies wrap helpers as `(select private.is_admin())`.
 - Local dev must run on :3000 (Edge Function origin allowlist).

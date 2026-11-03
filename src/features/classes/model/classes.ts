@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CONTROL_CHAR_MESSAGE, hasControlChars } from "@/core/text";
 
 export const DAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"] as const;
 export const LEVEL_LABELS = { middle: "중등", high: "고등" } as const;
@@ -39,7 +40,8 @@ export const classFormSchema = z.object({
     .string()
     .trim()
     .min(1, "반 이름을 1~30자로 입력해 주세요.")
-    .max(30, "반 이름을 1~30자로 입력해 주세요."),
+    .max(30, "반 이름을 1~30자로 입력해 주세요.")
+    .refine((v) => !hasControlChars(v), CONTROL_CHAR_MESSAGE),
   level: z.enum(["middle", "high"]),
   schedule: z
     .array(scheduleSlotSchema)

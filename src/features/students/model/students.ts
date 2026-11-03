@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CONTROL_CHAR_MESSAGE, hasControlChars } from "@/core/text";
 import { LOGIN_ID_RE, passwordSchema } from "@/features/auth";
 import { GRADES, type Grade } from "@/features/consultations";
 
@@ -28,7 +29,8 @@ const nameSchema = z
   .refine((v) => {
     const n = [...v].length;
     return n >= 1 && n <= 20;
-  }, NAME_MESSAGE);
+  }, NAME_MESSAGE)
+  .refine((v) => !hasControlChars(v), CONTROL_CHAR_MESSAGE);
 
 const gradeSchema = z.enum(GRADES, { error: GRADE_MESSAGE });
 

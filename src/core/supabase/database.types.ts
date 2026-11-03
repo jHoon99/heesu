@@ -5,7 +5,33 @@ export type Database = {
   
   "public": {
           Tables: {
-            "class_members": {
+            "attendance": {
+                  Row: {
+                    "session_id": string,"status": Database["public"]['Enums']["attendance_status"],"student_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "session_id": string,"status"?: Database["public"]['Enums']["attendance_status"],"student_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "session_id"?: string,"status"?: Database["public"]['Enums']["attendance_status"],"student_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "attendance_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "sessions"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "attendance_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"class_members": {
                   Row: {
                     "class_id": string,"created_at": string,"student_id": string
                   }
@@ -79,6 +105,52 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"homework_checks": {
+                  Row: {
+                    "session_id": string,"status": Database["public"]['Enums']["homework_status"],"student_id": string,"submitted_at": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "session_id": string,"status"?: Database["public"]['Enums']["homework_status"],"student_id": string,"submitted_at"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "session_id"?: string,"status"?: Database["public"]['Enums']["homework_status"],"student_id"?: string,"submitted_at"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "homework_checks_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "sessions"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "homework_checks_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"sessions": {
+                  Row: {
+                    "class_id": string,"created_at": string,"date": string,"homework": string | null,"homework_due": string | null,"id": string,"summary": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "class_id": string,"created_at"?: string,"date": string,"homework"?: string | null,"homework_due"?: string | null,"id"?: string,"summary"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "class_id"?: string,"created_at"?: string,"date"?: string,"homework"?: string | null,"homework_due"?: string | null,"id"?: string,"summary"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "sessions_class_id_fkey"
+      columns: ["class_id"]
+isOneToOne: false
+      referencedRelation: "classes"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"site_content": {
                   Row: {
                     "key": string,"updated_at": string,"value": NonNullable<Json>
@@ -130,7 +202,27 @@ isOneToOne: true
                 }
           }
           Views: {
-            [_ in never]: never
+            "class_roster": {
+                  Row: {
+                    "class_id": string | null,"grade": Database["public"]['Enums']["school_grade"] | null,"name": string | null,"status": Database["public"]['Enums']["student_status"] | null,"student_id": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    {
+      foreignKeyName: "class_members_class_id_fkey"
+      columns: ["class_id"]
+isOneToOne: false
+      referencedRelation: "classes"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "class_members_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
+                  ]
+                }
           }
           Functions: {
             "admin_user_exists":
@@ -144,10 +236,13 @@ isOneToOne: true
                            },
 "submit_consultation":
 { Args: { "p_consent_version": string,"p_grade": Database["public"]['Enums']["school_grade"],"p_message": string,"p_parent_name": string,"p_phone": string }; Returns: string
+                           },
+"submit_homework":
+{ Args: { "p_session_id": string }; Returns: string
                            }
           }
           Enums: {
-            "class_level": "middle"|"high","consent_method": "written"|"phone"|"kakao","consultation_status": "new"|"contacted"|"enrolled"|"on_hold","school_grade": "중1"|"중2"|"중3"|"고1"|"고2"|"고3","student_status": "active"|"paused"|"left"
+            "attendance_status": "none"|"present"|"late"|"absent"|"makeup","class_level": "middle"|"high","consent_method": "written"|"phone"|"kakao","consultation_status": "new"|"contacted"|"enrolled"|"on_hold","homework_status": "none"|"done"|"missing","school_grade": "중1"|"중2"|"중3"|"고1"|"고2"|"고3","student_status": "active"|"paused"|"left"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -263,7 +358,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "class_level": ["middle", "high"],"consent_method": ["written", "phone", "kakao"],"consultation_status": ["new", "contacted", "enrolled", "on_hold"],"school_grade": ["중1", "중2", "중3", "고1", "고2", "고3"],"student_status": ["active", "paused", "left"]
+            "attendance_status": ["none", "present", "late", "absent", "makeup"],"class_level": ["middle", "high"],"consent_method": ["written", "phone", "kakao"],"consultation_status": ["new", "contacted", "enrolled", "on_hold"],"homework_status": ["none", "done", "missing"],"school_grade": ["중1", "중2", "중3", "고1", "고2", "고3"],"student_status": ["active", "paused", "left"]
           }
         }
 } as const
