@@ -23,6 +23,7 @@ describe("parseSiteContent", () => {
       tuition: { monthly: "월 1", textbook: "별도", note: "안내" },
       contact: { phone: "063", address: "전주" },
       legal: { academyName: "희수", registrationNo: "1", subjects: "영어", tuitionNotice: "게시" },
+      pointsGoal: 30,
     });
   });
 
@@ -74,5 +75,12 @@ describe("parseSiteContent", () => {
 
   it("ignores unknown keys", () => {
     expect(parseSiteContent([{ key: "points_goal", value: { a: 1 } }])).toEqual(EMPTY_SITE_CONTENT);
+  });
+
+  it("reads points_goal only when it is an integer from 1 to 10000", () => {
+    const goal = (value: unknown) => parseSiteContent([{ key: "points_goal", value }]).pointsGoal;
+    expect(goal(50)).toBe(50);
+    for (const bad of ["50", 0, 10001, 2.5, null]) expect(goal(bad)).toBe(30);
+    expect(parseSiteContent([]).pointsGoal).toBe(30);
   });
 });

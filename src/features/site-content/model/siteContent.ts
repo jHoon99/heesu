@@ -21,7 +21,10 @@ export type SiteContent = {
   tuition: Tuition;
   contact: Contact;
   legal: Legal;
+  pointsGoal: number;
 };
+
+export const DEFAULT_POINTS_GOAL = 30;
 
 export const EMPTY_SITE_CONTENT: SiteContent = {
   notice: null,
@@ -29,6 +32,7 @@ export const EMPTY_SITE_CONTENT: SiteContent = {
   tuition: { monthly: null, textbook: null, note: null },
   contact: { phone: null, address: null },
   legal: { academyName: null, registrationNo: null, subjects: null, tuitionNotice: null },
+  pointsGoal: DEFAULT_POINTS_GOAL,
 };
 
 // Trimmed non-empty string, otherwise null. Never throws.
@@ -98,6 +102,12 @@ export function parseSiteContent(rows: { key: string; value: unknown }[]): SiteC
         result.legal = p.success ? p.data : EMPTY_SITE_CONTENT.legal;
         break;
       }
+      case "points_goal":
+        result.pointsGoal =
+          typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 10000
+            ? value
+            : DEFAULT_POINTS_GOAL;
+        break;
     }
   }
   return result;

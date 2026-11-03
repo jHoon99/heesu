@@ -33,5 +33,6 @@ describe("useSiteContent", () => {
     const { result } = renderHook(() => useSiteContent(), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.content).toEqual(EMPTY_SITE_CONTENT);
+    expect(result.current.isSuccess).toBe(false);
   });
 });

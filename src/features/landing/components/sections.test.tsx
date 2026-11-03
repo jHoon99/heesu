@@ -20,6 +20,7 @@ vi.mock("@/features/consultations", () => ({
 const ADDRESS = "전북 전주시 완산구 1";
 
 const FILLED: SiteContent = {
+  pointsGoal: 30,
   notice: null,
   classes: [
     { name: "기초반", grades: "중1", schedule: "월·수 17:00", capacity: 8 },
