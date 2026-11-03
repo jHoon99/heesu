@@ -2,11 +2,15 @@
 // 순서: Origin 허용 목록 → 메서드 → 본문 검증·정규화 → Turnstile → RPC.
 // DB 오류 문구는 클라이언트에 보내지 않고, 서버 로그에도 요청 값(이름·번호 등)을 남기지 않는다.
 
-export const ALLOWED_ORIGINS: readonly string[] = [
-  "http://localhost:3000",
-  "https://dev.heesu.pages.dev",
-  "https://heesu.pages.dev",
-];
+import {
+  ALLOWED_ORIGINS,
+  charLength,
+  corsHeaders,
+  describeError,
+  json,
+} from "../_shared/http.ts";
+
+export { ALLOWED_ORIGINS };
 
 export const ACCEPTED_CONSENT_VERSIONS: readonly string[] = ["2026-11-05"];
 
@@ -51,9 +55,6 @@ const MESSAGES = {
 
 type Invalid = { ok: false; message: string };
 type Parsed = { ok: true; token: string; input: SubmitInput };
-
-// Postgres char_length와 같게 코드 포인트 단위로 센다.
-const charLength = (s: string) => [...s].length;
 
 /** 숫자 사이 공백·하이픈만 허용하고 010-XXXX-XXXX로 맞춘다. 그 밖의 형식은 null. */
 function normalizePhone(raw: string): string | null {
@@ -125,40 +126,6 @@ function parseBody(raw: string): Parsed | Invalid {
       consentVersion: b.consentVersion,
     },
   };
-}
-
-function corsHeaders(origin: string): Record<string, string> {
-  return {
-    "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers":
-      "authorization, x-client-info, apikey, content-type",
-    "Access-Control-Max-Age": "600",
-    Vary: "Origin",
-  };
-}
-
-function json(status: number, body: unknown, origin: string | null): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      ...(origin ? corsHeaders(origin) : { Vary: "Origin" }),
-      "content-type": "application/json",
-    },
-  });
-}
-
-/** 로그에는 오류 종류와 코드만 남긴다(메시지·details에는 요청 값이 들어 있을 수 있다). */
-function describeError(err: unknown): { name: string; code: string | null } {
-  const name = err instanceof Error ? err.name : typeof err;
-  const code =
-    typeof err === "object" &&
-    err !== null &&
-    "code" in err &&
-    typeof (err as { code: unknown }).code === "string"
-      ? (err as { code: string }).code
-      : null;
-  return { name, code };
 }
 
 function firstForwardedIp(req: Request): string | null {
