@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { supabase } from "@/core/supabase/client";
 import { SaveNotAppliedError } from "@/core/supabase/saveNotApplied";
-import { getBoard, setAttendance, setHomework } from "./attendance";
+import {
+  getBoard,
+  getDayProgress,
+  setAttendance,
+  setHomework,
+} from "./attendance";
 
 vi.mock("@/core/supabase/client", () => ({ supabase: { from: vi.fn() } }));
 
@@ -14,7 +19,15 @@ function mockTables(results: Record<string, unknown>) {
   const calls: Call[] = [];
   from.mockImplementation(((table: string) => {
     const builder: Record<string, unknown> = {};
-    for (const method of ["select", "eq", "in", "order", "limit", "upsert"]) {
+    for (const method of [
+      "select",
+      "eq",
+      "neq",
+      "in",
+      "order",
+      "limit",
+      "upsert",
+    ]) {
       builder[method] = (...args: unknown[]) => {
         calls.push({ table, method, args });
         return builder;
@@ -135,5 +148,66 @@ describe("getBoard", () => {
       method: "in",
       args: ["session_id", ["s2", "s1"]],
     });
+  });
+});
+
+describe("getDayProgress", () => {
+  beforeEach(() => {
+    from.mockReset();
+  });
+
+  it("returns an empty map without further requests when no session is on that date", async () => {
+    const calls = mockTables({ sessions: { data: [], error: null } });
+    expect(await getDayProgress("2026-11-04")).toEqual({});
+    expect(new Set(calls.map((c) => c.table))).toEqual(new Set(["sessions"]));
+  });
+
+  it("counts only active members with a non-none attendance, per class", async () => {
+    const calls = mockTables({
+      sessions: {
+        data: [
+          { id: "s1", class_id: "c1" },
+          { id: "s2", class_id: "c2" },
+        ],
+        error: null,
+      },
+      class_roster: {
+        data: [
+          { class_id: "c1", student_id: "u1", status: "active" },
+          { class_id: "c1", student_id: "u2", status: "active" },
+          { class_id: "c1", student_id: "u3", status: "left" },
+          { class_id: "c2", student_id: "u4", status: "active" },
+        ],
+        error: null,
+      },
+      attendance: {
+        data: [
+          { session_id: "s1", student_id: "u1", status: "present" },
+          { session_id: "s1", student_id: "u3", status: "present" },
+          { session_id: "s2", student_id: "u1", status: "late" },
+        ],
+        error: null,
+      },
+    });
+    expect(await getDayProgress("2026-11-04")).toEqual({
+      c1: { sessionId: "s1", entered: 1, total: 2 },
+      c2: { sessionId: "s2", entered: 0, total: 1 },
+    });
+    expect(calls).toContainEqual({
+      table: "sessions",
+      method: "eq",
+      args: ["date", "2026-11-04"],
+    });
+    expect(calls).toContainEqual({
+      table: "attendance",
+      method: "neq",
+      args: ["status", "none"],
+    });
+  });
+
+  it("throws the supabase error", async () => {
+    const err = { code: "42501", message: "권한이 없어요." };
+    mockTables({ sessions: { data: null, error: err } });
+    await expect(getDayProgress("2026-11-04")).rejects.toBe(err);
   });
 });
