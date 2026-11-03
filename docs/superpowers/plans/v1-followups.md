@@ -27,7 +27,6 @@
 - Phone editor validation: `telHref` joins every digit (extensions) — validate phone format in the editor.
 - Consent version is duplicated in `src/features/consultations/model/consultation.ts` and `supabase/functions/submit-consultation/handler.ts` — add a cross-check test or single source when consents change.
 - pg_cron deletion of unregistered consultations after 6 months (privacy page states it).
-- `student_private` column grants (upsert can rewrite student_id).
 - Don't export CONSENT_VERSION/TURNSTILE_SITE_KEY from consultations index; landing bundle pulls react-query via consultations index.
 - Optional: pass admin id as audit hint for service_role writes.
 
@@ -56,3 +55,17 @@
 
 ## videos-questions
 - Replace the unanswered-question count `UNANSWERED_QUESTIONS_PLACEHOLDER` (`src/features/today/model/today.ts`) with the real hook.
+
+## student-app (from class-ops final review)
+- `my_rank()` must be a security definer RPC returning only {rank,total}; active students only; ties 1,2,2,4; add to 00_meta allowlist.
+- Decide `submit_homework` rules for due dates and paused students.
+
+## demo-deploy-qa (from class-ops final review)
+- `today` keys computed at render (AttendanceScreen, TodayScreen) — a tab open past midnight keeps yesterday until re-render.
+- Attendance board "recent 8" includes future-dated sessions — consider `.lte("date", today)`.
+- Membership trigger blocks admin edits on past cells for removed students (board hides them).
+- `classes` INSERT column-level grant.
+- AttendanceTable: `th` scope=col/colgroup; roving tab stops; showHomework=false header + controlled double-click tests.
+- Attendance undo on a stale toast overwrites a newer value (per-cell sequence number would fix ABA too).
+- 오늘 card shows 수업 시작 briefly while progress loads; screen test for starting a pre-existing session.
+- Points history `limit(50)` note; `aria-selected` on `tr`; history row / negative styling / failure / invalidation tests.
