@@ -4,7 +4,7 @@
 -- 정렬·중복 제거된 text[]로 비교한다. 새 함수를 anon/authenticated에 열 때는
 -- 아래 해당 스키마의 허용 목록에 이름을 알파벳 순으로 추가한다.
 -- (예: guardian_view 추가 시 anon public 목록을 '{guardian_view}'::text[]로)
--- `submit_consultation`은 service_role 전용이라 anon·authenticated 목록에 들어가지 않는다.
+-- `admin_user_exists`·`submit_consultation`은 service_role 전용이라 목록에 없다.
 begin;
 set local client_min_messages = warning;
 create extension if not exists pgtap with schema extensions;
@@ -40,7 +40,7 @@ select is(
      join pg_catalog.pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public'
       and has_function_privilege('authenticated', p.oid, 'execute')),
-  '{}'::text[],
+  '{my_role,password_changed}'::text[],
   'public: authenticated가 실행할 수 있는 함수 = 허용 목록'
 );
 
@@ -51,7 +51,7 @@ select is(
      join pg_catalog.pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'private'
       and has_function_privilege('authenticated', p.oid, 'execute')),
-  '{is_admin}'::text[],
+  '{is_admin,my_student_id}'::text[],
   'private: authenticated가 실행할 수 있는 함수 = 허용 목록'
 );
 
