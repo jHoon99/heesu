@@ -19,3 +19,8 @@ export {
   type StatusChipProps,
 } from "./components/StatusChip/StatusChip";
 export { Toast, type ToastProps } from "./components/Toast/Toast";
+export {
+  ToastProvider,
+  useToast,
+  type ToastInput,
+} from "./components/Toast/ToastProvider";
