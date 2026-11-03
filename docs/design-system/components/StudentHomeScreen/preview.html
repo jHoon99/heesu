@@ -1,0 +1,48 @@
+<!-- @dsCard group="Screens" height=1400 width=390 subtitle="학생 홈 · 숙제를 체크해 보세요 — +P, 카운트업, 보상 달성 꽃가루 · 모바일 390" -->
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>StudentHomeScreen</title>
+<style>body{padding:20px;padding:0;background:var(--bg-page);} .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center} .col{display:flex;flex-direction:column;gap:16px} .cap{font:500 12px/16px var(--font-sans);color:var(--text-muted);margin:0 0 8px}</style></head>
+<body>
+<div id="root"></div>
+<script>
+var H = window.Heesu, h = React.createElement;
+
+function HW(p){ return h('div',{className:'hs-hw'},
+  h(H.Checkbox,{checked:p.done,onChange:p.onToggle,'aria-label':p.title,label:''}),
+  h('div',{className:'hs-hw__main'},h('div',{className:'hs-hw__title',style:p.done?{color:'var(--text-muted)',textDecoration:'line-through',transition:'color var(--dur-fast) var(--ease-out)'}:{transition:'color var(--dur-fast) var(--ease-out)'}},p.title),h('div',{className:'hs-hw__meta'},p.meta)),
+  h(H.PointsBurst,{amount:p.pt,trigger:p.done?p.title:0}, p.done?h(H.Badge,{tone:'points'},'+'+p.pt+'P'):h('span',{style:{font:'600 12px/16px var(--font-sans)',color:'var(--points-ink)'}},'+'+p.pt+'P'))); }
+var HWS=[{title:'Unit 4 단어 30개 외우기',meta:'단어 · 내일 단어 시험',pt:30},{title:'본문 해석 노트 p.52–53',meta:'독해 · 사진 제출',pt:40},{title:'현재완료 영상 보고 문제 10개',meta:'문법 · 영상 12분',pt:30}];
+var BASE=1250, GOAL=1350;
+function App(){
+ var d=React.useState([true,false,false]); var done=d[0];
+ var pts=BASE+HWS.reduce(function(a,x,i){return a+(done[i]?x.pt:0);},0);
+ var reached=pts>=GOAL;
+ var toggle=function(i){return function(){var n=done.slice();n[i]=!n[i];d[1](n);};};
+ return h('div',{className:'hs',style:{width:390,minHeight:1200,background:'var(--bg-page)',position:'relative',paddingBottom:80,overflow:'hidden'}},
+ h(H.Confetti,{fire:reached,originY:0.12}),
+ h('header',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'20px 16px 8px'}},
+  h('div',null,h('div',{style:{font:'500 13px/18px var(--font-sans)',color:'var(--text-muted)'}},'11월 5일 수요일 · 중2 A반'),h('h1',{style:{margin:'2px 0 0',font:'700 24px/32px var(--font-sans)',letterSpacing:'-0.02em'}},'하늘아, 오늘도 한 문장씩!')),
+  h('button',{className:'hs-iconbtn','aria-label':'알림'},h(H.Icon,{name:'bell'}))),
+ h('div',{className:'hs-stagger',style:{padding:'8px 16px',display:'flex',flexDirection:'column',gap:16}},
+  h(H.PointsProgress,{points:pts,goal:GOAL,goalLabel:'문화상품권',rank:3,delta:pts-BASE+0||undefined}),
+  h(H.Card,{title:'오늘 숙제',subtitle:'마감 오늘 22:00 · 체크해 보세요',actions:h(H.Badge,{tone:'brand'},done.filter(Boolean).length+' / 3')},
+   HWS.map(function(x,i){return h(HW,Object.assign({key:i,done:done[i],onToggle:toggle(i)},x));})),
+  h('div',null,
+   h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',margin:'8px 0 12px'}},h('h2',{style:{margin:0,font:'700 20px/28px var(--font-sans)',letterSpacing:'-0.015em'}},'새 영상'),h('a',{href:'#',style:{font:'600 14px/20px var(--font-sans)',color:'var(--text-brand)',textDecoration:'none'}},'전체 보기')),
+   h(H.VideoCard,{unit:'Unit 4',title:'현재완료 한 번에 정리 — have p.p.의 3가지 쓰임',subtitle:'문법',duration:'12:40',isNew:true}),
+   h('div',{style:{display:'flex',flexDirection:'column',gap:12,marginTop:16}},
+    h(H.VideoCard,{layout:'row',unit:'U4',title:'본문 해석 1강: The Last Leaf',subtitle:'독해',duration:'18:05',progress:45}),
+    h(H.VideoCard,{layout:'row',unit:'U3',title:'관계대명사 who / which 구분',subtitle:'문법',duration:'09:12',progress:100}))),
+  h(H.Card,{title:'이번 주 우리 반 랭킹',subtitle:'숙제·출석 포인트 합계'},
+   [['1','윤시우',1460],['2','박서연',1330],['3','김하늘 (나)',pts]].map(function(r,i){return h('div',{key:i,style:{display:'flex',alignItems:'center',gap:12,padding:'8px 0',borderTop:i?'1px solid var(--border)':0}},
+    h('span',{style:{width:28,height:28,borderRadius:'50%',display:'grid',placeItems:'center',font:'800 13px/1 var(--font-sans)',background:i===0?'var(--points)':'var(--gray-100)',color:i===0?'var(--brown-900)':'var(--gray-700)'}},r[0]),
+    h('span',{style:{flex:1,font:(i===2?'700':'500')+' 15px/22px var(--font-sans)',color:i===2?'var(--text-brand)':'var(--text)'}},r[1]),
+    h('span',{style:{font:'700 14px/20px var(--font-sans)',color:'var(--points-ink)'}},h(H.CountUp,{value:r[2],from:r[2],immediate:true}),'P'));}))),
+ reached?h('div',{style:{position:'absolute',left:16,right:16,bottom:84,display:'flex',justifyContent:'center'}},h(H.Toast,{tone:'points'},'문화상품권 보상 달성! 원장님께 받아 가세요')):null,
+ h('div',{style:{position:'absolute',left:0,right:0,bottom:0}},h(H.StudentTabBar,{active:'home',items:[{value:'home',label:'홈',icon:'home'},{value:'homework',label:'숙제',icon:'book',dot:true},{value:'videos',label:'강의',icon:'video'},{value:'rank',label:'랭킹',icon:'trophy'},{value:'me',label:'내 정보',icon:'user'}]})));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>
