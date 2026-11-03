@@ -38,3 +38,10 @@
 - `supabase functions deploy submit-consultation` (verify_jwt=false comes from config.toml).
 - Turnstile widget allowed hostnames: `heesu.pages.dev`, `dev.heesu.pages.dev`.
 - pg_cron deletion of unregistered consultations (plan 6) must ship before the page goes public (`/privacy` promises deletion after 6 months).
+- Re-enable /privacy indexing (remove `robots: { index: false }` from the page metadata) + add it back to `public/sitemap.xml` after legal review and the Blank values are filled.
+- `supabase link` + `supabase db push` for all migrations.
+- Deploy functions and set secrets (`TURNSTILE_SECRET_KEY` test key for the demo).
+- Hosted smoke test: real submit from dev.heesu.pages.dev; `curl` with a foreign Origin must return 403.
+- Check whether the project disabled legacy API keys — if so, `SUPABASE_SERVICE_ROLE_KEY` in functions must come from a custom secret holding the new `sb_secret_…` key.
+- Test Turnstile keys let bots pass until the real keys are in on 12/1.
+- Local build needs `.env.local` (copy values from `supabase status`).
