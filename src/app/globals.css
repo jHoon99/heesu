@@ -1,6 +1,6 @@
 /* app/globals.css — 희수영어 tokens (Tailwind CSS v4 + Next.js) */
 @import "tailwindcss";
-/* Pretendard는 next/font/local 로 불러오는 것을 권장 (layout.tsx 예시는 개발 연결 섹션) */
+/* Pretendard는 layout.tsx에서 동적 서브셋 CSS(fonts/pretendard)로 불러와요 */
 
 :root {
   /* color */
@@ -68,9 +68,8 @@
   --points-soft: var(--honey-100);
   /* font */
   --font-sans:
-    var(--font-pretendard), "Pretendard Variable", Pretendard, -apple-system,
-    BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Noto Sans KR",
-    sans-serif;
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
   --font-serif:
     var(--font-gowun), "Gowun Batang", "Nanum Myeongjo", AppleMyungjo, serif;
   /* spacing (4px) */

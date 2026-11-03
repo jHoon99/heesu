@@ -1,15 +1,8 @@
 import type { Metadata } from "next";
 import { Gowun_Batang } from "next/font/google";
-import localFont from "next/font/local";
+import "./fonts/pretendard/pretendardvariable-dynamic-subset.css";
 import "./globals.css";
 import { Providers } from "./providers";
-
-const pretendard = localFont({
-  src: "./fonts/PretendardVariable.woff2",
-  weight: "45 920",
-  variable: "--font-pretendard",
-  display: "swap",
-});
 
 const gowun = Gowun_Batang({
   weight: ["400", "700"],
@@ -23,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ko" className={`${pretendard.variable} ${gowun.variable}`}>
+    <html lang="ko" className={`${gowun.variable}`}>
       <body>
         <Providers>{children}</Providers>
       </body>
