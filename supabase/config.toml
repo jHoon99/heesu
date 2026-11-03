@@ -386,6 +386,11 @@ deno_version = 2
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 
+# 공개 상담 신청. publishable 키는 JWT가 아니라서 게이트웨이 JWT 검증을 끄고,
+# 함수가 Origin 허용 목록과 Turnstile로 막는다(설계 13장 S4·S6).
+[functions.submit-consultation]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 56327

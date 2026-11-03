@@ -30,10 +30,15 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: 2.9.7
+      - run: npm run fn:check
 
       - uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3.2.0
         with:
           version: 2.121.0
+      # edge-runtime 제외: Edge Function은 위 fn:check의 Deno 단위 테스트로 검사해서 런타임이 필요 없다.
       - run: supabase start -x studio,imgproxy,mailpit,edge-runtime,logflare,vector,supavisor
       - run: npm run db:test
 
