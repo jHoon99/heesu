@@ -5,16 +5,46 @@ export type Database = {
   
   "public": {
           Tables: {
-            [_ in never]: never
+            "consultations": {
+                  Row: {
+                    "consent_version": string,"consented_at": string,"created_at": string,"grade": Database["public"]['Enums']["school_grade"],"id": string,"memo": string | null,"message": string | null,"parent_name": string,"phone": string,"status": Database["public"]['Enums']["consultation_status"]
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "consent_version": string,"consented_at": string,"created_at"?: string,"grade": Database["public"]['Enums']["school_grade"],"id"?: string,"memo"?: string | null,"message"?: string | null,"parent_name": string,"phone": string,"status"?: Database["public"]['Enums']["consultation_status"]
+                  }
+                  Update: {
+                    "consent_version"?: string,"consented_at"?: string,"created_at"?: string,"grade"?: Database["public"]['Enums']["school_grade"],"id"?: string,"memo"?: string | null,"message"?: string | null,"parent_name"?: string,"phone"?: string,"status"?: Database["public"]['Enums']["consultation_status"]
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"site_content": {
+                  Row: {
+                    "key": string,"updated_at": string,"value": NonNullable<Json>
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "key": string,"updated_at"?: string,"value": NonNullable<Json>
+                  }
+                  Update: {
+                    "key"?: string,"updated_at"?: string,"value"?: NonNullable<Json>
+                  }
+                  Relationships: [
+                    
+                  ]
+                }
           }
           Views: {
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "submit_consultation":
+{ Args: { "p_consent_version": string,"p_grade": Database["public"]['Enums']["school_grade"],"p_message": string,"p_parent_name": string,"p_phone": string }; Returns: string
+                           }
           }
           Enums: {
-            [_ in never]: never
+            "consultation_status": "new"|"contacted"|"enrolled"|"on_hold","school_grade": "중1"|"중2"|"중3"|"고1"|"고2"|"고3"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -130,7 +160,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            
+            "consultation_status": ["new", "contacted", "enrolled", "on_hold"],"school_grade": ["중1", "중2", "중3", "고1", "고2", "고3"]
           }
         }
 } as const
