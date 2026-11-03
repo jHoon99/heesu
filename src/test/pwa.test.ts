@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { metadata, viewport } from "@/app/s/layout";
 import { PWA_BACKGROUND_COLOR, PWA_THEME_COLOR } from "@/core/pwa";
 
 const read = (p: string) => readFileSync(join(process.cwd(), p));
@@ -42,5 +43,24 @@ describe("manifest.webmanifest", () => {
 
   it("apple-touch-icon is 180x180", () => {
     expectPng("public/apple-touch-icon.png", 180);
+  });
+});
+
+describe("/s layout pwa metadata", () => {
+  it("links the manifest and sets theme/viewport for the student app only", () => {
+    expect(metadata.manifest).toBe("/manifest.webmanifest");
+    expect(metadata.robots).toEqual({ index: false });
+    expect(viewport.themeColor).toBe(PWA_THEME_COLOR);
+    expect(viewport.viewportFit).toBe("cover");
+  });
+
+  it("only the student layout and shell wire the manifest and service worker", () => {
+    for (const p of [
+      "src/app/layout.tsx",
+      "src/app/(landing)/page.tsx",
+      "src/app/admin/layout.tsx",
+    ]) {
+      expect(read(p).toString()).not.toMatch(/manifest|registerServiceWorker/);
+    }
   });
 });
