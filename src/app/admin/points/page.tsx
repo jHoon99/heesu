@@ -1,5 +1,5 @@
-import { ComingSoonScreen } from "@/features/admin-shell";
+import { PointsScreen } from "@/features/points";
 
 export default function Page() {
-  return <ComingSoonScreen title="포인트" />;
+  return <PointsScreen />;
 }
