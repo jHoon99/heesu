@@ -9,6 +9,7 @@ const badge = cva(
     variants: {
       tone: {
         neutral: "bg-gray-100 text-gray-700",
+        warning: "bg-warning-50 text-warning-700",
         brand: "bg-primary-soft text-text-brand",
         solid: "bg-primary text-text-on-brand",
         points: "bg-points-soft text-points-ink",
@@ -20,7 +21,7 @@ const badge = cva(
 );
 
 export interface BadgeProps {
-  tone?: "neutral" | "brand" | "solid" | "points" | "new" | "count";
+  tone?: "neutral" | "warning" | "brand" | "solid" | "points" | "new" | "count";
   icon?: LucideIcon;
   className?: string;
   children: ReactNode;

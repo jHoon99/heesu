@@ -70,6 +70,7 @@ export interface StatusChipProps {
   label?: string;
   size?: "sm" | "md";
   onClick?: () => void;
+  /** Accessible-name prefix only (e.g. "김하늘 11/3 출결"); the status word is appended automatically, so do not repeat it. */
   ariaLabel?: string;
 }
 

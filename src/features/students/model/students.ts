@@ -9,6 +9,12 @@ export const STATUS_LABELS = {
   left: "퇴원",
 } as const;
 
+export const STATUS_TONE = {
+  active: "brand",
+  paused: "warning",
+  left: "neutral",
+} as const;
+
 export type StudentStatus = keyof typeof STATUS_LABELS;
 const STATUSES = ["active", "paused", "left"] as const;
 

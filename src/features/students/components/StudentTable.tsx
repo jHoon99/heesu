@@ -1,14 +1,13 @@
 "use client";
 
 import { Badge } from "@/design-system";
-import { STATUS_LABELS, type StudentSummary } from "../model/students";
+import {
+  STATUS_LABELS,
+  STATUS_TONE,
+  type StudentSummary,
+} from "../model/students";
 
 const HEADERS = ["이름", "아이디", "학년", "학교", "반", "상태", "등록일"];
-const STATUS_TONE = {
-  active: "brand",
-  paused: "neutral",
-  left: "neutral",
-} as const;
 
 export function StudentTable({
   students,

@@ -18,6 +18,14 @@ export {
   type Homework,
   type StatusChipProps,
 } from "./components/StatusChip/StatusChip";
+export {
+  AttendanceTable,
+  AttendanceTableLegend,
+  summarizeAttendanceRow,
+  type AttendanceTableProps,
+  type AttendanceRecords,
+  type AttendanceCell,
+} from "./components/AttendanceTable/AttendanceTable";
 export { Toast, type ToastProps } from "./components/Toast/Toast";
 export {
   ToastProvider,

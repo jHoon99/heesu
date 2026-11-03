@@ -9,17 +9,12 @@ import { ConsentCard } from "../components/ConsentCard";
 import { GuardianCard } from "../components/GuardianCard";
 import { PasswordResetCard } from "../components/PasswordResetCard";
 import { StudentInfoCard } from "../components/StudentInfoCard";
-import { STATUS_LABELS } from "../model/students";
+import { STATUS_LABELS, STATUS_TONE } from "../model/students";
 import { useStudent } from "../state/useStudents";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const LIST_PATH = "/admin/students";
-const STATUS_TONE = {
-  active: "brand",
-  paused: "neutral",
-  left: "neutral",
-} as const;
 
 function NotFound() {
   return (
