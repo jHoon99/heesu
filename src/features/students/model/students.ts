@@ -22,13 +22,6 @@ const NAME_MESSAGE = "이름을 1~20자로 입력해 주세요.";
 const GRADE_MESSAGE = "학년을 골라 주세요.";
 const DATE_MESSAGE = "등록일을 2026-11-05 형식으로 입력해 주세요.";
 
-export function todayLocal(now: Date = new Date()): string {
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
 const nameSchema = z
   .string()
   .trim()

@@ -9,7 +9,10 @@ import { StudentListScreen } from "./StudentListScreen";
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 vi.mock("../data/students");
-let pointsResult: { data?: { studentId: string; total: number }[] } = {};
+let pointsResult: {
+  data?: { studentId: string; total: number }[];
+  isError?: boolean;
+} = {};
 vi.mock("@/features/points", () => ({ usePointTotals: () => pointsResult }));
 const list = vi.mocked(listStudents);
 
@@ -98,6 +101,18 @@ describe("StudentListScreen", () => {
     expect(cells[6]).toHaveTextContent("-"); // 포인트 열(학교도 "-"이라 칸 번호로)
     expect(cells[6]).not.toHaveTextContent("점");
     expect(screen.getByText("이민준")).toBeInTheDocument();
+  });
+
+  it("shows - in every points cell and keeps the list when the points query errors", async () => {
+    pointsResult = { data: undefined, isError: true };
+    setup();
+    await screen.findByRole("table");
+    for (const name of ["김하늘", "이민준"]) {
+      const row = screen.getByText(name).closest("tr") as HTMLElement;
+      const cell = within(row).getAllByRole("cell")[6];
+      expect(cell).toHaveTextContent("-");
+      expect(cell).not.toHaveTextContent("점");
+    }
   });
 
   it("opens the detail on Enter", async () => {
