@@ -6,6 +6,8 @@ const RAW_COLOR = /#[0-9a-fA-F]{3,8}\b|rgba?\(/;
 
 function walk(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {
+    // boundaries.test.ts creates and deletes zz-fixture paths concurrently.
+    if (name.includes("zz-fixture")) return [];
     const path = join(dir, name);
     return statSync(path).isDirectory() ? walk(path) : [path];
   });

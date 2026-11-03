@@ -3,7 +3,7 @@
 begin;
 set local client_min_messages = warning;
 create extension if not exists pgtap with schema extensions;
-select plan(27);
+select plan(29);
 
 insert into public.consultations (parent_name, phone, grade, consent_version, consented_at)
 values ('가짜보호자', '010-0000-0009', '중1', '2026-11-05', now());
@@ -12,6 +12,9 @@ insert into auth.users (id, email) values
   ('00000000-0000-4000-8000-00000000a003', 'admin3@example.test'),
   ('00000000-0000-4000-8000-00000000b003', 'nobody3@example.test');
 insert into private.admins (user_id) values ('00000000-0000-4000-8000-00000000a003');
+
+select table_privs_are('public', 'consultations', 'service_role', ARRAY['INSERT', 'SELECT'],
+  'service_role: consultations 권한은 SELECT·INSERT뿐');
 
 -- ─── anon: 테이블·RPC 모두 권한 에러 (0행이 아니라 42501) ────────────
 set local role anon;
@@ -107,6 +110,8 @@ select throws_ok($$insert into public.consultations (parent_name, phone, grade, 
   '22P02', null, '제약: 학년 enum에 없는 값은 거부');
 
 -- ─── 감사 로그 ───────────────────────────────────────────────────────
+select cmp_ok((select count(*)::int from public.consultations), '>', 0,
+  '감사: 검사할 consultations 행이 있다 (빈 테이블이면 아래 검사가 공허해진다)');
 select is(
   (select count(*)::int from public.consultations c
     where not exists (select 1 from private.audit_log a

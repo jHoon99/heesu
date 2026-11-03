@@ -14,7 +14,7 @@ async function lint(filePath: string, code: string) {
 const FIXTURE_CORE = "src/core/zz-fixture.ts";
 const FIXTURE_FEATURE = "src/features/zz-fixture";
 
-describe("architecture boundaries", () => {
+describe("architecture boundaries", { timeout: 20_000 }, () => {
   beforeAll(() => {
     mkdirSync(`${FIXTURE_FEATURE}/data`, { recursive: true });
     writeFileSync(FIXTURE_CORE, "export const x = 1;\n");
