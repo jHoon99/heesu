@@ -39,6 +39,14 @@ describe("public/_headers /*", () => {
     expect(csp).toContain(directive);
   });
 
+  it("frame-src allows only Turnstile (no map iframe)", () => {
+    const frameSrc = csp
+      .split(";")
+      .map((d) => d.trim())
+      .find((d) => d.startsWith("frame-src"));
+    expect(frameSrc).toBe("frame-src https://challenges.cloudflare.com");
+  });
+
   it.each([
     "X-Content-Type-Options: nosniff",
     "Referrer-Policy: strict-origin-when-cross-origin",
