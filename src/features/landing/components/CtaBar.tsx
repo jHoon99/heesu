@@ -3,9 +3,12 @@
 import { Phone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { buttonVariants, cn } from "@/design-system";
+import type { SiteContent } from "@/features/site-content";
+import { telHref } from "../model/links";
 import { shouldShowCtaBar } from "../model/sections";
 
-export function CtaBar() {
+export function CtaBar({ content }: { content: SiteContent }) {
+  const href = telHref(content.contact.phone);
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -39,8 +42,9 @@ export function CtaBar() {
       )}
     >
       <div className="flex gap-2 px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
-        {/* 전화번호가 정해지면 href를 달아요 */}
         <a
+          href={href ?? undefined}
+          aria-disabled={href ? undefined : "true"}
           aria-label="전화로 문의하기"
           className="flex size-12 shrink-0 items-center justify-center rounded-md border border-border-strong bg-bg-surface text-text hover:border-brown-300 hover:bg-bg-subtle"
         >

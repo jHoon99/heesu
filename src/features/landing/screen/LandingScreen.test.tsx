@@ -1,7 +1,32 @@
-import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  act,
+  render as rtlRender,
+  screen,
+  within,
+} from "@testing-library/react";
+import type { ReactElement } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { ToastProvider } from "@/design-system";
 import { LandingScreen } from "../index";
 import { SECTIONS } from "../model/sections";
+
+vi.mock("@/features/consultations", () => ({
+  ConsultForm: () => <div>폼 자리</div>,
+}));
+
+function render(ui: ReactElement) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return rtlRender(
+    <QueryClientProvider client={client}>
+      <ToastProvider>{ui}</ToastProvider>
+    </QueryClientProvider>,
+  );
+}
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe("LandingScreen", () => {
   it("renders the hero headline", () => {
@@ -50,5 +75,40 @@ describe("LandingScreen", () => {
     const top = container.querySelector("#top");
     expect(top).toBe(container.firstElementChild);
     expect(top?.tagName).not.toBe("MAIN");
+  });
+
+  it("lets the 상담 tab become active when the consult section is in view", () => {
+    let callback: IntersectionObserverCallback = () => {};
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(cb: IntersectionObserverCallback) {
+          callback = cb;
+        }
+        observe() {}
+        disconnect() {}
+        unobserve() {}
+      },
+    );
+    vi.stubGlobal("matchMedia", () => ({ matches: true }));
+    Element.prototype.scrollTo = vi.fn();
+    const { container } = render(<LandingScreen />);
+    const consult = container.querySelector("section#consult") as HTMLElement;
+    act(() => {
+      callback(
+        [
+          {
+            isIntersecting: true,
+            target: consult,
+          } as unknown as IntersectionObserverEntry,
+        ],
+        {} as IntersectionObserver,
+      );
+    });
+    const nav = screen.getByRole("navigation", { name: "섹션 바로가기" });
+    expect(within(nav).getByRole("link", { name: "상담" })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
   });
 });

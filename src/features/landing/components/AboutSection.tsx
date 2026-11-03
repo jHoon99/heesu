@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Reveal } from "@/design-system";
+import type { SiteContent } from "@/features/site-content";
 import { Blank } from "./Blank";
 import { SectionHeading } from "./SectionHeading";
 
@@ -36,7 +37,7 @@ function InfoRow({
   );
 }
 
-export function AboutSection() {
+export function AboutSection({ content }: { content: SiteContent }) {
   return (
     <section id="about" className="scroll-mt-31">
       <Reveal className="flex flex-col gap-4">
@@ -63,7 +64,7 @@ export function AboutSection() {
             <Blank>운영 시간</Blank>
           </InfoRow>
           <InfoRow icon={MapPin} label="위치">
-            <Blank>주소</Blank>
+            {content.contact.address ?? <Blank>주소</Blank>}
           </InfoRow>
         </div>
       </Reveal>

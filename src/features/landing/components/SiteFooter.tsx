@@ -1,15 +1,20 @@
 import { ChevronUp } from "lucide-react";
+import type { SiteContent } from "@/features/site-content";
 import { Blank } from "./Blank";
 
-const INFO = [
-  { label: "주소", blank: "주소" },
-  { label: "전화", blank: "전화번호" },
-  { label: "대표", blank: "원장 이름" },
-  { label: "사업자등록번호", blank: "번호" },
-  { label: "학원 등록번호", blank: "번호" },
-];
+export function SiteFooter({ content }: { content: SiteContent }) {
+  const { contact, legal } = content;
+  const INFO: { label: string; value: string | null; blank: string }[] = [
+    { label: "주소", value: contact.address, blank: "주소" },
+    { label: "전화", value: contact.phone, blank: "전화번호" },
+    { label: "대표", value: null, blank: "원장 이름" },
+    { label: "학원 명칭", value: legal.academyName, blank: "학원 명칭" },
+    { label: "학원 등록번호", value: legal.registrationNo, blank: "번호" },
+    { label: "교습과목", value: legal.subjects, blank: "교습과목" },
+    { label: "교습비", value: legal.tuitionNotice, blank: "교습비 안내" },
+    { label: "사업자등록번호", value: null, blank: "번호" },
+  ];
 
-export function SiteFooter() {
   return (
     <footer className="bg-brown-900 text-brown-100">
       <div className="mx-auto flex max-w-[720px] flex-col gap-6 px-4 pt-12 pb-28">
@@ -24,9 +29,14 @@ export function SiteFooter() {
           </a>
         </div>
         <div className="flex flex-col gap-2 text-body-sm">
-          {INFO.map(({ label, blank }) => (
+          {INFO.map(({ label, value, blank }) => (
             <span key={label}>
-              {label} <Blank tone="dark">{blank}</Blank>
+              {label}{" "}
+              {value ? (
+                <span>{value}</span>
+              ) : (
+                <Blank tone="dark">{blank}</Blank>
+              )}
             </span>
           ))}
         </div>
