@@ -15,6 +15,8 @@ export function Checkbox({
   error,
   id,
   className,
+  "aria-describedby": describedByProp,
+  "aria-invalid": ariaInvalidProp,
   ...rest
 }: CheckboxProps) {
   const autoId = useId();
@@ -22,7 +24,7 @@ export function Checkbox({
   const descId = `${inputId}-desc`;
   const errId = `${inputId}-err`;
   const describedBy =
-    [description ? descId : null, error ? errId : null]
+    [describedByProp, description ? descId : null, error ? errId : null]
       .filter(Boolean)
       .join(" ") || undefined;
 
@@ -32,7 +34,7 @@ export function Checkbox({
         {...rest}
         id={inputId}
         type="checkbox"
-        aria-invalid={error ? true : undefined}
+        aria-invalid={error ? true : ariaInvalidProp}
         aria-describedby={describedBy}
         className={cn(
           "mt-0.5 size-5 shrink-0 cursor-pointer rounded-sm accent-primary disabled:cursor-not-allowed",

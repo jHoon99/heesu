@@ -11,19 +11,20 @@ export function shouldRetryQuery(
   return failureCount < 2 && classifyError(error).kind === "network";
 }
 
+export function createQueryClient(): QueryClient {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 30_000,
+        retry: shouldRetryQuery,
+        refetchOnWindowFocus: true,
+      },
+      mutations: { retry: false },
+    },
+  });
+}
+
 export function QueryProvider({ children }: { children: ReactNode }) {
-  const [client] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 30_000,
-            retry: shouldRetryQuery,
-            refetchOnWindowFocus: true,
-          },
-          mutations: { retry: false },
-        },
-      }),
-  );
+  const [client] = useState(createQueryClient);
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }

@@ -35,6 +35,8 @@ export function Input({
   multiline = false,
   id,
   className,
+  "aria-describedby": describedByProp,
+  "aria-invalid": ariaInvalidProp,
   ...rest
 }: InputProps) {
   const autoId = useId();
@@ -44,8 +46,11 @@ export function Input({
   const common = {
     id: inputId,
     required,
-    "aria-invalid": error ? (true as const) : undefined,
-    "aria-describedby": hasMessage ? messageId : undefined,
+    "aria-invalid": error ? (true as const) : ariaInvalidProp,
+    "aria-describedby":
+      [describedByProp, hasMessage ? messageId : null]
+        .filter(Boolean)
+        .join(" ") || undefined,
   };
   const classes = cn(field({ size, invalid: Boolean(error) }), className);
 

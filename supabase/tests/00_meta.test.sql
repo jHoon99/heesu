@@ -8,18 +8,18 @@
 begin;
 set local client_min_messages = warning;
 create extension if not exists pgtap with schema extensions;
-select plan(12);
+select plan(13);
 
--- S2: public의 모든 테이블은 RLS가 켜져 있다.
+-- S2: public의 모든 테이블은 RLS가 켜져 있고, RLS를 걸 수 없는 foreign table은 없다.
 select is(
   (select count(*)::int
      from pg_catalog.pg_class c
      join pg_catalog.pg_namespace n on n.oid = c.relnamespace
     where n.nspname = 'public'
-      and c.relkind in ('r', 'p')
-      and not c.relrowsecurity),
+      and ((c.relkind in ('r', 'p') and not c.relrowsecurity)
+           or c.relkind = 'f')),
   0,
-  'public: RLS가 꺼진 테이블이 없다'
+  'public: RLS가 꺼진 테이블·foreign table이 없다'
 );
 
 -- S2: anon이 실행할 수 있는 public 함수 = 허용 목록.
@@ -55,16 +55,17 @@ select is(
   'private: authenticated가 실행할 수 있는 함수 = 허용 목록'
 );
 
--- S2: public·private의 security definer 함수는 모두 search_path = ''를 고정한다.
+-- S2: postgres 소유 security definer 함수는 (시스템 스키마 제외) 모두 search_path = ''를 고정한다.
 select is(
   (select coalesce(array_agg(n.nspname || '.' || p.proname order by 1), '{}')
      from pg_catalog.pg_proc p
      join pg_catalog.pg_namespace n on n.oid = p.pronamespace
-    where n.nspname in ('public', 'private')
+    where n.nspname not in ('pg_catalog', 'information_schema')
+      and pg_get_userbyid(p.proowner) = 'postgres'
       and p.prosecdef
       and not ('search_path=""' = any(coalesce(p.proconfig, '{}')))),
   '{}'::text[],
-  'security definer 함수는 모두 search_path = '''' 설정이 있다'
+  'postgres 소유 security definer 함수는 모두 search_path = '''' 설정이 있다'
 );
 
 -- S2: public에 materialized view 금지.
@@ -139,6 +140,17 @@ select is(
     where has_function_privilege(r.rolname, 'public.__meta_probe_fn()', 'execute')),
   '{}'::text[],
   '기본 권한: 새 public 함수에 anon·authenticated EXECUTE가 없다'
+);
+
+-- (기본 권한 회수는 시퀀스에도 적용된다.)
+create sequence public.__meta_probe_seq;
+
+select is(
+  (select coalesce(array_agg(r.rolname order by 1), '{}')
+     from (values ('anon'), ('authenticated')) as r(rolname)
+    where has_sequence_privilege(r.rolname, 'public.__meta_probe_seq', 'usage, select, update')),
+  '{}'::text[],
+  '기본 권한: 새 public 시퀀스에 anon·authenticated 권한이 없다'
 );
 
 select * from finish();

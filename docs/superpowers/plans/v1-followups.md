@@ -1,19 +1,19 @@
 # v1 follow-ups (carried from landing final review)
 
 ## auth-admin-base
-- Input/Checkbox drop caller-provided aria-describedby/aria-invalid when no message — keep wiring but merge caller ids.
-- Tests: multiline Input; Checkbox with description + error.
-- Danger toast with actionLabel: no close and no auto-dismiss after onAction — dismiss after action.
-- site_content editor must write exactly the jsonb shape in `20261105000000_site_content.sql` (legal keys snake_case in DB, camelCase in TS) — put a shared zod write schema in `features/site-content/model`.
-- useSiteContent hook tests: isLoading state; malformed row through the hook.
-- Landing DB-text containers need `min-w-0` / `break-words` (long tokens overflow at 390px) once admins can type long text.
-- Phone editor validation: `telHref` joins every digit (extensions) — validate phone format in the editor.
+- [x] Input/Checkbox/Select merge caller-provided aria-describedby and respect a caller aria-invalid when there is no error.
+- [x] Tests: multiline Input; Checkbox with description + error; aria-describedby merge; Card/Badge/Toast behavior.
+- [x] Danger toast with actionLabel is dismissed after onAction (tested).
 
 ## class-ops
 - Any client-facing `raise exception` (P0001) text must be Korean "-해요" (classifyError shows it verbatim) — add this as an AGENTS.md convention.
 - Strip/reject control characters in names shown in admin views.
 
 ## guardian-records
+- site_content editor must write exactly the jsonb shape in `20261105000000_site_content.sql` (legal keys snake_case in DB, camelCase in TS) — put a shared zod write schema in `features/site-content/model`.
+- useSiteContent hook tests: isLoading state; malformed row through the hook.
+- Landing DB-text containers need `min-w-0` / `break-words` (long tokens overflow at 390px) once admins can type long text.
+- Phone editor validation: `telHref` joins every digit (extensions) — validate phone format in the editor.
 - Consent version is duplicated in `src/features/consultations/model/consultation.ts` and `supabase/functions/submit-consultation/handler.ts` — add a cross-check test or single source when consents change.
 - pg_cron deletion of unregistered consultations after 6 months (privacy page states it).
 

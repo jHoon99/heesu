@@ -33,4 +33,11 @@ describe("Button", () => {
   it("exports buttonVariants from the design system", () => {
     expect(buttonVariants({ variant: "primary" })).toContain("bg-primary");
   });
+
+  it("uses the danger hover token", () => {
+    render(<Button variant="danger">삭제</Button>);
+    expect(screen.getByRole("button", { name: "삭제" }).className).toContain(
+      "hover:bg-danger-hover",
+    );
+  });
 });
