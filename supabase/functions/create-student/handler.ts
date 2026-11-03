@@ -37,12 +37,16 @@ export type Deps = AdminDeps & {
 type Input = Omit<StudentRow, "userId"> & { password: string };
 
 const MAX_BODY_CHARS = 16_000;
+// src/core/text.ts의 한 줄 검사와 같다: C0, DEL, C1(U+0080~U+009F).
+// deno-lint-ignore no-control-regex
+const CONTROL_CHARS = /[\u0000-\u001f\u007f-\u009f]/;
 
 const MESSAGES = {
   ...ADMIN_MESSAGES,
   body: "요청 내용을 읽지 못했어요. 페이지를 새로고침한 뒤 다시 시도해 주세요.",
   loginId: "아이디는 영문 소문자·숫자·밑줄(_)로 3~20자로 입력해 주세요.",
   name: "이름을 1~20자로 입력해 주세요.",
+  nameChars: "이름에 쓸 수 없는 문자가 있어요.",
   grade: "학년을 중1부터 고3 중에서 골라 주세요.",
   joinedAt: "등록일을 2026-11-05 형식으로 입력해 주세요.",
   loginTaken: "이미 쓰고 있는 아이디예요. 다른 아이디를 입력해 주세요.",
@@ -81,6 +85,7 @@ function parseBody(
   const name = b.name.trim();
   const nameLen = charLength(name);
   if (nameLen < 1 || nameLen > 20) return fail(MESSAGES.name);
+  if (CONTROL_CHARS.test(name)) return fail(MESSAGES.nameChars);
 
   const grade = GRADES.find((g) => g === b.grade);
   if (grade === undefined) return fail(MESSAGES.grade);

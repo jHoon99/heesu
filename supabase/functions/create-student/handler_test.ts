@@ -21,6 +21,7 @@ const MSG = {
   loginId: "아이디는 영문 소문자·숫자·밑줄(_)로 3~20자로 입력해 주세요.",
   password: "비밀번호는 8자 이상, 영문 기준 72자 이하로 입력해 주세요.",
   name: "이름을 1~20자로 입력해 주세요.",
+  nameChars: "이름에 쓸 수 없는 문자가 있어요.",
   grade: "학년을 중1부터 고3 중에서 골라 주세요.",
   joinedAt: "등록일을 2026-11-05 형식으로 입력해 주세요.",
 };
@@ -242,6 +243,12 @@ Deno.test("name must be 1-20 characters after trim", async () => {
   const res = await handler(post({ ...VALID, name: "  김하늘 " }));
   assertEquals(res.status, 201);
   assertEquals(calls.insertStudent[0].name, "김하늘");
+});
+
+Deno.test("name rejects control characters (C0, DEL, C1)", async () => {
+  for (const bad of ["김\u0000하늘", "김\nA", "김\u007f하늘", "김\u0085하늘"]) {
+    await expectInvalid({ ...VALID, name: bad }, MSG.nameChars);
+  }
 });
 
 Deno.test("grade must be 중1-고3", async () => {
