@@ -68,6 +68,17 @@ describe("consultFormSchema", () => {
   });
 });
 
+describe("submitErrorMessage server message", () => {
+  it("shows the server message for invalid only", () => {
+    expect(
+      submitErrorMessage(new SubmitConsultationError("invalid", "서버 안내")),
+    ).toBe("서버 안내");
+    expect(
+      submitErrorMessage(new SubmitConsultationError("captcha", "서버 안내")),
+    ).not.toBe("서버 안내");
+  });
+});
+
 describe("submitErrorMessage", () => {
   it.each([
     [

@@ -4,21 +4,29 @@ import {
   isSubmitErrorCode,
   SubmitConsultationError,
   type SubmitConsultationPayload,
-  type SubmitErrorCode,
 } from "../model/consultation";
 
-async function readErrorCode(
+const MAX_SERVER_MESSAGE = 200;
+
+async function readError(
   error: FunctionsHttpError,
-): Promise<SubmitErrorCode> {
+): Promise<SubmitConsultationError> {
   try {
     const body: unknown = await error.context.json();
-    const code =
-      typeof body === "object" && body !== null && "error" in body
-        ? body.error
-        : null;
-    return isSubmitErrorCode(code) ? code : "server";
+    if (typeof body !== "object" || body === null || !("error" in body)) {
+      return new SubmitConsultationError("server");
+    }
+    const code = body.error;
+    if (!isSubmitErrorCode(code)) return new SubmitConsultationError("server");
+    const message = "message" in body ? body.message : null;
+    const usable =
+      code === "invalid" &&
+      typeof message === "string" &&
+      message.trim() !== "" &&
+      message.length <= MAX_SERVER_MESSAGE;
+    return new SubmitConsultationError(code, usable ? message : undefined);
   } catch {
-    return "server";
+    return new SubmitConsultationError("server");
   }
 }
 
@@ -30,7 +38,7 @@ export async function submitConsultation(
   });
   if (!error) return;
   if (error instanceof FunctionsHttpError) {
-    throw new SubmitConsultationError(await readErrorCode(error));
+    throw await readError(error);
   }
   throw error;
 }

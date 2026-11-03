@@ -66,7 +66,11 @@ export function isSubmitErrorCode(value: unknown): value is SubmitErrorCode {
 
 export class SubmitConsultationError extends Error {
   override name = "SubmitConsultationError";
-  constructor(readonly code: SubmitErrorCode) {
+  constructor(
+    readonly code: SubmitErrorCode,
+    /** 서버가 보낸 안내 문구. `invalid`일 때만 화면에 쓴다. */
+    readonly serverMessage?: string,
+  ) {
     super(code);
   }
 }
@@ -84,7 +88,11 @@ const CODE_MESSAGES: Record<SubmitErrorCode, string> = {
 };
 
 export function submitErrorMessage(error: unknown): string {
-  if (error instanceof SubmitConsultationError)
+  if (error instanceof SubmitConsultationError) {
+    if (error.code === "invalid" && error.serverMessage) {
+      return error.serverMessage;
+    }
     return CODE_MESSAGES[error.code];
+  }
   return classifyError(error).message;
 }
