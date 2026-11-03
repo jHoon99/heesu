@@ -33,7 +33,8 @@ function kindFromCode(code: string): ApiErrorKind | null {
 
 function toStatus(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && /^\d{1,3}$/.test(value)) return Number(value);
+  if (typeof value === "string" && /^\d{1,3}$/.test(value))
+    return Number(value);
   return null;
 }
 
@@ -45,7 +46,8 @@ function kindFromStatus(status: number): ApiErrorKind | null {
   return null;
 }
 
-const NETWORK_MESSAGE = /failed to fetch|load failed|networkerror|network request failed/i;
+const NETWORK_MESSAGE =
+  /failed to fetch|load failed|networkerror|network request failed/i;
 
 function isNetworkError(error: unknown): boolean {
   if (error instanceof TypeError) return NETWORK_MESSAGE.test(error.message);
@@ -56,10 +58,15 @@ function isNetworkError(error: unknown): boolean {
 function isNetworkLikeRecord(error: Record<string, unknown>): boolean {
   if (error.name === "AuthRetryableFetchError") return true;
   if (toStatus(error.status) === 0) return true;
-  return typeof error.message === "string" && NETWORK_MESSAGE.test(error.message);
+  return (
+    typeof error.message === "string" && NETWORK_MESSAGE.test(error.message)
+  );
 }
 
-export function classifyError(error: unknown): { kind: ApiErrorKind; message: string } {
+export function classifyError(error: unknown): {
+  kind: ApiErrorKind;
+  message: string;
+} {
   try {
     if (isNetworkError(error)) return result("network");
     if (!isRecord(error)) return result("unknown");

@@ -45,3 +45,7 @@ next-env.d.ts
 supabase/.temp
 supabase/.branches
 .wrangler/
+
+# lint fixtures
+src/core/zz-fixture.ts
+src/features/zz-fixture/

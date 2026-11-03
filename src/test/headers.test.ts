@@ -47,7 +47,9 @@ describe("public/_headers /*", () => {
   });
 
   it("has HSTS and a Permissions-Policy that turns off camera, mic, geolocation", () => {
-    expect(all.some((l) => l.startsWith("Strict-Transport-Security:"))).toBe(true);
+    expect(all.some((l) => l.startsWith("Strict-Transport-Security:"))).toBe(
+      true,
+    );
     const pp = all.find((l) => l.startsWith("Permissions-Policy:")) ?? "";
     for (const f of ["camera=()", "microphone=()", "geolocation=()"]) {
       expect(pp).toContain(f);

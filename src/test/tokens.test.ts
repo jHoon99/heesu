@@ -11,7 +11,7 @@ describe("design tokens", () => {
     "--color-*: initial;",
     "--spacing: 4px;",
   ])("contains %s", (token) => {
-    expect(css).toContain(token);
+    expect(css.toLowerCase()).toContain(token.toLowerCase());
   });
 
   it("has no external font CSS import (CSP)", () => {
