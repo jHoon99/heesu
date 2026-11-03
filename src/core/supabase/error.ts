@@ -33,7 +33,7 @@ function kindFromCode(code: string): ApiErrorKind | null {
 
 function toStatus(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && /^\d{3}$/.test(value)) return Number(value);
+  if (typeof value === "string" && /^\d{1,3}$/.test(value)) return Number(value);
   return null;
 }
 
@@ -45,27 +45,40 @@ function kindFromStatus(status: number): ApiErrorKind | null {
   return null;
 }
 
+const NETWORK_MESSAGE = /failed to fetch|load failed|networkerror|network request failed/i;
+
 function isNetworkError(error: unknown): boolean {
-  if (error instanceof TypeError) {
-    return /failed to fetch|load failed|networkerror|network request failed/i.test(error.message);
-  }
+  if (error instanceof TypeError) return NETWORK_MESSAGE.test(error.message);
   return isRecord(error) && error.name === "FunctionsFetchError";
 }
 
+// 코드로 분류되지 않은 객체가 네트워크 실패인지 판단해요 (postgrest는 throw 대신 status 0 객체를 돌려줘요).
+function isNetworkLikeRecord(error: Record<string, unknown>): boolean {
+  if (error.name === "AuthRetryableFetchError") return true;
+  if (toStatus(error.status) === 0) return true;
+  return typeof error.message === "string" && NETWORK_MESSAGE.test(error.message);
+}
+
 export function classifyError(error: unknown): { kind: ApiErrorKind; message: string } {
-  if (isNetworkError(error)) return result("network");
-  if (!isRecord(error)) return result("unknown");
+  try {
+    if (isNetworkError(error)) return result("network");
+    if (!isRecord(error)) return result("unknown");
 
-  if (typeof error.code === "string") {
-    const kind = kindFromCode(error.code);
-    if (kind) return result(kind);
+    if (typeof error.code === "string") {
+      const kind = kindFromCode(error.code);
+      if (kind) return result(kind);
+    }
+
+    if (isNetworkLikeRecord(error)) return result("network");
+
+    const status = toStatus(error.status) ?? toStatus(error.statusCode);
+    if (status !== null) {
+      const kind = kindFromStatus(status);
+      if (kind) return result(kind);
+    }
+
+    return result("unknown");
+  } catch {
+    return result("unknown");
   }
-
-  const status = toStatus(error.status) ?? toStatus(error.statusCode);
-  if (status !== null) {
-    const kind = kindFromStatus(status);
-    if (kind) return result(kind);
-  }
-
-  return result("unknown");
 }

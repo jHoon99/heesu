@@ -22,6 +22,17 @@ describe("classifyError", () => {
     [{ status: 404 }, "notFound", "이미 삭제되었거나 찾을 수 없어요."],
     [{ status: 409 }, "conflict", "이미 처리된 요청이에요."],
     [{ code: "23505", status: 500 }, "conflict", "이미 처리된 요청이에요."],
+    [
+      { message: "TypeError: Failed to fetch", details: "", hint: "", code: "", status: 0 },
+      "network",
+      "네트워크 상태를 확인해 주세요.",
+    ],
+    [
+      { name: "AuthRetryableFetchError", message: "Failed to fetch", status: 0 },
+      "network",
+      "네트워크 상태를 확인해 주세요.",
+    ],
+    [{ code: "23505", status: 0 }, "conflict", "이미 처리된 요청이에요."],
     [null, "unknown", UNKNOWN],
     [undefined, "unknown", UNKNOWN],
     ["x", "unknown", UNKNOWN],
@@ -29,5 +40,20 @@ describe("classifyError", () => {
     [{}, "unknown", UNKNOWN],
   ])("%j -> %s", (input, kind, message) => {
     expect(classifyError(input)).toEqual({ kind, message });
+  });
+
+  it("throw하는 getter가 있어도 throw하지 않아요", () => {
+    const evil = {
+      get code(): string {
+        throw new Error("boom");
+      },
+    };
+    expect(classifyError(evil)).toEqual({ kind: "unknown", message: UNKNOWN });
+  });
+
+  it("해제된 Proxy여도 throw하지 않아요", () => {
+    const { proxy, revoke } = Proxy.revocable({}, {});
+    revoke();
+    expect(classifyError(proxy)).toEqual({ kind: "unknown", message: UNKNOWN });
   });
 });
