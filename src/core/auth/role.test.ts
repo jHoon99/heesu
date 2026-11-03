@@ -64,6 +64,23 @@ describe("decideGuard", () => {
       { session: "signedIn", role: "student", required: "student" },
       { kind: "render" },
     ],
+    [
+      { session: "signedIn", role: null, required: "admin", fetching: true },
+      { kind: "wait" },
+    ],
+    [
+      {
+        session: "signedIn",
+        role: "student",
+        required: "admin",
+        fetching: true,
+      },
+      { kind: "wait" },
+    ],
+    [
+      { session: "signedIn", role: "admin", required: "admin", fetching: true },
+      { kind: "render" },
+    ],
   ] as const)("%j → %j", (input, out) => {
     expect(decideGuard(input)).toEqual(out);
   });

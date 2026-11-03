@@ -16,7 +16,10 @@ vi.mock("../data/auth");
 vi.mock("@/core/auth", () => ({
   fetchMyRole,
   homePathFor: (role: string) => (role === "admin" ? "/admin" : "/s"),
-  authKeys: { all: ["auth"] },
+  authKeys: {
+    all: ["auth"],
+    role: (id: string) => ["auth", "role", id],
+  },
 }));
 
 const api = vi.mocked(auth);
@@ -36,18 +39,19 @@ function factor(id: string, status: "verified" | "unverified") {
   };
 }
 
-function render(ui: ReactElement) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
+function newClient() {
+  return new QueryClient({ defaultOptions: { queries: { retry: false } } });
+}
+
+function render(ui: ReactElement, client = newClient()) {
   return rtlRender(
     <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
   );
 }
 
-async function signIn(id: string, password = "pw-1234") {
+async function signIn(id: string, password = "pw-1234", client = newClient()) {
   const user = userEvent.setup();
-  render(<LoginScreen />);
+  render(<LoginScreen />, client);
   await user.type(await screen.findByLabelText("아이디 또는 이메일"), id);
   await user.type(screen.getByLabelText("비밀번호"), password);
   await user.click(screen.getByRole("button", { name: "로그인" }));
@@ -67,6 +71,7 @@ beforeEach(() => {
   });
   api.verifyTotp.mockResolvedValue();
   api.signOut.mockResolvedValue();
+  api.currentUserId.mockResolvedValue("u1");
 });
 
 describe("LoginScreen", () => {
@@ -238,5 +243,60 @@ describe("LoginScreen", () => {
     const user = await signIn("haneul");
     await user.click(screen.getByRole("button", { name: "로그인" }));
     expect(api.signInWithPassword).toHaveBeenCalledTimes(1);
+  });
+
+  it("seeds the verified role so a bookmarked /admin at aal1 is not bounced again", async () => {
+    const client = newClient();
+    // 가드가 aal1 때 받아 둔 null과 앞 화면의 데이터
+    client.setQueryData(["auth", "role", "u1"], null);
+    api.getAssurance.mockResolvedValue({ current: "aal1", next: "aal2" });
+    api.listTotpFactors.mockResolvedValue([factor("v1", "verified")]);
+    fetchMyRole.mockResolvedValue("admin");
+    const user = userEvent.setup();
+    render(<LoginScreen />, client);
+    await user.type(await screen.findByLabelText("인증 코드"), "123456");
+    await user.click(screen.getByRole("button", { name: "확인" }));
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/admin"));
+    expect(replace).toHaveBeenCalledTimes(1);
+    expect(client.getQueryData(["auth", "role", "u1"])).toBe("admin");
+    expect(client.getQueryState(["auth", "role", "u1"])?.isInvalidated).toBe(
+      false,
+    );
+  });
+
+  it("clears the previous user's cache on a new password sign-in", async () => {
+    const client = newClient();
+    client.setQueryData(["students"], ["앞사람 데이터"]);
+    fetchMyRole.mockResolvedValue("student");
+    await signIn("haneul", "pw-1234", client);
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/s"));
+    expect(client.getQueryData(["students"])).toBeUndefined();
+    expect(client.getQueryData(["auth", "role", "u1"])).toBe("student");
+  });
+
+  it("clears the cache when it signs out a wrong-role account", async () => {
+    const client = newClient();
+    fetchMyRole.mockResolvedValue(null);
+    api.signInWithPassword.mockImplementation(async () => {
+      client.setQueryData(["students"], ["남은 데이터"]);
+    });
+    await signIn("haneul", "pw-1234", client);
+    expect(await screen.findByRole("alert")).toHaveTextContent(NO_ACCOUNT);
+    expect(client.getQueryData(["students"])).toBeUndefined();
+  });
+
+  it("clears the cache when the user chooses another account", async () => {
+    const client = newClient();
+    client.setQueryData(["students"], ["앞사람 데이터"]);
+    api.getAssurance.mockResolvedValue({ current: "aal1", next: "aal2" });
+    api.listTotpFactors.mockResolvedValue([factor("v1", "verified")]);
+    const user = userEvent.setup();
+    render(<LoginScreen />, client);
+    await user.click(
+      await screen.findByRole("button", { name: "다른 계정으로 로그인" }),
+    );
+    expect(await screen.findByLabelText("비밀번호")).toBeInTheDocument();
+    expect(api.signOut).toHaveBeenCalledTimes(1);
+    expect(client.getQueryData(["students"])).toBeUndefined();
   });
 });

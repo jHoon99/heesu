@@ -29,10 +29,13 @@ export function decideGuard(input: {
   session: "loading" | "signedOut" | "signedIn";
   role: Role | null | undefined;
   required: Role;
+  // 역할을 다시 받는 중이면 캐시된 값(예: aal1 때의 null)으로 쫓아내지 않아요.
+  fetching?: boolean;
 }): GuardDecision {
   if (input.session === "loading") return { kind: "wait" };
   if (input.session === "signedOut") return { kind: "redirect", to: "/login" };
   if (input.role === undefined) return { kind: "wait" };
+  if (input.fetching && input.role !== input.required) return { kind: "wait" };
   if (input.role === null) return { kind: "redirect", to: "/login" };
   if (input.role !== input.required)
     return { kind: "redirect", to: homePathFor(input.role) };

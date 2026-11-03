@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RequireRole } from "./RequireRole";
 
@@ -6,9 +7,14 @@ const replace = vi.hoisted(() => vi.fn());
 const router = vi.hoisted(() => ({ replace }));
 const useAuthSession = vi.hoisted(() => vi.fn());
 const useMyRole = vi.hoisted(() => vi.fn());
+const signOut = vi.hoisted(() => vi.fn());
 
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
-vi.mock("./session", () => ({ useAuthSession, useMyRole }));
+vi.mock("./session", () => ({
+  useAuthSession,
+  useMyRole,
+  useSignOut: () => signOut,
+}));
 
 const session = { user: { id: "u1" } };
 
@@ -16,6 +22,7 @@ beforeEach(() => {
   replace.mockReset();
   useAuthSession.mockReset();
   useMyRole.mockReset();
+  signOut.mockReset();
 });
 
 describe("RequireRole", () => {
@@ -53,6 +60,36 @@ describe("RequireRole", () => {
     render(<RequireRole role="admin">관리 화면</RequireRole>);
     expect(useMyRole).toHaveBeenCalledWith(session);
     expect(screen.getByText("관리 화면")).toBeInTheDocument();
+    expect(replace).not.toHaveBeenCalled();
+  });
+
+  it("waits instead of bouncing while a stale role is being refetched", () => {
+    useAuthSession.mockReturnValue({ status: "signedIn", session });
+    useMyRole.mockReturnValue({ data: null, isFetching: true });
+    render(<RequireRole role="admin">관리 화면</RequireRole>);
+    expect(replace).not.toHaveBeenCalled();
+    expect(screen.queryByText("관리 화면")).not.toBeInTheDocument();
+  });
+
+  it("shows a retry/sign-out error when the role check fails", async () => {
+    const refetch = vi.fn();
+    useAuthSession.mockReturnValue({ status: "signedIn", session });
+    useMyRole.mockReturnValue({
+      data: undefined,
+      isError: true,
+      isFetching: false,
+      refetch,
+    });
+    const user = userEvent.setup();
+    render(<RequireRole role="admin">관리 화면</RequireRole>);
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "권한을 확인하지 못했어요. 다시 시도하거나 로그아웃해 주세요.",
+    );
+    expect(screen.queryByText("관리 화면")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "다시 시도" }));
+    expect(refetch).toHaveBeenCalledTimes(1);
+    await user.click(screen.getByRole("button", { name: "로그아웃" }));
+    expect(signOut).toHaveBeenCalledTimes(1);
     expect(replace).not.toHaveBeenCalled();
   });
 });

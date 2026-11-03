@@ -69,3 +69,9 @@ export async function signOut(): Promise<void> {
     throw error;
   }
 }
+
+export async function currentUserId(): Promise<string | null> {
+  const { data, error } = await supabase.auth.getSession();
+  if (error) throw error;
+  return data.session?.user.id ?? null;
+}

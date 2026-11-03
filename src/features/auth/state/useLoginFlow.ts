@@ -21,15 +21,6 @@ export type LoginStep =
 const NO_ACCOUNT = "로그인할 수 없는 계정이에요. 학원에 문의해 주세요.";
 const NO_PASSWORD = "비밀번호를 입력해 주세요.";
 
-// 로그아웃이 실패해도(네트워크 등) data 쪽에서 이 기기의 세션은 지워요.
-async function safeSignOut() {
-  try {
-    await auth.signOut();
-  } catch {
-    // 로컬 세션은 이미 지워졌어요.
-  }
-}
-
 export function useLoginFlow() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -37,6 +28,31 @@ export function useLoginFlow() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const busy = useRef(false);
+
+  // 로그아웃이 실패해도(네트워크 등) data 쪽에서 이 기기의 세션은 지워요.
+  // 다음 사람이 앞사람 데이터를 보지 않게 쿼리 캐시도 통째로 비워요.
+  const safeSignOut = useCallback(async () => {
+    try {
+      await auth.signOut();
+    } catch {
+      // 로컬 세션은 이미 지워졌어요.
+    }
+    queryClient.clear();
+  }, [queryClient]);
+
+  // 가드가 aal1 때 캐시된 null을 보고 /login으로 되돌리지 않게 확인한 역할을 넣어 두고 이동해요.
+  const goHome = useCallback(
+    async (role: Role) => {
+      await queryClient.invalidateQueries({
+        queryKey: authKeys.all,
+        refetchType: "none",
+      });
+      const userId = await auth.currentUserId();
+      if (userId) queryClient.setQueryData(authKeys.role(userId), role);
+      router.replace(homePathFor(role));
+    },
+    [queryClient, router],
+  );
 
   // 기대한 역할일 때만 홈으로 보내요. 아니면 로그아웃해요.
   const finish = useCallback(
@@ -49,10 +65,9 @@ export function useLoginFlow() {
         return;
       }
       setStep({ kind: "checking" });
-      await queryClient.invalidateQueries({ queryKey: authKeys.all });
-      router.replace(homePathFor(role));
+      await goHome(role);
     },
-    [queryClient, router],
+    [goHome, safeSignOut],
   );
 
   const firstVerifiedFactor = useCallback(async () => {
@@ -82,8 +97,7 @@ export function useLoginFlow() {
           const role = await fetchMyRole();
           if (cancelled) return;
           if (role) {
-            await queryClient.invalidateQueries({ queryKey: authKeys.all });
-            if (!cancelled) router.replace(homePathFor(role));
+            await goHome(role);
             return;
           }
         }
@@ -98,7 +112,7 @@ export function useLoginFlow() {
     return () => {
       cancelled = true;
     };
-  }, [firstVerifiedFactor, queryClient, router]);
+  }, [firstVerifiedFactor, goHome, safeSignOut]);
 
   const run = useCallback(async (task: () => Promise<void>) => {
     if (busy.current) return;
@@ -128,6 +142,8 @@ export function useLoginFlow() {
           return;
         }
         await auth.signInWithPassword(target.email, password);
+        // 새로 로그인한 사람에게 이전 사람의 캐시가 남지 않게 해요.
+        queryClient.clear();
         if (target.kind === "student") {
           await finish("student");
           return;
@@ -140,7 +156,7 @@ export function useLoginFlow() {
         for (const id of plan.unenrollIds) await auth.unenrollFactor(id);
         setStep({ kind: "enroll", ...(await auth.enrollTotp()) });
       }),
-    [finish, run],
+    [finish, queryClient, run],
   );
 
   const submitCode = useCallback(
@@ -164,7 +180,7 @@ export function useLoginFlow() {
         await safeSignOut();
         setStep({ kind: "credentials" });
       }),
-    [run],
+    [run, safeSignOut],
   );
 
   return { step, error, pending, submitCredentials, submitCode, restart };

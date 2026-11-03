@@ -25,10 +25,14 @@ export function useAuthSession(): AuthSessionState {
 
   useEffect(() => {
     let active = true;
+    // 마지막으로 본 사용자. 다른 사람으로 바뀌거나 로그아웃되면 캐시를 통째로 지워요.
+    let lastUserId: string | null | undefined;
     supabase.auth
       .getSession()
       .then(({ data }) => {
-        if (active) setState(toState(data.session));
+        if (!active) return;
+        lastUserId ??= data.session?.user.id ?? null;
+        setState(toState(data.session));
       })
       .catch(() => {
         if (active) setState({ status: "signedOut" });
@@ -39,10 +43,19 @@ export function useAuthSession(): AuthSessionState {
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (!active) return;
       setState(toState(session));
-      if (event === "INITIAL_SESSION") return;
+      const userId = session?.user.id ?? null;
+      if (event === "INITIAL_SESSION") {
+        lastUserId = userId;
+        return;
+      }
+      const userChanged =
+        event === "SIGNED_OUT" ||
+        (lastUserId !== undefined && userId !== lastUserId);
+      lastUserId = userId;
       // 콜백 안에서 바로 Supabase를 다시 부르면 auth 잠금에 걸릴 수 있어서 다음 틱으로 미뤄요.
       setTimeout(() => {
-        void queryClient.invalidateQueries({ queryKey: authKeys.all });
+        if (userChanged) queryClient.clear();
+        else void queryClient.invalidateQueries({ queryKey: authKeys.all });
       }, 0);
     });
 
