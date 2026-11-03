@@ -219,7 +219,9 @@ web3 = 30
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
-enable_signup = false
+# CLI는 이 값으로 이메일 로그인 자체(GOTRUE_EXTERNAL_EMAIL_ENABLED)를 켜고 끈다. false면 원장·학생 로그인이 막힌다.
+# 가입은 위 [auth] enable_signup = false(GOTRUE_DISABLE_SIGNUP)가 모든 경로에서 막는다.
+enable_signup = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true

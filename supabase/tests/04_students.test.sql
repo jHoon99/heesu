@@ -4,7 +4,7 @@
 begin;
 set local client_min_messages = warning;
 create extension if not exists pgtap with schema extensions;
-select plan(63);
+select plan(66);
 
 -- 시드는 테스트 파일 사이에 남아 있다. 세는 테이블은 비우고 시작한다(rollback으로 되돌린다).
 delete from public.student_private;
@@ -98,6 +98,8 @@ select throws_ok($$insert into public.students (login_id, name, grade) values ('
 set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-00000000b004","role":"authenticated","aal":"aal2"}';
 select is_empty($$update public.students set name = 'x' returning id$$, '아무나: students update 0행');
 select throws_ok('delete from public.students', '42501', null, '아무나: students delete는 권한 에러');
+select throws_ok($$insert into public.students (login_id, name, grade) values ('nobody_new', 'x', '중1')$$,
+  '42501', null, '아무나: students insert는 권한 에러');
 
 set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-00000000a004","role":"authenticated","aal":"aal2"}';
 select throws_ok('update public.students set must_change_password = false', '42501', null,
@@ -176,6 +178,11 @@ select is((select count(*)::int from public.student_private), 0, 'B: student_pri
 
 set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-00000000b004","role":"authenticated","aal":"aal2"}';
 select is((select count(*)::int from public.student_private), 0, '아무나: student_private 0행');
+select throws_ok($$insert into public.student_private (student_id, memo)
+                   values ('10000000-0000-4000-8000-00000000e004', 'x')$$,
+  '42501', null, '아무나: student_private insert는 RLS 에러');
+select is_empty($$update public.student_private set memo = 'x' returning student_id$$,
+  '아무나: student_private update 0행');
 select throws_ok('delete from public.student_private', '42501', null,
   '아무나: student_private delete는 권한 에러');
 

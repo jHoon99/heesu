@@ -5,7 +5,67 @@ export type Database = {
   
   "public": {
           Tables: {
-            "consultations": {
+            "class_members": {
+                  Row: {
+                    "class_id": string,"created_at": string,"student_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "class_id": string,"created_at"?: string,"student_id": string
+                  }
+                  Update: {
+                    "class_id"?: string,"created_at"?: string,"student_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "class_members_class_id_fkey"
+      columns: ["class_id"]
+isOneToOne: false
+      referencedRelation: "classes"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "class_members_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"classes": {
+                  Row: {
+                    "capacity": number | null,"created_at": string,"id": string,"level": Database["public"]['Enums']["class_level"],"name": string,"schedule": NonNullable<Json>
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "capacity"?: number | null,"created_at"?: string,"id"?: string,"level": Database["public"]['Enums']["class_level"],"name": string,"schedule"?: NonNullable<Json>
+                  }
+                  Update: {
+                    "capacity"?: number | null,"created_at"?: string,"id"?: string,"level"?: Database["public"]['Enums']["class_level"],"name"?: string,"schedule"?: NonNullable<Json>
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"consents": {
+                  Row: {
+                    "consented_at": string,"created_at": string,"guardian_name": string,"id": string,"method": Database["public"]['Enums']["consent_method"],"student_id": string,"version": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "consented_at": string,"created_at"?: string,"guardian_name": string,"id"?: string,"method": Database["public"]['Enums']["consent_method"],"student_id": string,"version": string
+                  }
+                  Update: {
+                    "consented_at"?: string,"created_at"?: string,"guardian_name"?: string,"id"?: string,"method"?: Database["public"]['Enums']["consent_method"],"student_id"?: string,"version"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "consents_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"consultations": {
                   Row: {
                     "consent_version": string,"consented_at": string,"created_at": string,"grade": Database["public"]['Enums']["school_grade"],"id": string,"memo": string | null,"message": string | null,"parent_name": string,"phone": string,"status": Database["public"]['Enums']["consultation_status"]
                   }
@@ -87,7 +147,7 @@ isOneToOne: true
                            }
           }
           Enums: {
-            "consultation_status": "new"|"contacted"|"enrolled"|"on_hold","school_grade": "중1"|"중2"|"중3"|"고1"|"고2"|"고3","student_status": "active"|"paused"|"left"
+            "class_level": "middle"|"high","consent_method": "written"|"phone"|"kakao","consultation_status": "new"|"contacted"|"enrolled"|"on_hold","school_grade": "중1"|"중2"|"중3"|"고1"|"고2"|"고3","student_status": "active"|"paused"|"left"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -203,7 +263,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "consultation_status": ["new", "contacted", "enrolled", "on_hold"],"school_grade": ["중1", "중2", "중3", "고1", "고2", "고3"],"student_status": ["active", "paused", "left"]
+            "class_level": ["middle", "high"],"consent_method": ["written", "phone", "kakao"],"consultation_status": ["new", "contacted", "enrolled", "on_hold"],"school_grade": ["중1", "중2", "중3", "고1", "고2", "고3"],"student_status": ["active", "paused", "left"]
           }
         }
 } as const
