@@ -57,6 +57,11 @@ export function useStartSession() {
       date: string;
       homeworkDue: string | null;
     }) => startSession(vars.classId, vars.date, vars.homeworkDue),
-    onSuccess: () => client.invalidateQueries({ queryKey: sessionKeys.all }),
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: sessionKeys.all }),
+        // attendanceKeys.all과 같은 값. attendance가 sessions를 쓰므로 순환을 피해 글자로 적는다.
+        client.invalidateQueries({ queryKey: ["attendance"] }),
+      ]),
   });
 }
