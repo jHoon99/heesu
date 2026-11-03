@@ -48,4 +48,7 @@
 - Dashboard Auth Redirect URLs = exactly 3 addresses: `http://localhost:3000`, `https://dev.heesu.pages.dev`, `https://heesu.pages.dev`.
 - Deploy `create-student` and `reset-student-password` with `--no-verify-jwt` (same as config.toml; the functions check the admin session themselves).
 - After creating the admin account, insert it into `private.admins`; enroll TOTP at the first login.
+- Never run `supabase db push --include-seed` or `supabase db reset --linked` against cloud (seed.sql has a public admin password). After deploy, verify no `*@example.test` admin exists.
+- Auth settings: Email provider ON, "Allow new users to sign up" OFF, "Confirm email" ON, minimum password length 8.
+- Verify an old refresh token fails after an admin password reset (passed locally). Note: with asymmetric JWT keys a signed-out admin's access token stays valid until expiry (up to 1h).
 - Local build needs `.env.local` (copy values from `supabase status`).
