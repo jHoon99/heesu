@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Card, buttonVariants, useToast } from "@/design-system";
 import { classifyError } from "@/core/supabase/error";
 import { ClassForm } from "../components/ClassForm";
-import type { ClassFormOutput } from "../model/classes";
+import { SaveNotAppliedError, type ClassFormOutput } from "../model/classes";
 import { useClass, useSaveClass } from "../state/useClasses";
 
 const UUID_RE =
@@ -16,6 +16,7 @@ const DUPLICATE_MESSAGE =
 const LIST_PATH = "/admin/classes";
 
 function saveErrorMessage(error: unknown): string {
+  if (error instanceof SaveNotAppliedError) return error.message;
   if (
     typeof error === "object" &&
     error !== null &&
@@ -66,16 +67,19 @@ export function ClassFormScreen({ mode }: { mode: "new" | "edit" }) {
   let body;
   if (mode === "edit" && id === null) {
     body = <NotFound />;
-  } else if (mode === "edit" && existing.isPending) {
-    body = (
-      <p role="status" className="text-body text-text-muted">
-        불러오는 중이에요.
-      </p>
-    );
   } else if (mode === "edit" && existing.isError) {
     body = (
       <p role="alert" className="text-body text-danger-700">
         {classifyError(existing.error).message}
+      </p>
+    );
+  } else if (
+    mode === "edit" &&
+    (existing.isPending || !existing.isFetchedAfterMount)
+  ) {
+    body = (
+      <p role="status" className="text-body text-text-muted">
+        불러오는 중이에요.
       </p>
     );
   } else if (mode === "edit" && !existing.data) {

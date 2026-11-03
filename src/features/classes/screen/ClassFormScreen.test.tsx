@@ -3,7 +3,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "@/design-system";
-import { createClass, getClass } from "../data/classes";
+import { createClass, getClass, updateClass } from "../data/classes";
+import { SaveNotAppliedError } from "../model/classes";
+import { classKeys } from "../state/useClasses";
+import type { ClassSummary } from "../model/classes";
 import { ClassFormScreen } from "./ClassFormScreen";
 
 const push = vi.fn();
@@ -17,13 +20,18 @@ vi.mock("../data/classes");
 
 const get = vi.mocked(getClass);
 const create = vi.mocked(createClass);
+const update = vi.mocked(updateClass);
 const UUID = "6f1c2b3a-1111-4222-8333-444455556666";
 const NOT_FOUND = "반을 찾을 수 없어요. 목록에서 다시 골라 주세요.";
 
-function setup(mode: "new" | "edit") {
+function setup(mode: "new" | "edit", seed?: ClassSummary) {
   const client = new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    defaultOptions: {
+      queries: { retry: false, staleTime: 30_000 },
+      mutations: { retry: false },
+    },
   });
+  if (seed) client.setQueryData(classKeys.detail(seed.id), seed);
   render(
     <QueryClientProvider client={client}>
       <ToastProvider>
@@ -39,6 +47,7 @@ describe("ClassFormScreen", () => {
     push.mockReset();
     get.mockReset();
     create.mockReset();
+    update.mockReset();
     search = new URLSearchParams();
   });
 
@@ -111,5 +120,42 @@ describe("ClassFormScreen", () => {
       await screen.findByText("끝나는 시각을 시작보다 늦게 적어 주세요."),
     ).toBeInTheDocument();
     expect(create).not.toHaveBeenCalled();
+  });
+
+  it("shows refetched values, not the stale cache, in the edit form", async () => {
+    search = new URLSearchParams(`id=${UUID}`);
+    const row = {
+      id: UUID,
+      name: "새 이름",
+      level: "middle" as const,
+      schedule: [],
+      capacity: null,
+      memberCount: 0,
+    };
+    get.mockResolvedValue(row);
+    setup("edit", { ...row, name: "옛 이름" });
+    expect(await screen.findByDisplayValue("새 이름")).toBeInTheDocument();
+    expect(screen.queryByDisplayValue("옛 이름")).not.toBeInTheDocument();
+  });
+
+  it("shows an error and does not leave when the update changed nothing", async () => {
+    search = new URLSearchParams(`id=${UUID}`);
+    get.mockResolvedValue({
+      id: UUID,
+      name: "A",
+      level: "middle",
+      schedule: [],
+      capacity: null,
+      memberCount: 0,
+    });
+    update.mockRejectedValue(new SaveNotAppliedError());
+    const user = setup("edit");
+    await user.click(await screen.findByRole("button", { name: "저장" }));
+    expect(
+      await screen.findByText(
+        "저장하지 못했어요. 다시 로그인하거나 새로고침해 주세요.",
+      ),
+    ).toBeInTheDocument();
+    expect(push).not.toHaveBeenCalled();
   });
 });

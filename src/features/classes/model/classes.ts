@@ -101,3 +101,10 @@ export function parseClassRow(row: unknown): ClassSummary {
     memberCount: memberCountOf(r.class_members),
   };
 }
+
+export class SaveNotAppliedError extends Error {
+  constructor() {
+    super("저장하지 못했어요. 다시 로그인하거나 새로고침해 주세요.");
+    this.name = "SaveNotAppliedError";
+  }
+}

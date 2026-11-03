@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { supabase } from "@/core/supabase/client";
-import { createClass } from "./classes";
+import { SaveNotAppliedError } from "../model/classes";
+import { createClass, updateClass } from "./classes";
 
 vi.mock("@/core/supabase/client", () => ({ supabase: { from: vi.fn() } }));
 
@@ -47,5 +48,40 @@ describe("createClass", () => {
     await expect(
       createClass({ name: "A", level: "high", schedule: [], capacity: null }),
     ).rejects.toBe(err);
+  });
+});
+
+describe("updateClass", () => {
+  beforeEach(() => {
+    from.mockReset();
+  });
+  const input = {
+    name: "A",
+    level: "high" as const,
+    schedule: [],
+    capacity: null,
+  };
+  const mockUpdate = (result: unknown) => {
+    const select = vi.fn().mockResolvedValue(result);
+    const eq = vi.fn().mockReturnValue({ select });
+    const update = vi.fn().mockReturnValue({ eq });
+    from.mockReturnValue({ update } as unknown as ReturnType<
+      typeof supabase.from
+    >);
+    return { select, eq };
+  };
+
+  it("resolves when a row was updated", async () => {
+    const { select, eq } = mockUpdate({ data: [{ id: "c1" }], error: null });
+    await expect(updateClass("c1", input)).resolves.toBeUndefined();
+    expect(eq).toHaveBeenCalledWith("id", "c1");
+    expect(select).toHaveBeenCalledWith("id");
+  });
+
+  it("throws SaveNotAppliedError when 0 rows come back", async () => {
+    mockUpdate({ data: [], error: null });
+    await expect(updateClass("c1", input)).rejects.toBeInstanceOf(
+      SaveNotAppliedError,
+    );
   });
 });

@@ -1,6 +1,7 @@
 import { supabase } from "@/core/supabase/client";
 import {
   parseClassRow,
+  SaveNotAppliedError,
   type ClassFormOutput,
   type ClassSummary,
 } from "../model/classes";
@@ -49,9 +50,12 @@ export async function updateClass(
   id: string,
   input: ClassFormOutput,
 ): Promise<void> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("classes")
     .update(payload(input))
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
   if (error) throw error;
+  // RLS가 막거나 없는 id면 오류 없이 0행이 돌아와요.
+  if (data.length === 0) throw new SaveNotAppliedError();
 }

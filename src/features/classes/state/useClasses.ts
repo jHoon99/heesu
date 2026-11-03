@@ -21,6 +21,7 @@ export function useClass(id: string | null) {
     queryKey: classKeys.detail(id ?? ""),
     queryFn: () => getClass(id as string),
     enabled: id !== null,
+    refetchOnMount: "always",
   });
 }
 
