@@ -41,7 +41,7 @@ select is(
      join pg_catalog.pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public'
       and has_function_privilege('authenticated', p.oid, 'execute')),
-  '{my_role,password_changed,submit_homework}'::text[],
+  '{my_rank,my_role,password_changed,submit_homework}'::text[],
   'public: authenticated가 실행할 수 있는 함수 = 허용 목록'
 );
 

@@ -304,6 +304,11 @@ isOneToOne: false
             "admin_user_exists":
 { Args: { "p_user_id": string }; Returns: boolean
                            },
+"my_rank":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "rank": number,"total": number
+            }[]
+                           },
 "my_role":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
