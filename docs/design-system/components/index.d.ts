@@ -1,5 +1,6 @@
 // 희수영어 — window.Heesu (React 18). Types are documentation.
-import type { ReactNode, ButtonHTMLAttributes, InputHTMLAttributes, SelectHTMLAttributes } from "react";
+import type { ElementType, ReactNode, ButtonHTMLAttributes, InputHTMLAttributes, SelectHTMLAttributes } from "react";
+import type { LucideIcon } from "lucide-react";
 
 export type IconName = "check" | "x" | "clock" | "repeat" | "alert" | "minus" | "home" | "book" | "play" | "video" | "trophy" | "user" | "users" | "calendar" | "clipboard" | "chat" | "settings" | "chart" | "chevronDown" | "chevronLeft" | "chevronRight" | "bell" | "phone" | "sparkle" | "search" | "download" | "pin";
 export type Attendance = "none" | "present" | "late" | "absent" | "makeup";
@@ -26,9 +27,9 @@ export interface AttendanceTableProps {
   showHomework?: boolean; maxHeight?: number;
 }
 export interface AdminSidebarProps { active?: string; items?: ({ group: string } | { value: string; label: string; icon: IconName; count?: number })[]; onNavigate?: (v: string) => void; logoSrc?: string; academyName?: string; userName?: string; userRole?: string }
-export interface StudentTabBarProps { active?: string; items?: { value: string; label: string; icon: IconName; dot?: boolean }[]; onNavigate?: (v: string) => void }
+export interface StudentTabBarProps { items: { value: string; label: string; href: string; icon: LucideIcon; dot?: boolean }[]; active?: string; linkComponent?: ElementType; className?: string }
 export interface VideoCardProps { title: ReactNode; subtitle?: ReactNode; unit?: string; duration?: string; progress?: number; isNew?: boolean; layout?: "column" | "row"; onClick?: () => void }
-export interface PointsProgressProps { points: number; goal: number; goalLabel?: string; rank?: number; rankScope?: string; delta?: number; label?: string; compact?: boolean }
+export interface PointsProgressProps { points: number; goal: number; goalLabel?: string; rank?: number; rankTotal?: number; rankScope?: string; delta?: number; label?: string; compact?: boolean; className?: string }
 export interface ConsultFormProps { onSubmit?: (data: { parent: string; phone: string; grade: string; school?: string; time: string; message?: string; agree: "y" }) => void; submitLabel?: string }
 
 // ---------- Motion ----------
