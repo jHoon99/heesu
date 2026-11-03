@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "@/design-system";
@@ -31,8 +31,9 @@ const student: StudentSummary = {
   classes: [],
 };
 
+let client: QueryClient;
 function setup() {
-  const client = new QueryClient({
+  client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
   render(
@@ -117,5 +118,24 @@ describe("StudentEditScreen", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "저장하지 못했어요. 다시 로그인하거나 새로고침해 주세요.",
     );
+  });
+
+  it("keeps the form when a background refetch fails", async () => {
+    setup();
+    expect(await screen.findByLabelText(/이름/)).toBeInTheDocument();
+    get.mockRejectedValue(new Error("x"));
+    await act(() => client.refetchQueries());
+    await waitFor(() =>
+      expect(
+        client
+          .getQueryCache()
+          .getAll()
+          .some((q) => q.state.status === "error"),
+      ).toBe(true),
+    );
+    await act(() => new Promise((r) => setTimeout(r, 20)));
+    expect(get).toHaveBeenCalledTimes(2);
+    expect(screen.getByLabelText(/이름/)).toBeInTheDocument();
+    expect(screen.queryByText("불러오지 못했어요")).toBeNull();
   });
 });

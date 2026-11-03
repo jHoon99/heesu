@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "@/design-system";
@@ -310,5 +310,26 @@ describe("StudentDetailScreen", () => {
     expect(
       screen.getByText("퇴원한 학생은 초기화할 수 없어요."),
     ).toBeInTheDocument();
+  });
+
+  it("keeps the content when a background refetch fails", async () => {
+    setup();
+    expect(
+      await screen.findByRole("heading", { name: "김하늘" }),
+    ).toBeInTheDocument();
+    get.mockRejectedValue(new Error("x"));
+    await act(() => client.refetchQueries());
+    await waitFor(() =>
+      expect(
+        client
+          .getQueryCache()
+          .getAll()
+          .some((q) => q.state.status === "error"),
+      ).toBe(true),
+    );
+    await act(() => new Promise((r) => setTimeout(r, 20)));
+    expect(get).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole("heading", { name: "김하늘" })).toBeInTheDocument();
+    expect(screen.queryByText("불러오지 못했어요")).toBeNull();
   });
 });

@@ -172,7 +172,7 @@ export function StudentEditScreen() {
   let body;
   if (id === null) {
     body = <NotFound />;
-  } else if (existing.isError) {
+  } else if (existing.isError && existing.data === undefined) {
     body = (
       <p role="alert" className="text-body text-danger-700">
         {classifyError(existing.error).message}

@@ -129,7 +129,7 @@ function ConsentForm({ studentId }: { studentId: string }) {
 export function ConsentCard({ studentId }: { studentId: string }) {
   const consents = useConsents(studentId);
   let history;
-  if (consents.isError) {
+  if (consents.isError && consents.data === undefined) {
     history = (
       <p role="alert" className="text-body-sm text-danger-700">
         {classifyError(consents.error).message}

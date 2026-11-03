@@ -43,7 +43,7 @@ export function StudentDetailScreen() {
   const query = useStudent(id);
 
   if (id === null) return <NotFound />;
-  if (query.isError) {
+  if (query.isError && query.data === undefined) {
     return (
       <p role="alert" className="text-body text-danger-700">
         {classifyError(query.error).message}

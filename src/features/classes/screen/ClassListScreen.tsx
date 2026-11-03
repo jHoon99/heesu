@@ -28,7 +28,7 @@ export function ClassListScreen() {
           반 추가
         </Button>
       </div>
-      {query.isError ? (
+      {query.isError && query.data === undefined ? (
         <p
           role="alert"
           className="rounded-md bg-danger-50 px-3 py-2 text-body-sm text-danger-700"

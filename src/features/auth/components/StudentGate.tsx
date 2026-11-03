@@ -35,7 +35,7 @@ function GateMessage({
 // 화면 이동용 게이트예요. 데이터 보호는 RLS가 맡아요.
 export function StudentGate({ children }: { children: ReactNode }) {
   const student = useMyStudent();
-  if (student.isError && !student.isFetching) {
+  if (student.isError && student.data === undefined && !student.isFetching) {
     return (
       <GateMessage
         message="학생 정보를 불러오지 못했어요. 다시 시도하거나 로그아웃해 주세요."

@@ -67,7 +67,11 @@ export function ClassFormScreen({ mode }: { mode: "new" | "edit" }) {
   let body;
   if (mode === "edit" && id === null) {
     body = <NotFound />;
-  } else if (mode === "edit" && existing.isError) {
+  } else if (
+    mode === "edit" &&
+    existing.isError &&
+    existing.data === undefined
+  ) {
     body = (
       <p role="alert" className="text-body text-danger-700">
         {classifyError(existing.error).message}

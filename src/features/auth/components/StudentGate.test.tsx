@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getMyStudent } from "../data/student";
@@ -21,8 +21,9 @@ vi.mock("../screen/FirstLoginPasswordScreen", () => ({
 
 const get = vi.mocked(getMyStudent);
 
+let client: QueryClient;
 function setup() {
-  const client = new QueryClient({
+  client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   render(
@@ -72,5 +73,29 @@ describe("StudentGate", () => {
     get.mockResolvedValue({ id: "s", name: "하늘", mustChangePassword: true });
     setup();
     expect(await screen.findByText("비밀번호 변경")).toBeInTheDocument();
+  });
+
+  it("keeps the content when a background refetch fails", async () => {
+    get.mockResolvedValueOnce({
+      id: "s",
+      name: "하늘",
+      mustChangePassword: false,
+    });
+    get.mockRejectedValueOnce(new Error("x"));
+    setup();
+    expect(await screen.findByText("홈")).toBeInTheDocument();
+    await act(() => client.refetchQueries());
+    await waitFor(() =>
+      expect(
+        client
+          .getQueryCache()
+          .getAll()
+          .some((q) => q.state.status === "error"),
+      ).toBe(true),
+    );
+    await act(() => new Promise((r) => setTimeout(r, 20)));
+    expect(get).toHaveBeenCalledTimes(2);
+    expect(screen.getByText("홈")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });

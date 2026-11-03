@@ -50,7 +50,7 @@ export function ClassAssignCard({
   }
 
   let body;
-  if (classes.isError) {
+  if (classes.isError && classes.data === undefined) {
     body = (
       <p role="alert" className="text-body-sm text-danger-700">
         {classifyError(classes.error).message}

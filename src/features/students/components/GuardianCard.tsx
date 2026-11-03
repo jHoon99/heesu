@@ -125,7 +125,7 @@ function GuardianForm({
 export function GuardianCard({ studentId }: { studentId: string }) {
   const priv = useStudentPrivate(studentId);
   let body;
-  if (priv.isError) {
+  if (priv.isError && priv.data === undefined) {
     body = (
       <p role="alert" className="text-body-sm text-danger-700">
         {classifyError(priv.error).message}

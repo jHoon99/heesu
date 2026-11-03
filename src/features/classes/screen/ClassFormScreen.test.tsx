@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "@/design-system";
@@ -24,8 +24,9 @@ const update = vi.mocked(updateClass);
 const UUID = "6f1c2b3a-1111-4222-8333-444455556666";
 const NOT_FOUND = "반을 찾을 수 없어요. 목록에서 다시 골라 주세요.";
 
+let client: QueryClient;
 function setup(mode: "new" | "edit", seed?: ClassSummary) {
-  const client = new QueryClient({
+  client = new QueryClient({
     defaultOptions: {
       queries: { retry: false, staleTime: 30_000 },
       mutations: { retry: false },
@@ -157,5 +158,33 @@ describe("ClassFormScreen", () => {
       ),
     ).toBeInTheDocument();
     expect(push).not.toHaveBeenCalled();
+  });
+
+  it("keeps the form when a background refetch fails", async () => {
+    search = new URLSearchParams(`id=${UUID}`);
+    get.mockResolvedValueOnce({
+      id: UUID,
+      name: "A",
+      level: "middle",
+      schedule: [],
+      capacity: null,
+      memberCount: 0,
+    });
+    setup("edit");
+    expect(await screen.findByLabelText(/반 이름/)).toBeInTheDocument();
+    get.mockRejectedValue(new Error("x"));
+    await act(() => client.refetchQueries());
+    await waitFor(() =>
+      expect(
+        client
+          .getQueryCache()
+          .getAll()
+          .some((q) => q.state.status === "error"),
+      ).toBe(true),
+    );
+    await act(() => new Promise((r) => setTimeout(r, 20)));
+    expect(get).toHaveBeenCalledTimes(2);
+    expect(screen.getByLabelText(/반 이름/)).toBeInTheDocument();
+    expect(screen.queryByText("불러오지 못했어요")).toBeNull();
   });
 });
