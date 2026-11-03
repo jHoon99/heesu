@@ -51,4 +51,5 @@
 - Never run `supabase db push --include-seed` or `supabase db reset --linked` against cloud (seed.sql has a public admin password). After deploy, verify no `*@example.test` admin exists.
 - Auth settings: Email provider ON, "Allow new users to sign up" OFF, "Confirm email" ON, minimum password length 8.
 - Verify an old refresh token fails after an admin password reset (passed locally). Note: with asymmetric JWT keys a signed-out admin's access token stays valid until expiry (up to 1h).
+- Before applying the 20261107 migrations to cloud, check that existing student and class names contain no control characters (the new check constraints would fail the whole push).
 - Local build needs `.env.local` (copy values from `supabase status`).

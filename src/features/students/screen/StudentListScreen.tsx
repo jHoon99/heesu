@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Button, Card, Input, Tabs } from "@/design-system";
 import { classifyError } from "@/core/supabase/error";
+import { usePointTotals } from "@/features/points";
 import { StudentTable } from "../components/StudentTable";
 import { filterStudents, type StudentStatus } from "../model/students";
 import { useStudents } from "../state/useStudents";
@@ -12,11 +13,16 @@ import { useStudents } from "../state/useStudents";
 export function StudentListScreen() {
   const router = useRouter();
   const query = useStudents();
+  const totals = usePointTotals();
   const [tab, setTab] = useState<StudentStatus | "all">("active");
   const [search, setSearch] = useState("");
   const students = query.data ?? [];
   const count = (s: StudentStatus) =>
     students.filter((x) => x.status === s).length;
+  const points =
+    totals.data === undefined
+      ? null
+      : Object.fromEntries(totals.data.map((t) => [t.studentId, t.total]));
   const shown = filterStudents(students, tab, search);
 
   return (
@@ -79,6 +85,7 @@ export function StudentListScreen() {
           ) : (
             <StudentTable
               students={shown}
+              points={points}
               onOpen={(id) =>
                 router.push(
                   `/admin/students/detail?id=${encodeURIComponent(id)}`,

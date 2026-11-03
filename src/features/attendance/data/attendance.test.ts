@@ -4,6 +4,7 @@ import { SaveNotAppliedError } from "@/core/supabase/saveNotApplied";
 import {
   getBoard,
   getDayProgress,
+  listStudentRecords,
   setAttendance,
   setHomework,
 } from "./attendance";
@@ -209,5 +210,111 @@ describe("getDayProgress", () => {
     const err = { code: "42501", message: "권한이 없어요." };
     mockTables({ sessions: { data: null, error: err } });
     await expect(getDayProgress("2026-11-04")).rejects.toBe(err);
+  });
+});
+
+describe("listStudentRecords", () => {
+  beforeEach(() => {
+    from.mockReset();
+  });
+
+  it("returns [] without querying sessions when the student has no class", async () => {
+    const calls = mockTables({ class_members: { data: [], error: null } });
+    expect(await listStudentRecords("u1")).toEqual([]);
+    expect(new Set(calls.map((c) => c.table)).has("sessions")).toBe(false);
+  });
+
+  it("returns [] when the classes have no sessions yet", async () => {
+    const calls = mockTables({
+      class_members: {
+        data: [{ class_id: "c1", classes: { name: "중등 기초반" } }],
+        error: null,
+      },
+      sessions: { data: [], error: null },
+    });
+    expect(await listStudentRecords("u1")).toEqual([]);
+    expect(new Set(calls.map((c) => c.table)).has("attendance")).toBe(false);
+  });
+
+  it("takes the 8 most recent sessions across classes, newest first, with statuses and defaults", async () => {
+    const calls = mockTables({
+      class_members: {
+        data: [
+          { class_id: "c1", classes: { name: "중등 기초반" } },
+          { class_id: "c2", classes: { name: "중등 심화반" } },
+        ],
+        error: null,
+      },
+      sessions: {
+        data: [
+          { id: "s3", class_id: "c2", date: "2026-11-05" },
+          { id: "s2", class_id: "c1", date: "2026-11-04" },
+          { id: "s1", class_id: "c1", date: "2026-11-02" },
+        ],
+        error: null,
+      },
+      attendance: {
+        data: [{ session_id: "s2", student_id: "u1", status: "late" }],
+        error: null,
+      },
+      homework_checks: {
+        data: [{ session_id: "s2", student_id: "u1", status: "done" }],
+        error: null,
+      },
+    });
+    expect(await listStudentRecords("u1")).toEqual([
+      {
+        sessionId: "s3",
+        date: "2026-11-05",
+        className: "중등 심화반",
+        att: "none",
+        hw: "none",
+      },
+      {
+        sessionId: "s2",
+        date: "2026-11-04",
+        className: "중등 기초반",
+        att: "late",
+        hw: "done",
+      },
+      {
+        sessionId: "s1",
+        date: "2026-11-02",
+        className: "중등 기초반",
+        att: "none",
+        hw: "none",
+      },
+    ]);
+    expect(calls).toContainEqual({
+      table: "sessions",
+      method: "in",
+      args: ["class_id", ["c1", "c2"]],
+    });
+    expect(calls).toContainEqual({
+      table: "sessions",
+      method: "order",
+      args: ["date", { ascending: false }],
+    });
+    expect(calls).toContainEqual({
+      table: "sessions",
+      method: "limit",
+      args: [8],
+    });
+    expect(calls).toContainEqual({
+      table: "attendance",
+      method: "eq",
+      args: ["student_id", "u1"],
+    });
+    expect(calls).toContainEqual({
+      table: "attendance",
+      method: "in",
+      args: ["session_id", ["s3", "s2", "s1"]],
+    });
+  });
+
+  it("throws the supabase error from any step", async () => {
+    const err = { code: "42501", message: "denied" };
+    mockTables({ class_members: { data: null, error: err } });
+    await expect(listStudentRecords("u1")).rejects.toBe(err);
   });
 });

@@ -153,8 +153,8 @@ export function useSetCell(classId: string) {
       // 마지막 저장이 끝날 때만 서버 값으로 다시 맞춰요(되돌린 칸도 서버 값과 같아져요).
       // 기다리지 않아요: 기다리는 동안 이 저장이 계속 "진행 중"으로 세어지면 다음 저장이 갱신을 건너뛰어요.
       if (client.isMutating({ mutationKey }) !== 1) return;
-      void client.invalidateQueries({ queryKey: boardKey });
-      void client.invalidateQueries({ queryKey: ["attendance", "day"] });
+      // ["attendance"] 전체: 보드, 날짜별 진행률, 학생 상세의 최근 기록까지 함께 맞춰요.
+      void client.invalidateQueries({ queryKey: attendanceKeys.all });
       void client.invalidateQueries({ queryKey: POINTS_KEY });
     },
   });

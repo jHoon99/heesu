@@ -1,9 +1,10 @@
 import { supabase } from "@/core/supabase/client";
 import { SaveNotAppliedError } from "@/core/supabase/saveNotApplied";
-import type {
-  ManualPointOutput,
-  PointEntry,
-  PointTotal,
+import {
+  POINT_HISTORY_LIMIT,
+  type ManualPointOutput,
+  type PointEntry,
+  type PointTotal,
 } from "../model/points";
 
 const STATUSES = ["active", "paused", "left"] as const;
@@ -30,7 +31,7 @@ export async function listPointTotals(): Promise<PointTotal[]> {
 
 export async function listPointHistory(
   studentId: string,
-  limit = 50,
+  limit = POINT_HISTORY_LIMIT,
 ): Promise<PointEntry[]> {
   const { data, error } = await supabase
     .from("points")

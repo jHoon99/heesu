@@ -151,20 +151,15 @@ describe("useSetCell", () => {
     await waitFor(() => expect(setAtt).toHaveBeenCalledTimes(2));
     await act(async () => a.resolve());
     await waitFor(() => expect(client.isMutating()).toBe(1));
-    const boardCalls = () =>
+    const attendanceCalls = () =>
       invalidate.mock.calls.filter(
-        ([f]) =>
-          JSON.stringify(f?.queryKey) ===
-          JSON.stringify(attendanceKeys.board("c1")),
+        ([f]) => JSON.stringify(f?.queryKey) === JSON.stringify(["attendance"]),
       ).length;
-    expect(boardCalls()).toBe(0);
+    expect(attendanceCalls()).toBe(0);
     await act(async () => b.resolve());
     await waitFor(() => expect(client.isMutating()).toBe(0));
-    expect(boardCalls()).toBe(1);
+    expect(attendanceCalls()).toBe(1);
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["points"] });
-    expect(invalidate).toHaveBeenCalledWith({
-      queryKey: ["attendance", "day"],
-    });
   });
 
   it("undo saves the previous value through the same hook", async () => {

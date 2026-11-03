@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { CONTROL_CHAR_MESSAGE } from "@/core/text";
-import { formatAmount, manualPointSchema, rankStudents } from "./points";
-import type { PointTotal } from "./points";
+import {
+  formatAmount,
+  manualPointSchema,
+  rankStudents,
+  sortHistory,
+} from "./points";
+import type { PointEntry, PointTotal } from "./points";
 
 const AMOUNT_MESSAGE =
   "포인트는 -100부터 100 사이의 0이 아닌 정수로 입력해 주세요.";
@@ -93,5 +98,47 @@ describe("formatAmount", () => {
   it("signs the number", () => {
     expect(formatAmount(3)).toBe("+3");
     expect(formatAmount(-2)).toBe("-2");
+  });
+});
+
+describe("sortHistory", () => {
+  const e = (
+    id: string,
+    createdAt: string,
+    sessionDate: string | null,
+  ): PointEntry => ({ id, amount: 1, reason: "r", createdAt, sessionDate });
+
+  it("orders by shown date desc, then createdAt desc", () => {
+    const rows = [
+      e("old-session", "2026-11-04T01:00:00Z", "2026-10-20"),
+      e("manual-mid", "2026-11-02T01:00:00Z", null),
+      e("same-day-late", "2026-11-02T05:00:00Z", "2026-11-02"),
+      e("recent", "2026-11-03T01:00:00Z", "2026-11-03"),
+    ];
+    expect(sortHistory(rows).map((r) => r.id)).toEqual([
+      "recent",
+      "same-day-late",
+      "manual-mid",
+      "old-session",
+    ]);
+  });
+
+  it("uses the local (Seoul) date of createdAt for manual rows", () => {
+    // 14:59Z is still 11/3 in KST, 15:00Z is 11/4.
+    const rows = [
+      e("a", "2026-11-03T14:59:00Z", null),
+      e("b", "2026-11-03T15:00:00Z", null),
+      e("c", "2026-11-04T00:00:00Z", "2026-11-03"),
+    ];
+    expect(sortHistory(rows).map((r) => r.id)).toEqual(["b", "c", "a"]);
+  });
+
+  it("does not mutate the input", () => {
+    const rows = [
+      e("a", "2026-11-01T00:00:00Z", null),
+      e("b", "2026-11-02T00:00:00Z", null),
+    ];
+    sortHistory(rows);
+    expect(rows.map((r) => r.id)).toEqual(["a", "b"]);
   });
 });

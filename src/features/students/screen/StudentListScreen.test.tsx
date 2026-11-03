@@ -9,6 +9,8 @@ import { StudentListScreen } from "./StudentListScreen";
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 vi.mock("../data/students");
+let pointsResult: { data?: { studentId: string; total: number }[] } = {};
+vi.mock("@/features/points", () => ({ usePointTotals: () => pointsResult }));
 const list = vi.mocked(listStudents);
 
 const mk = (over: Partial<StudentSummary>): StudentSummary => ({
@@ -38,6 +40,7 @@ function setup() {
 describe("StudentListScreen", () => {
   beforeEach(() => {
     push.mockReset();
+    pointsResult = { data: [{ studentId: "1", total: 12 }] };
     list.mockReset();
     list.mockResolvedValue([
       mk({}),
@@ -72,6 +75,29 @@ describe("StudentListScreen", () => {
       "zzz",
     );
     expect(screen.getByText("조건에 맞는 학생이 없어요.")).toBeInTheDocument();
+  });
+
+  it("shows points after the status column, 0점 for students without rows", async () => {
+    setup();
+    await screen.findByRole("table");
+    const heads = screen.getAllByRole("columnheader").map((h) => h.textContent);
+    expect(heads.indexOf("포인트")).toBe(heads.indexOf("상태") + 1);
+    const rowOf = (name: string) =>
+      screen.getByText(name).closest("tr") as HTMLElement;
+    expect(within(rowOf("김하늘")).getByText("12점")).toBeInTheDocument();
+    expect(within(rowOf("이민준")).getByText("0점")).toBeInTheDocument();
+  });
+
+  it("shows - and keeps the list when points are unavailable", async () => {
+    pointsResult = {};
+    setup();
+    const row = (await screen.findByText("김하늘")).closest(
+      "tr",
+    ) as HTMLElement;
+    const cells = within(row).getAllByRole("cell");
+    expect(cells[6]).toHaveTextContent("-"); // 포인트 열(학교도 "-"이라 칸 번호로)
+    expect(cells[6]).not.toHaveTextContent("점");
+    expect(screen.getByText("이민준")).toBeInTheDocument();
   });
 
   it("opens the detail on Enter", async () => {

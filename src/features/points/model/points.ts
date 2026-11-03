@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CONTROL_CHAR_MESSAGE, hasControlChars } from "@/core/text";
+import { toLocalDateKey } from "@/features/sessions";
 
 export type PointTotal = {
   studentId: string;
@@ -56,4 +57,20 @@ export type ManualPointOutput = z.output<typeof manualPointSchema>;
 
 export function formatAmount(n: number): string {
   return n > 0 ? `+${n}` : `${n}`;
+}
+
+export const POINT_HISTORY_LIMIT = 50;
+
+/** 화면에 보이는 날짜: 자동 포인트는 수업 날짜, 수동 포인트는 만든 날(로컬). */
+export function entryDateKey(e: PointEntry): string {
+  return e.sessionDate ?? toLocalDateKey(new Date(e.createdAt));
+}
+
+/** 날짜 내림차순, 같은 날은 만든 시각 내림차순. */
+export function sortHistory(entries: PointEntry[]): PointEntry[] {
+  return [...entries].sort(
+    (a, b) =>
+      entryDateKey(b).localeCompare(entryDateKey(a)) ||
+      b.createdAt.localeCompare(a.createdAt),
+  );
 }
