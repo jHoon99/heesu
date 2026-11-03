@@ -182,6 +182,20 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  // Plain service worker script (no bundler): browser worker globals.
+  {
+    files: ["public/sw.js"],
+    languageOptions: {
+      sourceType: "script",
+      globals: {
+        self: "readonly",
+        caches: "readonly",
+        fetch: "readonly",
+        Response: "readonly",
+        URL: "readonly",
+      },
+    },
+  },
   // Reference copies of the design system are not project code. Edge Functions
   // are Deno code, checked by `npm run fn:check` (deno check/lint/test).
   globalIgnores([

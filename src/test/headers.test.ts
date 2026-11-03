@@ -35,6 +35,8 @@ describe("public/_headers /*", () => {
     "frame-ancestors 'none'",
     "base-uri 'none'",
     "form-action 'self'",
+    "worker-src 'self'",
+    "manifest-src 'self'",
   ])("CSP contains %s", (directive) => {
     expect(csp).toContain(directive);
   });
@@ -78,5 +80,11 @@ describe("public/_headers /g", () => {
 
   it("is noindex", () => {
     expect(g).toContain("X-Robots-Tag: noindex");
+  });
+});
+
+describe("public/_headers /sw.js", () => {
+  it("is never served from a stale HTTP cache", () => {
+    expect(block("/sw.js")).toContain("Cache-Control: no-cache");
   });
 });
