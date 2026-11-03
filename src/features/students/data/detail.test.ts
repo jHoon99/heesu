@@ -18,7 +18,7 @@ function chain(result: Result) {
   for (const n of ["delete", "eq", "in", "insert", "upsert"]) c[n] = rec(n);
   c.select = vi.fn((...args: unknown[]) => {
     calls.select = args;
-    return Promise.resolve(result);
+    return c;
   });
   // insert without select resolves directly
   c.then = (res: (v: Result) => unknown) => Promise.resolve(result).then(res);
@@ -35,22 +35,34 @@ describe("setStudentClasses", () => {
     expect(from).not.toHaveBeenCalled();
   });
 
-  it("deletes removed classes and inserts added ones once each", async () => {
-    const del = chain({ data: [{ class_id: "a" }], error: null });
+  it("inserts added classes first, then deletes removed ones", async () => {
     const ins = chain({ data: null, error: null });
+    const del = chain({ data: [{ class_id: "a" }], error: null });
     from
-      .mockReturnValueOnce(del.c as never)
-      .mockReturnValueOnce(ins.c as never);
+      .mockReturnValueOnce(ins.c as never)
+      .mockReturnValueOnce(del.c as never);
     await setStudentClasses("s", ["a", "b"], ["b", "c"]);
     expect(from).toHaveBeenCalledTimes(2);
+    expect(ins.calls.insert).toEqual([[{ student_id: "s", class_id: "c" }]]);
     expect(del.calls.eq).toEqual(["student_id", "s"]);
     expect(del.calls.in).toEqual(["class_id", ["a"]]);
-    expect(ins.calls.insert).toEqual([[{ student_id: "s", class_id: "c" }]]);
+  });
+
+  it("retry after a failed delete succeeds when the rows are already gone", async () => {
+    const del = chain({ data: [], error: null });
+    const check = chain({ data: [], error: null });
+    from
+      .mockReturnValueOnce(del.c as never)
+      .mockReturnValueOnce(check.c as never);
+    await expect(setStudentClasses("s", ["a"], [])).resolves.toBeUndefined();
   });
 
   it("throws SaveNotAppliedError when the delete touched 0 rows", async () => {
     const del = chain({ data: [], error: null });
-    from.mockReturnValueOnce(del.c as never);
+    const check = chain({ data: [{ class_id: "a" }], error: null });
+    from
+      .mockReturnValueOnce(del.c as never)
+      .mockReturnValueOnce(check.c as never);
     await expect(setStudentClasses("s", ["a"], [])).rejects.toBeInstanceOf(
       SaveNotAppliedError,
     );

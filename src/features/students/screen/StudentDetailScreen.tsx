@@ -76,6 +76,7 @@ export function StudentDetailScreen() {
       </div>
       <StudentInfoCard student={student} />
       <ClassAssignCard
+        key={student.classes.map((c) => c.id).join(",")}
         studentId={id}
         currentIds={student.classes.map((c) => c.id)}
       />

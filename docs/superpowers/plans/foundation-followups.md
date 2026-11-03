@@ -48,5 +48,4 @@
 - Dashboard Auth Redirect URLs = exactly 3 addresses: `http://localhost:3000`, `https://dev.heesu.pages.dev`, `https://heesu.pages.dev`.
 - Deploy `create-student` and `reset-student-password` with `--no-verify-jwt` (same as config.toml; the functions check the admin session themselves).
 - After creating the admin account, insert it into `private.admins`; enroll TOTP at the first login.
-- Admin password 12+ characters.
 - Local build needs `.env.local` (copy values from `supabase status`).

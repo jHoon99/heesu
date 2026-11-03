@@ -135,6 +135,27 @@ describe("StudentDetailScreen", () => {
     ).toBeInTheDocument();
   });
 
+  it("refetches after a failed class save and a retry applies the fresh diff", async () => {
+    setClasses.mockRejectedValueOnce(new Error("network"));
+    const user = setup();
+    await screen.findByRole("heading", { name: "반 배정" });
+    await user.click(screen.getByRole("checkbox", { name: "중2 B반" }));
+    const calls = get.mock.calls.length;
+    await user.click(screen.getAllByRole("button", { name: "저장" })[0]!);
+    await waitFor(() => expect(get.mock.calls.length).toBeGreaterThan(calls));
+    // the server now has c1 and c2 (insert had committed)
+    get.mockResolvedValue({
+      ...student,
+      classes: [
+        { id: "c1", name: "중1 A반" },
+        { id: "c2", name: "중2 B반" },
+      ],
+    });
+    await user.click(screen.getByRole("checkbox", { name: "중1 A반" }));
+    await user.click(screen.getAllByRole("button", { name: "저장" })[0]!);
+    await waitFor(() => expect(setClasses).toHaveBeenCalledTimes(2));
+  });
+
   it("formats the guardian phone while typing and saves", async () => {
     const user = setup();
     const phone = await screen.findByLabelText("보호자 연락처");

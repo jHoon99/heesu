@@ -39,7 +39,8 @@ export function useSetStudentClasses() {
     mutationFn: (vars: { id: string; current: string[]; next: string[] }) =>
       setStudentClasses(vars.id, vars.current, vars.next),
     // 학생 목록의 반 열과 반 목록의 학생 수가 바뀌어요.
-    onSuccess: async () => {
+    // 일부만 적용되고 실패해도 서버 상태와 다시 맞춰요.
+    onSettled: async () => {
       await Promise.all([
         client.invalidateQueries({ queryKey: studentKeys.all }),
         client.invalidateQueries({ queryKey: classKeys.all }),

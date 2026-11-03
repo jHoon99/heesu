@@ -53,6 +53,13 @@ export async function setStudentClasses(
   next: string[],
 ): Promise<void> {
   const { add, remove } = diffClassIds(current, next);
+  // 추가를 먼저: 중간에 실패해도 배정이 사라지지 않고 남기만 해요.
+  if (add.length > 0) {
+    const { error } = await supabase
+      .from("class_members")
+      .insert(add.map((class_id) => ({ student_id: id, class_id })));
+    if (error) throw error;
+  }
   if (remove.length > 0) {
     const { data, error } = await supabase
       .from("class_members")
@@ -61,14 +68,16 @@ export async function setStudentClasses(
       .in("class_id", remove)
       .select("class_id");
     if (error) throw error;
-    // RLS가 막으면 오류 없이 0행이 지워져요.
-    if (data.length === 0) throw new SaveNotAppliedError();
-  }
-  if (add.length > 0) {
-    const { error } = await supabase
-      .from("class_members")
-      .insert(add.map((class_id) => ({ student_id: id, class_id })));
-    if (error) throw error;
+    if (data.length === 0) {
+      // 0행이면 이미 지워졌는지(재시도) RLS가 막았는지 가려요.
+      const left = await supabase
+        .from("class_members")
+        .select("class_id")
+        .eq("student_id", id)
+        .in("class_id", remove);
+      if (left.error) throw left.error;
+      if (left.data.length > 0) throw new SaveNotAppliedError();
+    }
   }
 }
 
