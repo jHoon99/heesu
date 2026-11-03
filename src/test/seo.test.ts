@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { metadata as privacyMetadata } from "@/app/(landing)/privacy/page";
 
 const read = (p: string) => readFileSync(join(process.cwd(), p));
 
@@ -13,7 +14,8 @@ describe("public SEO files", () => {
         "Disallow: /admin",
         "Disallow: /s$",
         "Disallow: /s/",
-        "Disallow: /g",
+        "Disallow: /g$",
+        "Disallow: /g/",
         "",
         "Sitemap: https://heesu.pages.dev/sitemap.xml",
         "",
@@ -21,16 +23,17 @@ describe("public SEO files", () => {
     );
   });
 
-  it("sitemap.xml lists exactly the two public pages", () => {
+  it("sitemap.xml lists only the landing page (/privacy stays out until legal review)", () => {
     const locs = [
       ...read("public/sitemap.xml")
         .toString("utf8")
         .matchAll(/<loc>([^<]*)<\/loc>/g),
     ].map((m) => m[1]);
-    expect(locs).toEqual([
-      "https://heesu.pages.dev/",
-      "https://heesu.pages.dev/privacy",
-    ]);
+    expect(locs).toEqual(["https://heesu.pages.dev/"]);
+  });
+
+  it("/privacy is noindex until legal review", () => {
+    expect(privacyMetadata.robots).toEqual({ index: false, follow: true });
   });
 
   it("og.png is a 1200x1200 PNG", () => {
