@@ -15,7 +15,7 @@ function setup(overrides: Partial<Deps> = {}) {
   const log: string[] = [];
   const base: Deps = {
     getClaims: () => Promise.resolve({ sub: ADMIN_ID, aal: "aal2" }),
-    isAdmin: () => Promise.resolve(true),
+    isAdmin: (userId) => Promise.resolve(userId === ADMIN_ID),
     findStudent: () =>
       Promise.resolve<Student>({ userId: STUDENT_USER_ID, status: "active" }),
     markMustChange: () => Promise.resolve(),
@@ -165,6 +165,19 @@ Deno.test("student who left is 409", async () => {
   assertEquals(called("markMustChange") + called("setPassword"), 0);
 });
 
+Deno.test("a student row linked to an admin account is 409", async () => {
+  const { handler, called } = setup({
+    isAdmin: () => Promise.resolve(true),
+  });
+  const json = await expectError(
+    await handler(post(VALID)),
+    409,
+    "student_is_admin",
+  );
+  assertEquals(json.message, "관리자 계정은 여기서 바꿀 수 없어요.");
+  assertEquals(called("markMustChange") + called("setPassword"), 0);
+});
+
 Deno.test(
   "success flags must_change_password before setting the password",
   async () => {
@@ -177,6 +190,7 @@ Deno.test(
       "getClaims:admin.jwt",
       `isAdmin:${ADMIN_ID}`,
       `findStudent:${STUDENT_ID}`,
+      `isAdmin:${STUDENT_USER_ID}`,
       `markMustChange:${STUDENT_ID}`,
       `setPassword:${STUDENT_USER_ID}:${PASSWORD}`,
     ]);

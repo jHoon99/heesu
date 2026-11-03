@@ -30,6 +30,7 @@ const MESSAGES = {
   notFound: "학생을 찾을 수 없어요. 목록을 새로고침한 뒤 다시 시도해 주세요.",
   studentLeft:
     "퇴원한 학생은 비밀번호를 바꿀 수 없어요. 상태를 재원으로 바꾼 뒤 시도해 주세요.",
+  studentIsAdmin: "관리자 계정은 여기서 바꿀 수 없어요.",
 } as const;
 
 function parseBody(
@@ -93,6 +94,14 @@ export function createHandler(deps: Deps): (req: Request) => Promise<Response> {
         return json(
           409,
           { error: "student_left", message: MESSAGES.studentLeft },
+          origin,
+        );
+      }
+
+      if (await deps.isAdmin(student.userId)) {
+        return json(
+          409,
+          { error: "student_is_admin", message: MESSAGES.studentIsAdmin },
           origin,
         );
       }
