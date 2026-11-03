@@ -38,5 +38,5 @@ export function useChangeFirstPassword(): ChangeFirstPassword {
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [...authKeys.all, "student"] }),
   });
-  return Object.assign(mutation, { markEdited });
+  return { ...mutation, markEdited };
 }
