@@ -44,4 +44,11 @@ describe("LandingScreen", () => {
     ).toHaveAttribute("href", "/privacy");
     expect(within(footer).getByText("© 2027 희수영어")).toBeInTheDocument();
   });
+
+  it("puts the #top target on the outermost wrapper, not main", () => {
+    const { container } = render(<LandingScreen />);
+    const top = container.querySelector("#top");
+    expect(top).toBe(container.firstElementChild);
+    expect(top?.tagName).not.toBe("MAIN");
+  });
 });

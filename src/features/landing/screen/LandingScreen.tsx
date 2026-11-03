@@ -13,12 +13,9 @@ import { TuitionSection } from "../components/TuitionSection";
 
 export function LandingScreen() {
   return (
-    <div className="min-h-screen bg-bg-page text-text">
+    <div id="top" className="min-h-screen bg-bg-page text-text">
       <SiteHeader />
-      <main
-        id="top"
-        className="mx-auto flex max-w-[720px] flex-col gap-12 px-4 pb-16 md:gap-16"
-      >
+      <main className="mx-auto flex max-w-[720px] flex-col gap-12 px-4 pb-16 md:gap-16">
         <Hero />
         <LeafDivider />
         <AboutSection />
