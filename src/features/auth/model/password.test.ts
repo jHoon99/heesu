@@ -20,6 +20,11 @@ describe("passwordSchema", () => {
     );
   });
 
+  it("counts code points, not UTF-16 units", () => {
+    expect(passwordSchema.safeParse("😀😀😀😀").success).toBe(false);
+    expect(passwordSchema.safeParse("가나다라마바사아").success).toBe(true);
+  });
+
   it("accepts exactly 72 bytes", () => {
     expect(passwordSchema.safeParse("a".repeat(72)).success).toBe(true);
   });

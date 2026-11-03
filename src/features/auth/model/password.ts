@@ -5,7 +5,10 @@ const MAX_BYTES = 72; // bcrypt 한도
 
 export const passwordSchema = z
   .string()
-  .min(8, "비밀번호는 8자 이상으로 입력해 주세요.")
+  .refine(
+    (value) => [...value].length >= 8, // 서버와 같게 코드 포인트로 세요.
+    "비밀번호는 8자 이상으로 입력해 주세요.",
+  )
   .refine(
     (value) => new TextEncoder().encode(value).length <= MAX_BYTES,
     "비밀번호가 너무 길어요. 영문 기준 72자 이하로 줄여 주세요.",
