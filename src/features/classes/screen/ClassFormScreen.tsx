@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Card, buttonVariants, useToast } from "@/design-system";
 import { classifyError } from "@/core/supabase/error";
+import { saveErrorMessage } from "@/core/supabase/saveNotApplied";
 import { ClassForm } from "../components/ClassForm";
-import { SaveNotAppliedError, type ClassFormOutput } from "../model/classes";
+import type { ClassFormOutput } from "../model/classes";
 import { useClass, useSaveClass } from "../state/useClasses";
 
 const UUID_RE =
@@ -15,8 +16,7 @@ const DUPLICATE_MESSAGE =
   "이미 같은 이름의 반이 있어요. 다른 이름을 입력해 주세요.";
 const LIST_PATH = "/admin/classes";
 
-function saveErrorMessage(error: unknown): string {
-  if (error instanceof SaveNotAppliedError) return error.message;
+function classSaveErrorMessage(error: unknown): string {
   if (
     typeof error === "object" &&
     error !== null &&
@@ -24,7 +24,7 @@ function saveErrorMessage(error: unknown): string {
   ) {
     return DUPLICATE_MESSAGE;
   }
-  return classifyError(error).message;
+  return saveErrorMessage(error);
 }
 
 function NotFound() {
@@ -60,7 +60,7 @@ export function ClassFormScreen({ mode }: { mode: "new" | "edit" }) {
       toast.show({ tone: "success", message: "반을 저장했어요." });
       router.push(LIST_PATH);
     } catch (e) {
-      setError(saveErrorMessage(e));
+      setError(classSaveErrorMessage(e));
     }
   }
 
@@ -101,6 +101,7 @@ export function ClassFormScreen({ mode }: { mode: "new" | "edit" }) {
         ) : null}
         <ClassForm
           initial={existing.data ?? undefined}
+          scheduleUnreadable={existing.data?.scheduleInvalid === true}
           busy={save.isPending}
           onSubmit={onSubmit}
           onCancel={() => router.push(LIST_PATH)}

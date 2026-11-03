@@ -65,6 +65,8 @@ export type ClassSummary = {
   name: string;
   level: "middle" | "high";
   schedule: ScheduleSlot[];
+  /** DB의 시간표를 읽지 못했을 때 true (schedule은 빈 배열). 수정 화면이 빈 시간표로 덮어쓰지 않게 해요. */
+  scheduleInvalid: boolean;
   capacity: number | null;
   memberCount: number;
 };
@@ -77,9 +79,15 @@ export function formatSchedule(slots: ScheduleSlot[]): string {
     .join(" · ");
 }
 
-function parseSchedule(value: unknown): ScheduleSlot[] {
+export function parseSchedule(
+  value: unknown,
+):
+  | { invalid: false; schedule: ScheduleSlot[] }
+  | { invalid: true; schedule: [] } {
   const parsed = z.array(scheduleSlotSchema).safeParse(value);
-  return parsed.success ? parsed.data : [];
+  return parsed.success
+    ? { invalid: false, schedule: parsed.data }
+    : { invalid: true, schedule: [] };
 }
 
 function memberCountOf(value: unknown): number {
@@ -94,14 +102,14 @@ function memberCountOf(value: unknown): number {
 
 export function parseClassRow(row: unknown): ClassSummary {
   const r = (row ?? {}) as Record<string, unknown>;
+  const schedule = parseSchedule(r.schedule);
   return {
     id: String(r.id),
     name: String(r.name),
     level: r.level === "high" ? "high" : "middle",
-    schedule: parseSchedule(r.schedule),
+    schedule: schedule.schedule,
+    scheduleInvalid: schedule.invalid,
     capacity: typeof r.capacity === "number" ? r.capacity : null,
     memberCount: memberCountOf(r.class_members),
   };
 }
-
-export { SaveNotAppliedError } from "@/core/supabase/saveNotApplied";

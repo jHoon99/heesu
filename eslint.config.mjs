@@ -28,6 +28,10 @@ const ADMIN_UI_FILES = [
   "src/features/admin-shell/**",
   "src/features/students/**",
   "src/features/classes/**",
+  "src/features/sessions/**",
+  "src/features/attendance/**",
+  "src/features/points/**",
+  "src/features/today/**",
 ];
 
 const ENTRANCE_MOTION = [

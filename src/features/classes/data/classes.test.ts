@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { supabase } from "@/core/supabase/client";
-import { SaveNotAppliedError } from "../model/classes";
+import { SaveNotAppliedError } from "@/core/supabase/saveNotApplied";
 import { createClass, updateClass } from "./classes";
 
 vi.mock("@/core/supabase/client", () => ({ supabase: { from: vi.fn() } }));

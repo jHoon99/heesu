@@ -12,6 +12,8 @@ import {
 } from "../model/classes";
 import { ScheduleEditor } from "./ScheduleEditor";
 
+const UNREADABLE_MESSAGE = "시간표를 읽지 못했어요. 새로 입력해 주세요.";
+
 const LEVEL_OPTIONS = [
   { value: "middle", label: LEVEL_LABELS.middle },
   { value: "high", label: LEVEL_LABELS.high },
@@ -19,11 +21,14 @@ const LEVEL_OPTIONS = [
 
 export function ClassForm({
   initial,
+  scheduleUnreadable = false,
   busy,
   onSubmit,
   onCancel,
 }: {
   initial?: ClassSummary;
+  /** 저장된 시간표를 읽지 못했어요. 새 시간표를 넣기 전에는 저장하지 못하게 해요. */
+  scheduleUnreadable?: boolean;
   busy: boolean;
   onSubmit: (values: ClassFormOutput) => Promise<void>;
   onCancel: () => void;
@@ -31,6 +36,7 @@ export function ClassForm({
   const {
     register,
     control,
+    setError,
     handleSubmit,
     formState: { errors },
   } = useForm<ClassFormInput, unknown, ClassFormOutput>({
@@ -71,7 +77,13 @@ export function ClassForm({
           e.preventDefault();
           return;
         }
-        void handleSubmit(onSubmit)(e);
+        void handleSubmit((values) => {
+          if (scheduleUnreadable && values.schedule.length === 0) {
+            setError("schedule", { message: UNREADABLE_MESSAGE });
+            return Promise.resolve();
+          }
+          return onSubmit(values);
+        })(e);
       }}
       className="flex flex-col gap-5"
     >
@@ -111,6 +123,11 @@ export function ClassForm({
             />
           )}
         />
+        {scheduleUnreadable && !scheduleMessage ? (
+          <p role="alert" className="text-caption text-danger-700">
+            {UNREADABLE_MESSAGE}
+          </p>
+        ) : null}
         {scheduleMessage ? (
           <p role="alert" className="text-caption text-danger-700">
             {scheduleMessage}

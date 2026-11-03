@@ -4,6 +4,7 @@ import {
   classFormSchema,
   formatSchedule,
   parseClassRow,
+  parseSchedule,
   scheduleSlotSchema,
 } from "./classes";
 
@@ -92,7 +93,7 @@ describe("classFormSchema", () => {
 });
 
 describe("parseClassRow", () => {
-  it("falls back to an empty schedule and reads the member count", () => {
+  it("flags an unreadable schedule instead of silently emptying it", () => {
     expect(
       parseClassRow({
         id: "a",
@@ -107,8 +108,27 @@ describe("parseClassRow", () => {
       name: "A",
       level: "high",
       schedule: [],
+      scheduleInvalid: true,
       capacity: null,
       memberCount: 3,
     });
   });
+});
+
+describe("parseSchedule", () => {
+  it("reads a valid schedule", () => {
+    expect(parseSchedule([slot(1, "17:00", "19:00")])).toEqual({
+      invalid: false,
+      schedule: [slot(1, "17:00", "19:00")],
+    });
+  });
+  it("treats an empty array as valid", () => {
+    expect(parseSchedule([])).toEqual({ invalid: false, schedule: [] });
+  });
+  it.each([["x"], [null], [[{ day: 9, start: "1", end: "2" }]]])(
+    "flags %j as invalid",
+    (value) => {
+      expect(parseSchedule(value)).toEqual({ invalid: true, schedule: [] });
+    },
+  );
 });

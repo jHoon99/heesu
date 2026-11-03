@@ -1,5 +1,10 @@
-import { ComingSoonScreen } from "@/features/admin-shell";
+import { Suspense } from "react";
+import { SessionListScreen } from "@/features/sessions";
 
 export default function Page() {
-  return <ComingSoonScreen title="수업일지" />;
+  return (
+    <Suspense>
+      <SessionListScreen />
+    </Suspense>
+  );
 }

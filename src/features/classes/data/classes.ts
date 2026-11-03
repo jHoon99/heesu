@@ -1,7 +1,7 @@
 import { supabase } from "@/core/supabase/client";
+import { SaveNotAppliedError } from "@/core/supabase/saveNotApplied";
 import {
   parseClassRow,
-  SaveNotAppliedError,
   type ClassFormOutput,
   type ClassSummary,
 } from "../model/classes";
