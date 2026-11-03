@@ -1,0 +1,18 @@
+<!-- @dsCard group="Motion" height=260 -->
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>LeafDraw</title>
+<style>body{padding:20px;} .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center} .col{display:flex;flex-direction:column;gap:16px} .cap{font:500 12px/16px var(--font-sans);color:var(--text-muted);margin:0 0 8px}</style></head>
+<body>
+<div id="root"></div>
+<script>
+var H = window.Heesu, h = React.createElement;
+
+function Replay(p){ var k=React.useState(0); return h('div',null,
+  h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}},h('p',{className:'cap',style:{margin:0}},p.cap),h(H.Button,{size:'sm',variant:'ghost',icon:'repeat',onClick:function(){k[1](k[0]+1);}},'다시 보기')),
+  h('div',{key:k[0]},p.children)); }
+ReactDOM.createRoot(document.getElementById('root')).render(h(Replay,{cap:'랜딩 히어로 장식 — 로고의 잎사귀 가지를 선으로 그림, 1600ms, 한 번'},
+ h('div',{className:'row',style:{gap:40}},h(H.LeafDraw,{size:120,immediate:true}),h(H.LeafDraw,{size:120,immediate:true,color:'var(--brown-700)',delay:200}))));
+</script>
+</body>
+</html>

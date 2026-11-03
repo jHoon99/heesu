@@ -1,0 +1,40 @@
+<!-- @dsCard group="Screens" height=820 width=1180 subtitle="원장 출결·숙제 입력 · 태블릿 가로 1180×820" -->
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>AdminAttendanceScreen</title>
+<style>body{padding:20px;padding:0;} .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center} .col{display:flex;flex-direction:column;gap:16px} .cap{font:500 12px/16px var(--font-sans);color:var(--text-muted);margin:0 0 8px}</style></head>
+<body>
+<div id="root"></div>
+<script>
+var H = window.Heesu, h = React.createElement;
+
+var students=[{id:'s1',name:'김하늘',meta:'중2'},{id:'s2',name:'이도윤',meta:'중2'},{id:'s3',name:'박서연',meta:'중2'},{id:'s4',name:'최준우',meta:'중2'},{id:'s5',name:'정민서',meta:'중2'},{id:'s6',name:'한지호',meta:'중2'},{id:'s7',name:'오예린',meta:'중2'},{id:'s8',name:'윤시우',meta:'중2'},{id:'s9',name:'강하린',meta:'중2'},{id:'s10',name:'임도현',meta:'중2'}];
+var dates=[{key:'d1',label:'10/27',day:'월'},{key:'d2',label:'10/29',day:'수'},{key:'d3',label:'10/31',day:'금'},{key:'d4',label:'11/3',day:'월'},{key:'d5',label:'11/5',day:'수',today:true}];
+var P=['present','present','present','late','present','absent','makeup','present'];
+var W=['done','done','missing','done','done','none','done','missing'];
+var rec={}; students.forEach(function(s,i){ rec[s.id]={}; dates.forEach(function(d,j){ if(d.today) { if(i<3) rec[s.id][d.key]={att:'present',hw:i==1?'missing':'done'}; return;} rec[s.id][d.key]={att:P[(i*3+j*5)%8],hw:W[(i*5+j*3)%8]}; }); });
+rec.s6.d4={att:'absent',hw:'none'}; rec.s6.d3={att:'absent',hw:'none'};
+
+function App(){
+ var t=React.useState(true);
+ return h('div',{className:'hs hs-calm',style:{display:'flex',width:1180,height:820,background:'var(--bg-admin)',position:'relative'}},
+  h(H.AdminSidebar,{active:'attendance',logoSrc:'/_blob/75dd6d90c33fa10138897b3ff081b07f',userName:'희수'}),
+  h('main',{style:{flex:1,minWidth:0,display:'flex',flexDirection:'column',padding:'20px 24px',gap:16}},
+   h('div',{style:{display:'flex',alignItems:'flex-end',justifyContent:'space-between',gap:16}},
+    h('div',null,h('div',{style:{font:'500 13px/18px var(--font-sans)',color:'var(--text-muted)'}},'수업 · 2026년 11월 1주'),h('h1',{style:{margin:'2px 0 0',font:'700 28px/36px var(--font-sans)',letterSpacing:'-0.02em'}},'출결·숙제')),
+    h('div',{style:{display:'flex',gap:8,alignItems:'center'}},
+     h(H.Button,{size:'sm',icon:'chevronLeft','aria-label':'지난주'}),h('span',{style:{font:'600 14px/20px var(--font-sans)',padding:'0 4px'}},'10/27 – 11/5'),h(H.Button,{size:'sm',icon:'chevronRight','aria-label':'다음주'}),
+     h('span',{style:{width:8}}),h(H.Tabs,{variant:'segment',items:[{value:'w',label:'주간'},{value:'m',label:'월간'}]}),
+     h(H.Button,{size:'sm',variant:'ghost',icon:'download'},'엑셀'),h(H.Button,{size:'sm',variant:'primary',icon:'bell'},'학부모 알림 보내기'))),
+   h('div',{style:{background:'var(--bg-surface-raised)',borderRadius:12,border:'1px solid var(--border)',padding:'0 8px'}},
+    h(H.Tabs,{items:[{value:'m2a',label:'중2 A반',count:10},{value:'m2b',label:'중2 B반',count:7},{value:'m3',label:'중3',count:9},{value:'h1',label:'고1 내신반',count:8}],className:'',ariaLabel:'반'})),
+   h('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12}},
+    [['오늘 출석','3 / 10','success-700'],['이번 주 결석','4건','danger-700'],['숙제 미완료','6건','incomplete-700'],['보강 예정','2건','info-700']].map(function(x){return h('div',{key:x[0],className:'hs-card hs-card--raised',style:{padding:'12px 16px'}},h('div',{style:{font:'500 12px/16px var(--font-sans)',color:'var(--text-muted)'}},x[0]),h('div',{className:'hs-num',style:{font:'700 22px/30px var(--font-sans)',color:'var(--'+x[2]+')'}},x[1]));})),
+   h(H.AttendanceTable,{students:students,dates:dates,defaultRecords:rec,maxHeight:430,onChange:function(){t[1](true);}}),
+   h(H.AttendanceTable.Legend)),
+  t[0]?h('div',{style:{position:'absolute',left:706,transform:'translateX(-50%)',bottom:24}},h(H.Toast,{tone:'success',actionLabel:'되돌리기'},'중2 A반 11/5 출결을 저장했어요')):null);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!-- @dsCard group="Motion" height=170 -->
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CountUp</title>
+<style>body{padding:20px;} .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center} .col{display:flex;flex-direction:column;gap:16px} .cap{font:500 12px/16px var(--font-sans);color:var(--text-muted);margin:0 0 8px}</style></head>
+<body>
+<div id="root"></div>
+<script>
+var H = window.Heesu, h = React.createElement;
+
+function Replay(p){ var k=React.useState(0); return h('div',null,
+  h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}},h('p',{className:'cap',style:{margin:0}},p.cap),h(H.Button,{size:'sm',variant:'ghost',icon:'repeat',onClick:function(){k[1](k[0]+1);}},'다시 보기')),
+  h('div',{key:k[0]},p.children)); }
+ReactDOM.createRoot(document.getElementById('root')).render(h(Replay,{cap:'숫자 카운트업 — 900ms ease-out, 화면에 들어올 때 한 번'},
+ h('div',{className:'row',style:{gap:40,alignItems:'baseline'}},
+  h('span',{style:{font:'800 40px/44px var(--font-sans)',color:'var(--brown-900)'}},h(H.CountUp,{value:1280,from:800,immediate:true}),h('small',{style:{fontSize:20,color:'var(--points-ink)'}},'P')),
+  h('span',{className:'hs-serif',style:{font:'700 28px/36px var(--font-serif)'}},'반 정원 ',h(H.CountUp,{value:8,from:1,immediate:true}),'명'))));
+</script>
+</body>
+</html>
