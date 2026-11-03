@@ -11,13 +11,20 @@ const update = vi.mocked(updateMyPassword);
 const mark = vi.mocked(markPasswordChanged);
 
 function setup() {
+  return { result: setupWithClient().result };
+}
+
+function setupWithClient() {
   const client = new QueryClient({
     defaultOptions: { mutations: { retry: false } },
   });
   const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={client}>{children}</QueryClientProvider>
   );
-  return renderHook(() => useChangeFirstPassword(), { wrapper });
+  return {
+    result: renderHook(() => useChangeFirstPassword(), { wrapper }).result,
+    client,
+  };
 }
 
 describe("useChangeFirstPassword", () => {
@@ -49,6 +56,7 @@ describe("useChangeFirstPassword", () => {
     mark.mockRejectedValueOnce(new Error("boom"));
     const { result } = setup();
     await act(() => result.current.mutateAsync("new-pass-1").catch(() => {}));
+    act(() => result.current.markEdited());
     await act(() => result.current.mutateAsync("other-pass-2"));
     expect(update).toHaveBeenCalledTimes(2);
     expect(update).toHaveBeenLastCalledWith("other-pass-2");
@@ -62,5 +70,18 @@ describe("useChangeFirstPassword", () => {
     expect(mark).not.toHaveBeenCalled();
     await act(() => result.current.mutateAsync("new-pass-1"));
     expect(update).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps no cached mutation variables containing the password after reset", async () => {
+    const { result, client } = setupWithClient();
+    await act(() => result.current.mutateAsync("new-pass-1"));
+    act(() => result.current.reset());
+    await waitFor(() => {
+      const variables = client
+        .getMutationCache()
+        .getAll()
+        .map((m) => m.state.variables);
+      expect(variables).not.toContain("new-pass-1");
+    });
   });
 });

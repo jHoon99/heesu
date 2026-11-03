@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button, Card, Input, useToast } from "@/design-system";
 import {
@@ -13,6 +14,7 @@ import { useChangeFirstPassword } from "../state/useChangeFirstPassword";
 export function FirstLoginPasswordScreen() {
   const toast = useToast();
   const mutation = useChangeFirstPassword();
+  const [failure, setFailure] = useState<unknown>(null);
   const {
     register,
     handleSubmit,
@@ -22,12 +24,20 @@ export function FirstLoginPasswordScreen() {
     mode: "onSubmit",
   });
 
+  const passwordField = register("password", {
+    onChange: () => mutation.markEdited(),
+  });
+
   async function onValid(values: NewPasswordInput) {
+    setFailure(null);
     try {
       await mutation.mutateAsync(values.password);
       toast.show({ tone: "success", message: "비밀번호를 바꿨어요." });
-    } catch {
-      // 오류 문구는 mutation.error로 아래에 보여 줘요.
+    } catch (error) {
+      setFailure(error);
+    } finally {
+      // 비밀번호가 mutation 변수에 남지 않게 시도마다 비워요.
+      mutation.reset();
     }
   }
 
@@ -41,12 +51,12 @@ export function FirstLoginPasswordScreen() {
           원장님이 알려 준 비밀번호는 처음 한 번만 써요. 나만 아는 비밀번호로
           바꿔 주세요.
         </p>
-        {mutation.isError ? (
+        {failure ? (
           <p
             role="alert"
             className="mb-4 rounded-md bg-danger-50 px-3 py-2 text-body-sm text-danger-700"
           >
-            {passwordErrorMessage(mutation.error)}
+            {passwordErrorMessage(failure)}
           </p>
         ) : null}
         <form
@@ -67,7 +77,7 @@ export function FirstLoginPasswordScreen() {
             autoComplete="new-password"
             hint="8자 이상으로 입력해 주세요."
             error={errors.password?.message}
-            {...register("password")}
+            {...passwordField}
           />
           <Input
             label="새 비밀번호 확인"
