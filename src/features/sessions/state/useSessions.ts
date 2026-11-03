@@ -45,7 +45,13 @@ export function useSaveSession() {
         await updateSession(vars.id, vars.input);
       }
     },
-    onSuccess: () => client.invalidateQueries({ queryKey: sessionKeys.all }),
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: sessionKeys.all }),
+        // 출결·포인트 키는 순환을 피해 글자로 적는다(attendanceKeys.all, pointKeys와 같은 값).
+        client.invalidateQueries({ queryKey: ["attendance"] }),
+        client.invalidateQueries({ queryKey: ["points"] }),
+      ]),
   });
 }
 
