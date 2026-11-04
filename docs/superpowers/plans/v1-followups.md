@@ -20,6 +20,7 @@
 - [x] Points history: client-side sort by shown date, "최근 50건만 보여요" note at the cap, and the student detail shows recent records + points (Task 8).
 
 ## guardian-records
+- Add `points_goal` (jsonb integer 1~10000) editing to the landing admin (student home reward goal; changing it celebrates once more for the new goal).
 - `classes` INSERT is still table-level for `authenticated`: add a column-level grant (name, level, schedule, capacity) like UPDATE got in `20261107000100_tighten_grants.sql`.
 - site_content editor must write exactly the jsonb shape in `20261105000000_site_content.sql` (legal keys snake_case in DB, camelCase in TS) — put a shared zod write schema in `features/site-content/model`.
 - useSiteContent hook tests: isLoading state; malformed row through the hook.
@@ -31,6 +32,14 @@
 - Optional: pass admin id as audit hint for service_role writes.
 
 ## demo-deploy-qa
+- QA: iPhone Safari add to home screen (standalone, bottom safe-area, icon) and Android Chrome install; on the deploy preview confirm SW registration and the offline message under the CSP (worker-src, manifest-src).
+- QA: student password change does not ask for the current password (assumes a signed-in device) — confirm with the director.
+- SW: prune `/_next/static` cache growth (old build entries accumulate in hs-shell-v1).
+- Headers test: pin exact `worker-src 'self'` / `manifest-src 'self'` values.
+- Offline before the first controlled visit: the SW only controls the page after the first reload; cover that case. Also an offline reload of a cached /s page shows a blank screen for ~3s (role query retries) and then the generic role-error message — add an offline-aware message.
+- PWA leak test should grep all of src/app except `s/` for the manifest/SW wiring.
+- InstallGuideCard: use `useSyncExternalStore` instead of mount-time state.
+- ChangePasswordCard: ref-based in-flight guard against double submit.
 - Modal: render via a top-level host or move Modals out of Card (PasswordResetCard, StudentEditScreen); add focus-trap first→last wrap and unmount-while-open scroll-restore tests. (Deferred from class-ops.)
 - Sign-out fallback duplicated in core/auth session.tsx and features/auth data — single helper. (Deferred from class-ops.)
 - `create-student` Edge Function should reject control characters in names (the DB check is the only guard today and returns a generic error).
@@ -51,14 +60,16 @@
 - `seed-demo.sql` must reuse the auth.users shape from seed.sql (empty token columns + identities).
 
 ## student-app
-- `my_rank()` follows the same rule as `student_point_totals` (active only, ties share a rank), and the student homework screen shows the `submit_homework` error text (the three P0001 messages) as is.
+- [x] `my_rank()` follows the same rule as `student_point_totals` (active only, ties share a rank) (Task 1).
+- [x] The student homework screen shows the `submit_homework` error text (the three P0001 messages) as is (Task 5).
 
 ## videos-questions
+- Replace the `/s/videos`·`/s/questions` placeholders (ComingSoonTabScreen) and the home '새 영상' card with real screens. Keep sw.js from intercepting cross-origin (Storage signed URL) and Range requests.
 - Replace the unanswered-question count `UNANSWERED_QUESTIONS_PLACEHOLDER` (`src/features/today/model/today.ts`) with the real hook.
 
 ## student-app (from class-ops final review)
-- `my_rank()` must be a security definer RPC returning only {rank,total}; active students only; ties 1,2,2,4; add to 00_meta allowlist.
-- Decide `submit_homework` rules for due dates and paused students.
+- [x] `my_rank()` must be a security definer RPC returning only {rank,total}; active students only; ties 1,2,2,4; add to 00_meta allowlist (Task 1).
+- [x] Decide `submit_homework` rules for due dates and paused students. Decision: submit_homework: paused students may submit; late submissions allowed (admin judges).
 
 ## demo-deploy-qa (from class-ops final review)
 - `today` keys computed at render (AttendanceScreen, TodayScreen) — a tab open past midnight keeps yesterday until re-render.
