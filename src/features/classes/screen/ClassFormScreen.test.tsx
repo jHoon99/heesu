@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "@/design-system";
 import { createClass, getClass, updateClass } from "../data/classes";
-import { SaveNotAppliedError } from "../model/classes";
+import { SaveNotAppliedError } from "@/core/supabase/saveNotApplied";
 import { classKeys } from "../state/useClasses";
 import type { ClassSummary } from "../model/classes";
 import { ClassFormScreen } from "./ClassFormScreen";
@@ -130,6 +130,7 @@ describe("ClassFormScreen", () => {
       name: "새 이름",
       level: "middle" as const,
       schedule: [],
+      scheduleInvalid: false,
       capacity: null,
       memberCount: 0,
     };
@@ -146,6 +147,7 @@ describe("ClassFormScreen", () => {
       name: "A",
       level: "middle",
       schedule: [],
+      scheduleInvalid: false,
       capacity: null,
       memberCount: 0,
     });
@@ -167,6 +169,7 @@ describe("ClassFormScreen", () => {
       name: "A",
       level: "middle",
       schedule: [],
+      scheduleInvalid: false,
       capacity: null,
       memberCount: 0,
     });
@@ -186,5 +189,24 @@ describe("ClassFormScreen", () => {
     expect(get).toHaveBeenCalledTimes(2);
     expect(screen.getByLabelText(/반 이름/)).toBeInTheDocument();
     expect(screen.queryByText("불러오지 못했어요")).toBeNull();
+  });
+
+  it("warns and blocks saving an empty schedule when the stored one is unreadable", async () => {
+    search = new URLSearchParams(`id=${UUID}`);
+    get.mockResolvedValue({
+      id: UUID,
+      name: "A",
+      level: "middle",
+      schedule: [],
+      scheduleInvalid: true,
+      capacity: null,
+      memberCount: 0,
+    });
+    const user = setup("edit");
+    await user.click(await screen.findByRole("button", { name: "저장" }));
+    expect(
+      await screen.findByText("시간표를 읽지 못했어요. 새로 입력해 주세요."),
+    ).toBeInTheDocument();
+    expect(update).not.toHaveBeenCalled();
   });
 });

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CONTROL_CHAR_MESSAGE, hasControlChars } from "@/core/text";
 
 export const DAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"] as const;
 export const LEVEL_LABELS = { middle: "중등", high: "고등" } as const;
@@ -39,7 +40,8 @@ export const classFormSchema = z.object({
     .string()
     .trim()
     .min(1, "반 이름을 1~30자로 입력해 주세요.")
-    .max(30, "반 이름을 1~30자로 입력해 주세요."),
+    .max(30, "반 이름을 1~30자로 입력해 주세요.")
+    .refine((v) => !hasControlChars(v), CONTROL_CHAR_MESSAGE),
   level: z.enum(["middle", "high"]),
   schedule: z
     .array(scheduleSlotSchema)
@@ -63,6 +65,8 @@ export type ClassSummary = {
   name: string;
   level: "middle" | "high";
   schedule: ScheduleSlot[];
+  /** DB의 시간표를 읽지 못했을 때 true (schedule은 빈 배열). 수정 화면이 빈 시간표로 덮어쓰지 않게 해요. */
+  scheduleInvalid: boolean;
   capacity: number | null;
   memberCount: number;
 };
@@ -75,31 +79,28 @@ export function formatSchedule(slots: ScheduleSlot[]): string {
     .join(" · ");
 }
 
-function parseSchedule(value: unknown): ScheduleSlot[] {
+export function parseSchedule(
+  value: unknown,
+):
+  | { invalid: false; schedule: ScheduleSlot[] }
+  | { invalid: true; schedule: [] } {
   const parsed = z.array(scheduleSlotSchema).safeParse(value);
-  return parsed.success ? parsed.data : [];
+  return parsed.success
+    ? { invalid: false, schedule: parsed.data }
+    : { invalid: true, schedule: [] };
 }
 
-function memberCountOf(value: unknown): number {
-  if (!Array.isArray(value)) return 0;
-  const first: unknown = value[0];
-  if (typeof first === "object" && first !== null && "count" in first) {
-    const count = (first as { count: unknown }).count;
-    if (typeof count === "number") return count;
-  }
-  return 0;
-}
-
-export function parseClassRow(row: unknown): ClassSummary {
+/** memberCount는 퇴원생을 뺀 인원(class_roster 기준)이에요. */
+export function parseClassRow(row: unknown, memberCount = 0): ClassSummary {
   const r = (row ?? {}) as Record<string, unknown>;
+  const schedule = parseSchedule(r.schedule);
   return {
     id: String(r.id),
     name: String(r.name),
     level: r.level === "high" ? "high" : "middle",
-    schedule: parseSchedule(r.schedule),
+    schedule: schedule.schedule,
+    scheduleInvalid: schedule.invalid,
     capacity: typeof r.capacity === "number" ? r.capacity : null,
-    memberCount: memberCountOf(r.class_members),
+    memberCount,
   };
 }
-
-export { SaveNotAppliedError } from "@/core/supabase/saveNotApplied";

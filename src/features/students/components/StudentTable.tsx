@@ -1,20 +1,31 @@
 "use client";
 
 import { Badge } from "@/design-system";
-import { STATUS_LABELS, type StudentSummary } from "../model/students";
+import {
+  STATUS_LABELS,
+  STATUS_TONE,
+  type StudentSummary,
+} from "../model/students";
 
-const HEADERS = ["이름", "아이디", "학년", "학교", "반", "상태", "등록일"];
-const STATUS_TONE = {
-  active: "brand",
-  paused: "neutral",
-  left: "neutral",
-} as const;
+const HEADERS = [
+  "이름",
+  "아이디",
+  "학년",
+  "학교",
+  "반",
+  "상태",
+  "포인트",
+  "등록일",
+];
 
 export function StudentTable({
   students,
+  points,
   onOpen,
 }: {
   students: StudentSummary[];
+  /** 학생 id별 누적 포인트. null이면 아직 모르는 상태(`-`). */
+  points: Record<string, number> | null;
   onOpen: (id: string) => void;
 }) {
   return (
@@ -53,6 +64,9 @@ export function StudentTable({
                 <Badge tone={STATUS_TONE[s.status]}>
                   {STATUS_LABELS[s.status]}
                 </Badge>
+              </td>
+              <td className="px-4 tabular-nums">
+                {points === null ? "-" : `${points[s.id] ?? 0}점`}
               </td>
               <td className="px-4">{s.joinedAt}</td>
             </tr>

@@ -44,6 +44,9 @@ export function useSetStudentClasses() {
       await Promise.all([
         client.invalidateQueries({ queryKey: studentKeys.all }),
         client.invalidateQueries({ queryKey: classKeys.all }),
+        // 출결 표·포인트 순위는 반 소속에 따라 달라져요. 순환을 피해 글자로 적는다.
+        client.invalidateQueries({ queryKey: ["attendance"] }),
+        client.invalidateQueries({ queryKey: ["points"] }),
       ]);
     },
   });

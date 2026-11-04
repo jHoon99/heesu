@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CONTROL_CHAR_MESSAGE, hasControlChars } from "@/core/text";
 import { LOGIN_ID_RE, passwordSchema } from "@/features/auth";
 import { GRADES, type Grade } from "@/features/consultations";
 
@@ -8,6 +9,12 @@ export const STATUS_LABELS = {
   left: "퇴원",
 } as const;
 
+export const STATUS_TONE = {
+  active: "brand",
+  paused: "warning",
+  left: "neutral",
+} as const;
+
 export type StudentStatus = keyof typeof STATUS_LABELS;
 const STATUSES = ["active", "paused", "left"] as const;
 
@@ -15,20 +22,14 @@ const NAME_MESSAGE = "이름을 1~20자로 입력해 주세요.";
 const GRADE_MESSAGE = "학년을 골라 주세요.";
 const DATE_MESSAGE = "등록일을 2026-11-05 형식으로 입력해 주세요.";
 
-export function todayLocal(now: Date = new Date()): string {
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
 const nameSchema = z
   .string()
   .trim()
   .refine((v) => {
     const n = [...v].length;
     return n >= 1 && n <= 20;
-  }, NAME_MESSAGE);
+  }, NAME_MESSAGE)
+  .refine((v) => !hasControlChars(v), CONTROL_CHAR_MESSAGE);
 
 const gradeSchema = z.enum(GRADES, { error: GRADE_MESSAGE });
 

@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { CONTROL_CHAR_MESSAGE } from "@/core/text";
 import {
   classFormSchema,
   formatSchedule,
   parseClassRow,
+  parseSchedule,
   scheduleSlotSchema,
 } from "./classes";
 
@@ -73,6 +75,16 @@ describe("classFormSchema", () => {
       }).success,
     ).toBe(true);
   });
+  it("rejects a name with a control character", () => {
+    const r = classFormSchema.safeParse({
+      ...base,
+      name: "반\u001b",
+      schedule: [],
+    });
+    expect(r.error?.issues.map((i) => i.message)).toEqual([
+      CONTROL_CHAR_MESSAGE,
+    ]);
+  });
   it("rejects an empty name", () => {
     expect(
       classFormSchema.safeParse({ ...base, name: "  ", schedule: [] }).success,
@@ -81,23 +93,44 @@ describe("classFormSchema", () => {
 });
 
 describe("parseClassRow", () => {
-  it("falls back to an empty schedule and reads the member count", () => {
+  it("flags an unreadable schedule instead of silently emptying it", () => {
     expect(
-      parseClassRow({
-        id: "a",
-        name: "A",
-        level: "high",
-        schedule: "x",
-        capacity: null,
-        class_members: [{ count: 3 }],
-      }),
+      parseClassRow(
+        {
+          id: "a",
+          name: "A",
+          level: "high",
+          schedule: "x",
+          capacity: null,
+        },
+        3,
+      ),
     ).toEqual({
       id: "a",
       name: "A",
       level: "high",
       schedule: [],
+      scheduleInvalid: true,
       capacity: null,
       memberCount: 3,
     });
   });
+});
+
+describe("parseSchedule", () => {
+  it("reads a valid schedule", () => {
+    expect(parseSchedule([slot(1, "17:00", "19:00")])).toEqual({
+      invalid: false,
+      schedule: [slot(1, "17:00", "19:00")],
+    });
+  });
+  it("treats an empty array as valid", () => {
+    expect(parseSchedule([])).toEqual({ invalid: false, schedule: [] });
+  });
+  it.each([["x"], [null], [[{ day: 9, start: "1", end: "2" }]]])(
+    "flags %j as invalid",
+    (value) => {
+      expect(parseSchedule(value)).toEqual({ invalid: true, schedule: [] });
+    },
+  );
 });

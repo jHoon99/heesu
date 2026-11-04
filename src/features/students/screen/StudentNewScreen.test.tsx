@@ -92,6 +92,17 @@ describe("StudentNewScreen", () => {
     ).toBeInTheDocument();
   });
 
+  it("defaults the join date to the Seoul calendar day, not the browser day", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-05T16:00:00Z")); // 서울 11-06 01:00
+    try {
+      setup();
+      expect(screen.getByLabelText(/등록일/)).toHaveValue("2026-11-06");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("puts login_taken on the login id field", async () => {
     create.mockRejectedValue(
       new StudentFunctionError("login_taken", "이미 쓰고 있는 아이디예요."),

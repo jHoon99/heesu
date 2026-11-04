@@ -1,5 +1,10 @@
-import { ComingSoonScreen } from "@/features/admin-shell";
+import { Suspense } from "react";
+import { AttendanceScreen } from "@/features/attendance";
 
 export default function Page() {
-  return <ComingSoonScreen title="출결·숙제" />;
+  return (
+    <Suspense>
+      <AttendanceScreen />
+    </Suspense>
+  );
 }

@@ -4,11 +4,12 @@
 -- 정렬·중복 제거된 text[]로 비교한다. 새 함수를 anon/authenticated에 열 때는
 -- 아래 해당 스키마의 허용 목록에 이름을 알파벳 순으로 추가한다.
 -- (예: guardian_view 추가 시 anon public 목록을 '{guardian_view}'::text[]로)
--- `admin_user_exists`·`submit_consultation`은 service_role 전용이라 목록에 없다.
+-- `admin_user_exists`·`submit_consultation`은 service_role 전용이라 anon·authenticated 목록에 없고,
+-- service_role 목록에만 있다. service_role에 함수를 열 때도 그 목록을 고친다.
 begin;
 set local client_min_messages = warning;
 create extension if not exists pgtap with schema extensions;
-select plan(13);
+select plan(15);
 
 -- S2: public의 모든 테이블은 RLS가 켜져 있고, RLS를 걸 수 없는 foreign table은 없다.
 select is(
@@ -40,8 +41,19 @@ select is(
      join pg_catalog.pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public'
       and has_function_privilege('authenticated', p.oid, 'execute')),
-  '{my_role,password_changed}'::text[],
+  '{my_role,password_changed,submit_homework}'::text[],
   'public: authenticated가 실행할 수 있는 함수 = 허용 목록'
+);
+
+-- S2: service_role이 실행할 수 있는 public 함수 = 허용 목록 (Edge Function이 부르는 것만).
+select is(
+  (select coalesce(array_agg(distinct p.proname::text order by p.proname::text), '{}')
+     from pg_catalog.pg_proc p
+     join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and has_function_privilege('service_role', p.oid, 'execute')),
+  '{admin_user_exists,submit_consultation}'::text[],
+  'public: service_role이 실행할 수 있는 함수 = 허용 목록'
 );
 
 -- S2: authenticated가 실행할 수 있는 private 함수 = 허용 목록 (RLS 정책용 헬퍼만).
@@ -55,17 +67,30 @@ select is(
   'private: authenticated가 실행할 수 있는 함수 = 허용 목록'
 );
 
--- S2: postgres 소유 security definer 함수는 (시스템 스키마 제외) 모두 search_path = ''를 고정한다.
+-- S2: service_role은 private 함수를 하나도 실행할 수 없다.
+select is(
+  (select coalesce(array_agg(distinct p.proname::text order by p.proname::text), '{}')
+     from pg_catalog.pg_proc p
+     join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'private'
+      and has_function_privilege('service_role', p.oid, 'execute')),
+  '{}'::text[],
+  'private: service_role이 실행할 수 있는 함수가 없다'
+);
+
+-- S2: security definer 함수는 모두 search_path = ''를 고정한다.
+-- 우리 스키마(public·private)는 소유자와 상관없이 전부, 그 밖(Supabase가 관리하는 auth·storage 등)은
+-- postgres 소유만 본다. 시스템 스키마는 제외.
 select is(
   (select coalesce(array_agg(n.nspname || '.' || p.proname order by 1), '{}')
      from pg_catalog.pg_proc p
      join pg_catalog.pg_namespace n on n.oid = p.pronamespace
     where n.nspname not in ('pg_catalog', 'information_schema')
-      and pg_get_userbyid(p.proowner) = 'postgres'
+      and (n.nspname in ('public', 'private') or pg_get_userbyid(p.proowner) = 'postgres')
       and p.prosecdef
       and not ('search_path=""' = any(coalesce(p.proconfig, '{}')))),
   '{}'::text[],
-  'postgres 소유 security definer 함수는 모두 search_path = '''' 설정이 있다'
+  'security definer 함수(public·private 전부, 그 밖은 postgres 소유)는 모두 search_path = '''' 설정이 있다'
 );
 
 -- S2: public에 materialized view 금지.

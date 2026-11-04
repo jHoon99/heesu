@@ -4,7 +4,7 @@
 begin;
 set local client_min_messages = warning;
 create extension if not exists pgtap with schema extensions;
-select plan(66);
+select plan(75);
 
 -- 시드는 테스트 파일 사이에 남아 있다. 세는 테이블은 비우고 시작한다(rollback으로 되돌린다).
 delete from public.student_private;
@@ -34,6 +34,23 @@ select table_privs_are('public', 'student_private', 'service_role', ARRAY['SELEC
   'service_role: student_private 권한은 SELECT뿐');
 select table_privs_are('public', 'students', 'anon', ARRAY[]::text[], 'anon: students 권한 없음');
 select table_privs_are('public', 'student_private', 'anon', ARRAY[]::text[], 'anon: student_private 권한 없음');
+-- authenticated의 student_private 쓰기는 컬럼 단위라 테이블 권한에는 SELECT만 보인다(= DELETE 없음).
+-- student_id는 UPDATE에도 있다: PostgREST upsert가 payload 컬럼(student_id 포함)을 모두 do update set에 넣기 때문.
+-- updated_at은 트리거만 고친다.
+select table_privs_are('public', 'student_private', 'authenticated', ARRAY['SELECT'],
+  'authenticated: student_private 테이블 권한은 SELECT뿐 (쓰기는 컬럼 단위, DELETE 없음)');
+select column_privs_are('public', 'student_private', 'student_id', 'authenticated', ARRAY['INSERT', 'SELECT', 'UPDATE'],
+  'authenticated: student_private.student_id는 INSERT·SELECT·UPDATE (upsert용)');
+select column_privs_are('public', 'student_private', 'school', 'authenticated', ARRAY['INSERT', 'SELECT', 'UPDATE'],
+  'authenticated: student_private.school은 INSERT·SELECT·UPDATE');
+select column_privs_are('public', 'student_private', 'guardian_name', 'authenticated', ARRAY['INSERT', 'SELECT', 'UPDATE'],
+  'authenticated: student_private.guardian_name은 INSERT·SELECT·UPDATE');
+select column_privs_are('public', 'student_private', 'guardian_phone', 'authenticated', ARRAY['INSERT', 'SELECT', 'UPDATE'],
+  'authenticated: student_private.guardian_phone은 INSERT·SELECT·UPDATE');
+select column_privs_are('public', 'student_private', 'memo', 'authenticated', ARRAY['INSERT', 'SELECT', 'UPDATE'],
+  'authenticated: student_private.memo는 INSERT·SELECT·UPDATE');
+select column_privs_are('public', 'student_private', 'updated_at', 'authenticated', ARRAY['SELECT'],
+  'authenticated: student_private.updated_at은 읽기만 (트리거가 고친다)');
 
 -- ─── 함수: my_student_id(), my_role() ────────────────────────────────
 set local role authenticated;
@@ -195,6 +212,17 @@ select lives_ok($$insert into public.student_private (student_id, memo)
                    values ('10000000-0000-4000-8000-00000000c004', '가짜 메모')
                    on conflict (student_id) do update set memo = excluded.memo$$,
   '원장 aal2: upsert로 A 메모 수정 성공');
+
+-- 앱(saveStudentPrivate)이 PostgREST로 보내는 upsert 모양: payload 컬럼이 모두 do update set에 들어간다.
+select lives_ok($$insert into public.student_private (student_id, school, guardian_name, guardian_phone, memo)
+                   values ('10000000-0000-4000-8000-00000000c004', '가짜중학교', '가짜보호자A', '010-0000-0004', '가짜 메모')
+                   on conflict (student_id) do update
+                   set student_id = excluded.student_id, school = excluded.school,
+                       guardian_name = excluded.guardian_name, guardian_phone = excluded.guardian_phone,
+                       memo = excluded.memo$$,
+  '원장 aal2: 앱 모양 upsert(student_id까지 set) 성공');
+select throws_ok($$update public.student_private set updated_at = now()$$,
+  '42501', null, '원장 aal2: student_private.updated_at 직접 update는 권한 에러');
 
 reset role;
 select is((select memo from public.student_private where student_id = '10000000-0000-4000-8000-00000000c004'),

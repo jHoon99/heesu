@@ -24,6 +24,18 @@ vi.mock("next/navigation", () => ({
 vi.mock("../data/students");
 vi.mock("../data/detail");
 vi.mock("../data/functions");
+let recordsResult: { isPending: boolean; isError: boolean; data?: unknown[] } =
+  {
+    isPending: false,
+    isError: false,
+    data: [],
+  };
+vi.mock("@/features/attendance", () => ({
+  useStudentRecords: () => recordsResult,
+}));
+vi.mock("@/features/points", () => ({
+  PointHistoryList: () => <p>포인트 내역 목록</p>,
+}));
 vi.mock("@/features/classes", () => ({
   classKeys: { all: ["classes"] },
   formatSchedule: () => "월 17:00–18:30",
@@ -83,6 +95,7 @@ describe("StudentDetailScreen", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     search = new URLSearchParams(`id=${UUID}`);
+    recordsResult = { isPending: false, isError: false, data: [] };
     get.mockResolvedValue(student);
     getPriv.mockResolvedValue(null);
     list.mockResolvedValue([]);
@@ -118,6 +131,54 @@ describe("StudentDetailScreen", () => {
     ]) {
       expect(screen.getByRole("heading", { name: t })).toBeInTheDocument();
     }
+  });
+
+  it("shows recent records with status chips", async () => {
+    recordsResult = {
+      isPending: false,
+      isError: false,
+      data: [
+        {
+          sessionId: "a",
+          date: "2026-11-04",
+          className: "중등 기초반",
+          att: "present",
+          hw: "missing",
+        },
+        {
+          sessionId: "b",
+          date: "2026-10-28",
+          className: "중등 기초반",
+          att: "late",
+          hw: "done",
+        },
+      ],
+    };
+    setup();
+    await screen.findByRole("heading", { name: "최근 출결·숙제" });
+    const row = screen.getByText("11/4").closest("tr") as HTMLElement;
+    expect(within(row).getByText("중등 기초반")).toBeInTheDocument();
+    expect(within(row).getByText("출석")).toBeInTheDocument();
+    expect(within(row).getByText("미완료")).toBeInTheDocument();
+    expect(row.closest("table")!.querySelectorAll("tr")).toHaveLength(3);
+  });
+
+  it("shows the empty text when there are no records", async () => {
+    setup();
+    expect(
+      await screen.findByText("아직 수업 기록이 없어요."),
+    ).toBeInTheDocument();
+  });
+
+  it("puts 포인트 내역 before the guardian card", async () => {
+    setup();
+    const points = await screen.findByRole("heading", { name: "포인트 내역" });
+    const guardian = screen.getByRole("heading", { name: "학교·보호자" });
+    expect(
+      points.compareDocumentPosition(guardian) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(screen.getByText("포인트 내역 목록")).toBeInTheDocument();
   });
 
   it("enables the class save only after a change and saves the diff", async () => {

@@ -32,11 +32,11 @@ describe("StatusChip", () => {
       <StatusChip
         status="present"
         onClick={onClick}
-        ariaLabel="하늘 11/3 출석"
+        ariaLabel="하늘 11/3 수업"
       />,
     );
     await userEvent.click(
-      screen.getByRole("button", { name: "하늘 11/3 출석 출석" }),
+      screen.getByRole("button", { name: "하늘 11/3 수업 출석" }),
     );
     expect(onClick).toHaveBeenCalledTimes(1);
   });

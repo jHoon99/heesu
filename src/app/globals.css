@@ -304,3 +304,7 @@
     scroll-behavior: auto !important;
   }
 }
+
+.hs-num {
+  font-variant-numeric: tabular-nums;
+}

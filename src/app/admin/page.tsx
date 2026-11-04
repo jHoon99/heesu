@@ -1,5 +1,5 @@
-import { ComingSoonScreen } from "@/features/admin-shell";
+import { TodayScreen } from "@/features/today";
 
 export default function Page() {
-  return <ComingSoonScreen title="오늘" />;
+  return <TodayScreen />;
 }

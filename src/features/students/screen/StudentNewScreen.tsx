@@ -8,10 +8,10 @@ import { Eye, EyeOff } from "lucide-react";
 import { Button, Card, Input, Select, useToast } from "@/design-system";
 import { classifyError } from "@/core/supabase/error";
 import { GRADES } from "@/features/consultations";
+import { toLocalDateKey } from "@/features/sessions";
 import {
   StudentFunctionError,
   studentCreateSchema,
-  todayLocal,
   type StudentCreateInput,
   type StudentCreateOutput,
 } from "../model/students";
@@ -36,7 +36,7 @@ export function StudentNewScreen() {
       password: "",
       name: "",
       grade: "",
-      joinedAt: todayLocal(),
+      joinedAt: toLocalDateKey(new Date()),
     } as unknown as StudentCreateInput,
   });
 

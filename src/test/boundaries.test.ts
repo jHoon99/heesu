@@ -113,6 +113,12 @@ describe("architecture boundaries", { timeout: 20_000 }, () => {
     ).toHaveLength(0);
 
     expect(
+      (await lintAll("src/features/attendance/screen/x.tsx", reveal)).filter(
+        (m) => m.severity === 1,
+      ),
+    ).toHaveLength(1);
+
+    expect(
       (await lintAll("src/features/landing/screen/x.tsx", reveal)).filter(
         (m) => m.severity === 1,
       ),
