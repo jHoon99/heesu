@@ -5,6 +5,7 @@ import { EMPTY_SITE_CONTENT, type SiteContent } from "@/features/site-content";
 import { AboutSection, storyNumber } from "./AboutSection";
 import { ConsultSection } from "./ConsultSection";
 import { CtaBar } from "./CtaBar";
+import { DirectorSection } from "./DirectorSection";
 import { NoticeBand } from "./NoticeBand";
 import { SiteFooter } from "./SiteFooter";
 import { TuitionSection } from "./TuitionSection";
@@ -320,5 +321,37 @@ describe("about section", () => {
   it("numbers cards with two digits", () => {
     expect(storyNumber(0)).toBe("INTRO 01");
     expect(storyNumber(9)).toBe("INTRO 10");
+  });
+});
+
+describe("director and consult guide", () => {
+  it("shows the director's education, focus and class style", () => {
+    render(<DirectorSection />);
+    const section = document.getElementById("director") as HTMLElement;
+    for (const label of ["EDUCATION", "TEACHING FOCUS", "CLASS STYLE"])
+      expect(
+        within(section).getByRole("heading", { name: label }),
+      ).toBeInTheDocument();
+    expect(within(section).getByText("영어영문학과 졸업")).toBeInTheDocument();
+    expect(within(section).getAllByRole("listitem")).toHaveLength(6);
+  });
+
+  it("explains the consult promise, three steps and the note before the form", () => {
+    renderAll(EMPTY_SITE_CONTENT);
+    const section = document.getElementById("consult") as HTMLElement;
+    expect(
+      within(section).getByRole("heading", {
+        name: /희수영어는\s*꼼꼼하고 진심 있는 상담을\s*약속드립니다\./,
+      }),
+    ).toBeInTheDocument();
+    const steps = within(section).getAllByRole("listitem");
+    expect(steps.map((li) => li.querySelector("h3")?.textContent)).toEqual([
+      "레벨테스트 후 상담 진행합니다.",
+      "방문 상담은 사전 예약제로 가능합니다.",
+      "정확한 상담을 위한 사전 준비가 필요합니다.",
+    ]);
+    expect(
+      within(section).getByRole("complementary", { name: "안내 말씀" }),
+    ).toHaveTextContent("등록이 제한될 수 있습니다");
   });
 });
