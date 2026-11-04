@@ -34,7 +34,7 @@
 ## demo-deploy-qa
 - QA: iPhone Safari add to home screen (standalone, bottom safe-area, icon) and Android Chrome install; on the deploy preview confirm SW registration and the offline message under the CSP (worker-src, manifest-src).
 - QA: student password change does not ask for the current password (assumes a signed-in device) — confirm with the director.
-- SW: prune `/_next/static` cache growth (old build entries accumulate in hs-shell-v1).
+- SW: prune `/_next/static` cache growth (old build entries accumulate in hs-shell-v1). (done in Task SW)
 - Headers test: pin exact `worker-src 'self'` / `manifest-src 'self'` values.
 - Offline before the first controlled visit: the SW only controls the page after the first reload (`clients.claim` narrows this window but does not remove it); cover that case. Also an offline reload of a cached /s page shows a blank screen for ~3s (role query retries) and then the generic role-error message — add an offline-aware message.
 - PWA leak test should grep all of src/app except `s/` for the manifest/SW wiring.
@@ -82,7 +82,7 @@
 - `aria-selected` on `tr`; points history row / negative styling / failure / invalidation tests.
 
 ## videos-questions (from student-app final review)
-- SW navigation cache keyed by full URL — normalise (ignoreSearch / pathname key) before adding `/s/videos/watch?id=…`; prune `/_next/static` entries on activate.
+- SW navigation cache keyed by full URL — normalise (ignoreSearch / pathname key) before adding `/s/videos/watch?id=…`; prune `/_next/static` entries on activate. (done in Task SW)
 - Admin web push needs a separate registration scoped `/admin` (or scope `/` with path guards); keep `push`/`notificationclick` handlers outside fetch path guards.
 
 ## guardian-records (from student-app final review)
