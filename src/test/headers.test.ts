@@ -89,11 +89,6 @@ describe("public/_headers /g", () => {
   it("is noindex", () => {
     expect(g).toContain("X-Robots-Tag: noindex");
   });
-
-  it("keeps no-referrer and noindex", () => {
-    expect(g).toContain("Referrer-Policy: no-referrer");
-    expect(g).toContain("X-Robots-Tag: noindex");
-  });
 });
 
 describe("public/_headers /sw.js", () => {

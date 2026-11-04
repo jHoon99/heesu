@@ -115,7 +115,7 @@
 ## 시연 뒤 · 12/1 전
 - SiteFooter hard-codes 대표/사업자등록번호 as null — needs a code change (or legal site_content) before go-live.
 - Contact phone rule rejects 1588/070 forms — loosen the DB check and zod rule if the academy uses one.
-- `supabase/seed-demo-clear.sql` lacks the single-transaction probe the seed has.
+- [x] `supabase/seed-demo-clear.sql` lacks the single-transaction probe the seed has. → 해당 없음(컨트롤러 판단: 필요 없음)
 - Guardian status card uses the browser clock for expiry labels (`/g`) — use a server-side value.
 - Payments table: name column is not sticky when scrolling horizontally.
 - site_content pgTAP coverage gaps: nested control char, tuition/legal bad values, 8192 boundary, contact phone null.

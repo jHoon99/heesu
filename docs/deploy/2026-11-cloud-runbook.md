@@ -1,6 +1,6 @@
 # 희수영어 클라우드 배포 런북 (2026-11)
 
-위에서 아래로 그대로 따라 해요. 명령은 코드 블록, 대시보드 조작은 `메뉴 > 메뉴 > 항목: 값`, 단계마다 **확인:** 줄의 기대 결과가 나와야 다음으로 가요. 기대와 다르면 멈추고 §9 되돌리기를 봐요.
+위에서 아래로 그대로 따라 해요. 명령은 코드 블록, 대시보드 조작은 `메뉴 > 메뉴 > 항목: 값`, 단계마다 **확인:** 줄의 기대 결과가 나와야 다음으로 가요. 기대와 다르면 멈추고 §10 되돌리기를 봐요.
 
 - 프로젝트 ref: `pudxtxzcftehxicfthmf` (공개 값이라 문서에 적어도 돼요).
 - 이 문서에는 비밀의 **이름**만 있어요. 값은 비밀번호 관리자에만 두고, 명령에 넣는 값은 `read -rs 변수` 로 입력해 변수로 넘겨요.
@@ -9,7 +9,7 @@
 
 | 이름 | 놓는 곳 | 비고 |
 | --- | --- | --- |
-| `TURNSTILE_SECRET_KEY` | Supabase Edge Function 비밀 (`supabase secrets set`) | 시연 중에는 스펙(`docs/superpowers/specs/2026-11-04-heesu-v1-features-design.md` §3)의 Cloudflare 테스트 비밀. 12/1 전 §8에서 진짜 값으로 교체 |
+| `TURNSTILE_SECRET_KEY` | Supabase Edge Function 비밀 (`supabase secrets set`) | 시연 중에는 스펙(`docs/superpowers/specs/2026-11-04-heesu-v1-features-design.md` §3)의 Cloudflare 테스트 비밀. 12/1 전 §9에서 진짜 값으로 교체 |
 | `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_URL` | Supabase가 함수에 자동 주입 | 직접 만들지 않아요. `SUPABASE_` 접두 비밀은 만들 수 없어요 |
 | `NEXT_PUBLIC_SUPABASE_URL` | Cloudflare Pages 변수 (Production과 Preview 둘 다) | 브라우저에 가는 공개 값 |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Cloudflare Pages 변수 (Production과 Preview 둘 다) | 브라우저에 가는 공개 값(`sb_publishable_…`) |
@@ -174,6 +174,7 @@
 - [ ] Realtime > Settings: Allow public access **끔** · 비로그인 구독을 막아요.
 - [ ] Database > Extensions: `pg_cron` **켜짐**(§1에서 켠 것) · 상담 보관 기한 삭제 작업이 돌아요.
 - [ ] Storage > Settings: 전역 파일 크기 한도 **50MB**(Free 최대) · 시연 영상은 짧게 찍어요. Storage > Buckets > `videos`: Public **꺼짐**(private), 허용 형식 `video/mp4`.
+- [ ] Settings > API > Exposed schemas(Data API): `public`(과 기본값인 `graphql_public`)만 있어요. `private`가 있으면 지워요 · `private.admins`가 API로 열려선 안 돼요(`supabase/config.toml`도 `schemas = ["public"]`뿐이에요).
 - [ ] Organization > Usage: 사용량 알림을 받을 메일 주소를 확인해요. 시연 주간에는 매일 Usage를 확인해요(`guardian_view` 반복 호출은 DB가 막지 않아요).
 
 **확인(바꾼 뒤 셸에서, `$API`·`$PK`는 §5 맨 위와 같아요):**
@@ -258,7 +259,7 @@ read -r PK                            # publishable 키(공개 값)를 붙여 �
   ```
 
   **확인:** 첫째 `[]` 또는 권한 오류(학생 데이터가 안 보여요). 둘째 첫 배포(§6 시드 전)에는 HTTP 200과 `[]` 예요(마이그레이션이 행을 넣지 않아요. 비로그인 읽기 권한이 동작한다는 뜻이에요). §6 시드 뒤나 §7에서 다시 하면 6개 키(`notice`, `classes`, `tuition`, `contact`, `legal`, `points_goal`)가 와요. 셋째 오류(GET은 거절돼요).
-- [ ] **상담 신청 스모크 테스트**(§6에서 원장 로그인이 된 뒤에 해요): `$H`에서 폼을 제출해요. 이름은 `(예시) 확인용`, 전화는 `010-0000-0099`처럼 가짜로 써요. **확인:** 성공 카드가 뜨고 → 원장 상담 목록에 보이고 → 상태를 `보류` 처리해요. 이 행은 `seed-demo-clear.sql` 이 지우지 않으니(시드 상담 0081·0082만 지워요) 확인 뒤 SQL Editor에서 지워요: `delete from public.consultations where phone = '010-0000-0099';` **확인:** `1 row` 삭제.
+- [ ] **상담 신청 스모크 테스트**(§6에서 원장 로그인이 된 뒤에 해요): `$H`에서 폼을 제출해요. 이름은 `(예시) 확인용`, 전화는 `010-0000-0099`처럼 가짜로 써요. **확인:** 성공 카드가 뜨고 → 원장 상담 목록에 보이고 → 상태를 `보류` 처리해요. 이 행은 `seed-demo-clear.sql` 이 지우지 않으니(시드 상담 0081·0082만 지워요) 확인 뒤 SQL Editor에서 지워요: `delete from public.consultations where phone = '010-0000-0099';` **확인:** `1 row` 이상 삭제(QA에서 한도 시험으로 같은 번호 행을 더 만들었다면 여러 행이에요).
 - [ ] 테스트 계정이 남지 않았는지 SQL Editor에서 확인해요.
 
   ```sql
@@ -282,7 +283,7 @@ read -r PK                            # publishable 키(공개 값)를 붙여 �
   SQL Editor는 0행이 들어가도 "No rows returned"만 보여 주니, 반드시 반환된 행으로 확인해요.
 
   **확인:** 정확히 1행(uuid)이 반환돼요. 이어서 실행해요: `select count(*) from private.admins a join auth.users u on u.id = a.user_id where u.email = '<원장 이메일>';` 기대 `1`. 0행이면 이메일 철자를 확인하고 다시 해요.
-- [ ] `$H/login` 에서 로그인해요 → TOTP 등록(준비용으로 내 인증 앱에) → QR이 CSP 아래에서 보이는지 확인해요.
+- [ ] `$H/login` 에서 로그인해요 → TOTP 등록(준비용으로 내 인증 앱에) → QR이 CSP 아래에서 보이는지 확인해요. 이 준비용 TOTP는 §8에서 시연 전날 밤에 지워요.
 - [ ] `$H/admin` 학생 추가를 두 번 해요. 아이디 `demo_haneul`(학년 중2), `demo_minjun`(학년 고1), 이름은 아무거나(시드가 바꿔요). 임시 비밀번호는 비밀번호 관리자에만 적어요. **확인:** 학생 목록에 둘이 보여요.
 - [ ] 시드 넣기. SQL Editor에서 역할이 **postgres** 인지 확인하고, `supabase/seed-demo.sql` **파일 전체**를 붙여 넣고 **Run을 한 번만** 눌러요. 일부만 선택해서 실행하지 않아요(한 트랜잭션이라 실패하면 아무것도 남지 않아요. 문장별로 따로 실행하면 파일의 가드가 막아요).
 
@@ -293,23 +294,10 @@ read -r PK                            # publishable 키(공개 값)를 붙여 �
   ```
 
   기대 `8`. 오류가 나면 문구대로 고치고(예: "시연 데이터가 이미 들어 있어요" → 먼저 `supabase/seed-demo-clear.sql`), 같은 쿼리가 `2`(원장 화면으로 만든 둘)인지 확인한 뒤 다시 실행해요.
-- [ ] `$H/admin` 영상: 두 반에 짧은 mp4를 하나씩 올려요(각 50MB 미만, 직접 찍어 저작권 문제 없는 클립). **확인:** 영상 목록에 두 개가 보여요.
+- [ ] `$H/admin` 영상: 두 반에 짧은 mp4를 하나씩 올려요(각 48MB 아래로 넉넉히 — 앱 상한은 50 MiB, 대시보드 전역 한도는 50 MB라 경계에 걸리면 올라가지 않아요. 직접 찍어 저작권 문제 없는 클립). **확인:** 영상 목록에 두 개가 보여요.
 - [ ] §5의 상담 신청 스모크 테스트를 지금 해요(원장 목록 확인과 가짜 행 삭제까지).
 - [ ] `demo_haneul` 상세 > 학부모 링크 만들기 → 시연 때 누나 폰으로 열어 봐요(링크는 `/g#t=…` 형태이고 URL 조각에만 토큰이 들어가요).
-- [ ] **시연 전날 밤 (1)** QA가 시연 상태를 써 버려요(+3 축하, 수업 시작, 첫 로그인 비밀번호 변경, 숙제 제출, 답변). 시연 전날 밤에 SQL Editor(역할 `postgres`)로 `supabase/seed-demo-clear.sql` **전체**를 한 번 Run → 이어서 `supabase/seed-demo.sql` **전체**를 한 번 Run 해요(날짜가 모두 그날 서울 날짜 기준이라 빈 날이 없어요).
-  - 첫 로그인 비밀번호 변경 화면은 계정마다 **한 번만** 보여 줄 수 있어요. 시연에서 보여 주려면 QA에서 쓰지 말고 아껴 두거나, `demo_haneul`·`demo_minjun`의 비밀번호를 학생 상세의 "비밀번호 초기화"로 다시 만들어 임시 비밀번호 상태로 되돌려요.
-  - 지우기·다시 넣기는 두 학생 행과 로그인 계정은 남겨 두므로 학생을 다시 만들 필요가 없어요. 학부모 링크는 지워지니 `demo_haneul` 상세에서 다시 만들어요.
-  - **영상은 사라져요.** clear가 시연 반을 지우면 영상도 같이 지워지고 시드는 영상을 넣지 않아요. 위 "영상:" 단계대로 두 반에 짧은 mp4를 다시 올려요.
-  - **랜딩 관리 편집은 되돌아오지 않아요.** QA에서 바꾼 공지·반·수강료·연락처·법정 표시는 원래 값으로 손으로 되돌리고, 보상 목표는 반드시 30으로 해요(그래야 +3 축하 시연이 돼요).
-  - QA용 학생(`qa_test1`)과 QA용 반이 시연 반에 남아 있으면 clear가 "시연 반에 실제 학생이 배정돼 있어요. 그 학생을 다른 반으로 먼저 옮긴 뒤 다시 실행해 주세요."라고 멈춰요. 먼저 시연 반에서 빼거나 지워요.
-  - **확인:** 위 `demo\_%` 쿼리가 `8`.
-- [ ] **시연 전날 밤 (2)** 준비용 TOTP를 지워 누나가 첫 로그인 때 자기 폰으로 등록하게 해요.
-
-  ```sql
-  delete from auth.mfa_factors where user_id = (select id from auth.users where email = '<원장 이메일>');
-  ```
-
-  **확인:** 원장으로 로그인하면 TOTP 등록 화면이 떠요. 한 번 확인하고 등록하지 않은 채 로그아웃해요.
+- [ ] 시연 전날 밤 준비(리셋·비밀번호 초기화·TOTP 삭제)는 운영 배포 뒤인 **§8**에서 해요. 여기서는 하지 않아요.
 
 ## §7 운영 배포 (`dev` → `main`)
 
@@ -318,7 +306,48 @@ read -r PK                            # publishable 키(공개 값)를 붙여 �
 - [ ] 머지하면 Cloudflare가 프로덕션을 빌드해요. **확인:** Deployments에서 `main` 배포가 Success예요.
 - [ ] §5를 `H=https://heesu.pages.dev` 로 다시 해요. **확인:** §5 기대값과 같아요.
 
-## §8 공개 전 관문 (시연과 별개 — 12/1 또는 주소를 공개로 나누기 전에 모두 끝내요)
+## §8 시연 전날 밤 (§7 운영 배포와 §5 재확인이 끝난 뒤에만)
+
+이 절은 §7 뒤에 해요. 운영 배포와 §5 재실행에는 원장 로그인이 필요하니, 준비용 TOTP를 지우는 마지막 단계가 그 뒤에 와야 해요. **시연 주소는 운영 `https://heesu.pages.dev`예요**(누나 폰·학생 폰 모두 이 주소로 열어요. `dev` 주소로 시연하지 않아요).
+
+QA가 시연 상태를 써 버려요(+3 축하, 수업 시작, 첫 로그인 비밀번호 변경, 숙제 제출, 답변). 아래를 **위에서 아래로** 해요.
+
+- [ ] **QA용 학생을 시연 반에서 먼저 빼요.** 이걸 안 하고 clear를 돌리면 clear가 "시연 반에 실제 학생이 배정돼 있어요. 그 학생을 다른 반으로 먼저 옮긴 뒤 다시 실행해 주세요."라고 멈춰요. 원장 화면에서 `qa_test1`을 시연 반(`중등 기초반 (예시)`, `고등 독해반 (예시)`)에서 빼거나 지워요. QA에서 만든 반 이름을 시연 반 이름과 같게 바꿨다면 그 반을 먼저 원래 이름(끝이 `(예시)`)으로 되돌려요. clear는 시연 반 이름 끝이 `(예시)`가 아니면 "시연 반 이름이 바뀌어 실제 반으로 보여요…"라고 멈추고, `qa_test1` 같은 실제 학생의 출결·숙제·포인트·영상 시청 기록이 시연 수업·영상에 남아 있어도 "시연 수업이나 영상에 실제 학생의 기록이 남아 있어요…"라고 멈춰요. 문구대로 고친 뒤 다시 해요.
+- [ ] **리셋.** SQL Editor(역할 `postgres`)로 `supabase/seed-demo-clear.sql` **전체**를 한 번 Run → 이어서 `supabase/seed-demo.sql` **전체**를 한 번 Run 해요(날짜가 모두 그날 서울 날짜 기준이라 빈 날이 없어요). 두 학생 행과 로그인 계정은 남으니 학생을 다시 만들 필요가 없어요.
+
+  **확인:** `select count(*) from public.students where login_id like 'demo\_%';` 가 `8`.
+- [ ] **랜딩 관리 편집을 되돌려요.** QA에서 바꾼 공지·반·수강료·연락처·법정 표시는 원래 값으로 손으로 되돌려요(clear는 시드 값 그대로인 행만 지워요). 보상 목표는 반드시 30이에요.
+
+  ```sql
+  select value from public.site_content where key = 'points_goal';
+  ```
+
+  **확인:** `30`.
+- [ ] **`demo_haneul` 비밀번호 초기화(필수).** 첫 로그인 비밀번호 변경 화면은 계정마다 한 번만 보여 줄 수 있어요. 원장 화면 `학생` > `demo_haneul` 상세 > "비밀번호 초기화" 카드에서 새 임시 비밀번호를 넣어 초기화하고, 새 임시 비밀번호를 비밀번호 관리자에 저장해요(시연 때 이 값으로 로그인해요). QA 때 `demo_minjun`으로 첫 로그인을 이미 썼다면 `demo_minjun`도 같은 방법으로 초기화해요.
+
+  ```sql
+  select login_id, must_change_password from public.students where login_id in ('demo_haneul', 'demo_minjun');
+  ```
+
+  **확인:** `demo_haneul`의 `must_change_password`가 `true`예요(시연에서 `demo_minjun`의 첫 로그인도 보여 줄 거면 `demo_minjun`도 `true`).
+- [ ] **영상은 사라져요.** clear가 시연 반을 지우면 영상도 같이 지워지고 시드는 영상을 넣지 않아요. §6 영상 단계대로 두 반에 짧은 mp4(각 48MB 아래)를 다시 올려요. **확인:** 영상 목록에 두 개가 보여요.
+- [ ] **학부모 링크를 다시 만들어요.** clear가 학부모 링크를 지워요. `demo_haneul` 상세 > 학부모 링크 만들기 → 누나 폰으로 열어 봐요(`/g#t=…`).
+- [ ] **축하 기억을 지워요(기기마다).** 학생 화면은 "이 목표는 이미 축하했어요"를 브라우저 저장소(localStorage 키 `heesu:celebrated-goals:<학생 id>`)에 기억해요. 리셋해도 `demo_haneul`의 id는 그대로라서, QA에서 +3 축하를 본 기기·브라우저·홈 화면 앱에는 이 기억이 남아 시연 때 축하가 안 떠요. `demo_haneul`로 로그인해 본 **모든** 기기에서 지워요.
+  - 아이폰: 설정 > Safari > 고급 > 웹사이트 데이터에서 `heesu.pages.dev`(와 `dev.heesu.pages.dev`)를 지워요. 홈 화면 앱은 저장소가 따로라서 앱도 지우고 Safari에서 다시 홈 화면에 추가해요.
+  - 안드로이드: Chrome > 사이트 설정(주소창 자물쇠 > 사이트 설정) > 데이터 삭제. 설치한 앱도 같은 사이트 데이터를 써요.
+  - PC: 주소창 자물쇠 > 사이트 설정 > 데이터 삭제.
+  - 지울 수 없거나 헷갈리면 `demo_haneul`로 QA를 해 본 적 없는 기기·시크릿 창에서 시연해요. 다음부터 QA의 +3 축하는 PC **시크릿 창에서만** 해요(창을 닫으면 기억이 사라져요).
+- [ ] **사용량을 확인해요.** Supabase Organization > Usage에서 Free 한도 대비 사용량(DB·Storage·Egress·Edge Function 호출)이 여유 있는지 봐요. 시연 주에는 매일 봐요. 한도에 가까우면 시연 전에 멈추고 알려 주세요.
+- [ ] **누나 폰에 인증 앱을 설치해요.** Google Authenticator, Microsoft Authenticator 같은 앱이면 돼요. 폰 하나로 첫 로그인을 하면 같은 폰 화면의 QR을 찍을 수 없으니, 둘 중 하나로 해요. (a) 로그인 화면의 "QR을 찍을 수 없으면 앱에 이 키를 직접 입력해 주세요." 아래 비밀 키 문자열을 인증 앱에서 "설정 키 입력"으로 직접 입력해요. (b) PC에서 첫 로그인을 하고 폰으로 QR을 찍어요.
+- [ ] **마지막으로 준비용 TOTP를 지워요(위가 모두 끝난 뒤).** 누나가 첫 로그인 때 자기 폰으로 등록하게 해요. 지운 뒤에는 원장으로 로그인해도 인증 코드를 못 넣으니, 이 단계 뒤에는 §5처럼 원장 로그인이 필요한 확인을 하지 않아요.
+
+  ```sql
+  delete from auth.mfa_factors where user_id = (select id from auth.users where email = '<원장 이메일>');
+  ```
+
+  **확인:** `select count(*) from auth.mfa_factors where user_id = (select id from auth.users where email = '<원장 이메일>');` 가 `0`. 원장으로 로그인하면 TOTP 등록 화면이 떠요. 한 번 확인하고 등록하지 않은 채 로그아웃해요.
+
+## §9 공개 전 관문 (시연과 별개 — 12/1 또는 주소를 공개로 나누기 전에 모두 끝내요)
 
 - [ ] 예시 문구가 남아 있지 않은지 봐요. SQL Editor에서:
 
@@ -330,15 +359,36 @@ read -r PK                            # publishable 키(공개 값)를 붙여 �
 - [ ] 원장 화면에서 `contact.phone` 을 실제 번호로 바꿔요. 형식은 `0XX-XXX(X)-XXXX`(예: `063-123-4567`). 1588·070 번호는 아직 받지 않아요. 시드의 가짜 번호는 `063-000-0000` 이에요. **확인:** 랜딩 하단 연락처가 실제 번호예요.
 - [ ] 진짜 Turnstile 키로 바꿔요. 순서가 중요해요. 비밀을 먼저 바꾸면 사이트 키가 아직 테스트용인 동안 모든 신청이 실패해요.
   - Cloudflare > Turnstile > 위젯 만들기: 허용 호스트 `heesu.pages.dev`, `dev.heesu.pages.dev`.
-  - 1) 사이트 키(공개 값)는 `src/features/consultations/model/consultation.ts` 의 `TURNSTILE_SITE_KEY` 를 PR로 교체하고 §7 운영 배포까지 마쳐요. (함수가 응답의 hostname을 검사하는 코드는 후속 항목이에요: `docs/superpowers/plans/v1-followups.md`)
+  - 1) 사이트 키(공개 값)는 `src/features/consultations/model/consultation.ts` 의 `TURNSTILE_SITE_KEY` 를 PR로 교체하고 §7 운영 배포까지 마쳐요. (아래 "Turnstile hostname 검사"도 이 단계에서 같이 해요)
   - 2) 그 운영 배포가 끝난 **뒤에만** 비밀 키를 바꿔요. `read -rs TS_SECRET` 으로 받아 `supabase secrets set TURNSTILE_SECRET_KEY="$TS_SECRET"` 로 교체하고 `unset TS_SECRET` 해요(§2와 같은 방법).
   - 3) 함수를 재배포해요: `supabase functions deploy submit-consultation --no-verify-jwt`.
   - **확인:** `$H`에서 실제 신청 1건이 성공하고, 테스트 비밀을 쓰던 때와 달리 Turnstile 위젯이 실제로 검증해요.
-- [ ] 시연 데이터를 지워요(공개 전 필수). SQL Editor(역할 `postgres`)에서 `supabase/seed-demo-clear.sql` 전체를 Run → 원장 화면에서 `demo_haneul`·`demo_minjun` 을 지우거나 퇴원 처리 → Authentication > Users에서 `demo_haneul@student.heesu.internal`, `demo_minjun@student.heesu.internal` 사용자를 지우고 Storage `videos` 의 시연 영상 파일도 지워요. **확인:** `select count(*) from public.students where login_id like 'demo\_%';` 가 `0`(퇴원 처리만 했다면 원장 화면에서 목록에 안 보여요).
+- [ ] **Turnstile hostname 검사.** 함수가 Turnstile 응답의 hostname을 검사하는 후속 항목(`docs/superpowers/plans/v1-followups.md`)을 진짜 키와 같이 처리해요. **확인:** 허용 호스트(`heesu.pages.dev`, `dev.heesu.pages.dev`) 밖의 주소에서 받은 토큰은 거절돼요.
+- [ ] 시연 데이터를 지워요(공개 전 필수). 아래를 순서대로 해요.
+  1. SQL Editor(역할 `postgres`)에서 `supabase/seed-demo-clear.sql` 전체를 Run.
+  2. 두 시연 학생 행을 지워요.
+
+     ```sql
+     delete from public.students where login_id in ('demo_haneul', 'demo_minjun') returning login_id;
+     ```
+
+     **확인:** 정확히 2행(`demo_haneul`, `demo_minjun`)이 반환돼요.
+  3. Authentication > Users에서 `demo_haneul@student.heesu.internal`, `demo_minjun@student.heesu.internal` 사용자를 지워요. Storage `videos`의 시연 영상 파일도 지워요.
+
+  **확인:** `select count(*) from public.students where login_id like 'demo\_%';` 가 `0`.
+- [ ] **QA 흔적과 관리자 목록.** QA용 학생 `qa_test1`을 지워요(원장 화면에서 지우거나 아래 SQL, 그리고 Authentication > Users의 `qa_test1@student.heesu.internal`). QA에서 만든 `QA 연습반`도 원장 화면에서 지워요. QA용 임시 원장 계정이 있으면 Authentication > Users에서 지워요.
+
+  ```sql
+  delete from public.students where login_id = 'qa_test1' returning login_id;
+  select name from public.classes where name = 'QA 연습반';
+  select u.email from private.admins a join auth.users u on u.id = a.user_id;
+  ```
+
+  **확인:** 첫째 1행(없으면 이미 지운 거예요), 둘째 0행, 셋째 **원장 본인 이메일 한 줄만**이에요. 다른 이메일이 나오면 그 관리자 권한을 지우고(`delete from private.admins where user_id = (select id from auth.users where email = '<그 이메일>');`) Auth 사용자도 지워요.
 - [ ] 랜딩과 `/privacy`에 빈칸 자리표시가 남아 있지 않아요. 푸터의 "대표"와 "사업자등록번호"는 코드에 비어 있는 값으로 박혀 있어 랜딩 관리로 못 채워요 — 코드 수정 PR이 필요해요. **확인:** 두 곳을 눈으로 훑어 빈칸 자리표시(회색 칸)가 없어요.
 - [ ] `/privacy` 관문: 빈칸 채움 · 없는 기능 문구 제거 · 법률 검토 → `src/app/(landing)/privacy/page.tsx` 의 `robots: { index: false, … }` 를 제거하고 `public/sitemap.xml` 에 `/privacy` 를 다시 넣어요(`src/test/seo.test.ts` 가 이 상태를 고정하고 있어 같이 고쳐요). **확인:** 배포 후 `curl -s $H/privacy | grep -i noindex` 가 비어 있어요.
 
-## §9 되돌리기
+## §10 되돌리기
 
 - **프론트:** Cloudflare > Deployments > 이전 프로덕션 배포 > Rollback to this deployment (빌드 없이 즉시).
 - **함수:** 이전 커밋으로 옮겨 다시 배포하고 돌아와요.
@@ -351,7 +401,7 @@ read -r PK                            # publishable 키(공개 값)를 붙여 �
 - **DB:** 되돌리는(down) 마이그레이션은 없어요. 앞으로 고치는 **새** 마이그레이션만 써요(fix forward). 프론트를 되돌릴 때는 되돌아갈 빌드가 지금 적용된 마이그레이션과 맞는지 먼저 봐요. 예를 들어 `site_content` 의 insert/update/delete 권한이 회수된(`20261110000200`) 뒤라면 그 전 빌드의 화면은 저장에 실패할 수 있어요.
 - **첫 운영 배포:** 되돌아갈 이전 배포가 없어요. 그리고 Rollback은 프로덕션 배포에만 쓸 수 있어요(미리보기 배포는 안 돼요). 문제가 있으면 고친 커밋을 다시 올려요.
 - **백업:** Free에는 자동 백업이 없어요. 원격에 진짜 데이터가 있으면 §1의 `supabase db dump --data-only -f <저장소 밖 경로>` 파일을 보관해요.
-- **시연 데이터:** 시연 데이터가 꼬이면 `supabase/seed-demo-clear.sql` → 다시 `supabase/seed-demo.sql`(각각 SQL Editor, 역할 postgres, 파일 전체, Run 한 번).
+- **시연 데이터:** 시연 데이터가 꼬이면 §8의 순서대로 해요: `supabase/seed-demo-clear.sql` → 다시 `supabase/seed-demo.sql`(각각 SQL Editor, 역할 postgres, 파일 전체, Run 한 번). 그 뒤 영상 다시 올리기, 학부모 링크 다시 만들기, 랜딩 값과 보상 목표 30 되돌리기, 축하 기억(기기 저장소) 지우기는 §8을 따라요.
 - **비밀:** `supabase secrets unset <이름>`.
 - **최후 수단(새 프로젝트):** ref가 바뀌어 `public/_headers`의 CSP, `src/test/headers.test.ts`, Cloudflare 변수, Turnstile 설정을 같이 바꿔야 해요. 시연 전에는 하지 않아요.
 - **계정 문제:** 학생 추가 중 끊겨 로그인만 되는 Auth 사용자(`students` 행 없음)가 남으면 그 아이디를 다시 못 써요. Authentication > Users에서 `<아이디>@student.heesu.internal` 을 지워요.
