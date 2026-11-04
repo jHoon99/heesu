@@ -2,7 +2,7 @@
 begin;
 set local client_min_messages = warning;
 create extension if not exists pgtap with schema extensions;
-select plan(24);
+select plan(27);
 
 insert into auth.users (id, email) values
   ('00000000-0000-4000-8000-00000000a017', 'admin17@example.test'),
@@ -14,7 +14,7 @@ set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-00000000a017","role":"authenticated","aal":"aal2"}';
 
 select lives_ok($$insert into public.site_content (key, value) values ('about',
-  '{"intro":"전주에서 영어를 가르쳐요.\n둘째 줄이에요.","items":[{"title":"네이버 블로그 — 개원 이야기","url":"https://blog.naver.com/heesu/1"},{"title":"인스타그램","url":"https://www.instagram.com/heesu?igsh=a&b=1"}]}')
+  '{"intro":"전주에서 영어를 가르쳐요.\n둘째 줄이에요.","items":[{"title":"희수영어 소개","url":"https://blog.naver.com/heesu/1","teaser":"영어를 잘 가르친다는 것은 무엇일까요?\n희수영어가 지키고 싶은 교육의 기준을 이야기합니다."},{"title":"인스타그램","url":"https://www.instagram.com/heesu?igsh=a&b=1","teaser":null}]}')
   on conflict (key) do update set value = excluded.value$$, 'about 정상 upsert');
 select lives_ok($$update public.site_content set value = '{"intro":null,"items":[]}' where key = 'about'$$,
   'about 0칸·intro null');
@@ -25,8 +25,8 @@ select lives_ok($$update public.site_content set value =
   jsonb_build_object('items', jsonb_build_array(jsonb_build_object('title', 't', 'url', 'https://' || repeat('a', 500))))
   where key = 'about'$$, 'about 주소 500자');
 select lives_ok($$update public.site_content set value =
-  jsonb_build_object('intro', repeat('가', 300), 'items', jsonb_build_array(jsonb_build_object('title', repeat('가', 40), 'url', 'https://a.b')))
-  where key = 'about'$$, 'about intro 300자·title 40자');
+  jsonb_build_object('intro', repeat('가', 300), 'items', jsonb_build_array(jsonb_build_object('title', repeat('가', 40), 'url', 'https://a.b', 'teaser', repeat('가', 120))))
+  where key = 'about'$$, 'about intro 300자·title 40자·teaser 120자');
 
 -- ─── 모양 위반: P0001 ────────────────────────────────────────────────
 create temp table bad (label text, v jsonb);
@@ -48,6 +48,9 @@ insert into bad values
   ('intro 숫자', '{"intro":1}'),
   ('items 배열 아님', '{"items":{"title":"t"}}'),
   ('주소 501자', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('title', 't', 'url', 'https://' || repeat('a', 501))))),
+  ('teaser 121자', jsonb_build_object('items', jsonb_build_array(jsonb_build_object('title', 't', 'url', 'https://a.b', 'teaser', repeat('가', 121))))),
+  ('teaser 숫자', '{"items":[{"title":"t","url":"https://a.b","teaser":1}]}'),
+  ('teaser 제어 문자', '{"items":[{"title":"t","url":"https://a.b","teaser":"a\u0007b"}]}'),
   ('url 없음', '{"items":[{"title":"t"}]}');
 
 select throws_ok(format('update public.site_content set value = %L where key = %L', v::text, 'about'),

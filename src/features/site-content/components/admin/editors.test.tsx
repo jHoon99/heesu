@@ -93,14 +93,16 @@ describe("saving", () => {
 });
 
 describe("AboutEditor", () => {
-  const ONE_EMPTY = { intro: "", items: [{ title: "", url: "" }] };
+  const card = (title = "", url = "", teaser = "") => ({ title, url, teaser });
+  const START = { intro: "", items: [card(), card(), card()] };
 
-  it("starts with one empty card and saves an untouched form as no links", async () => {
+  it("starts with three empty cards and saves an untouched form as no cards", async () => {
     save.mockResolvedValue();
     const user = userEvent.setup();
-    wrap(<AboutEditor initial={ONE_EMPTY} />);
-    expect(screen.getAllByLabelText("제목")).toHaveLength(1);
-    expect(screen.getByLabelText("링크 주소")).toHaveAttribute(
+    wrap(<AboutEditor initial={START} />);
+    expect(screen.getAllByLabelText("제목")).toHaveLength(3);
+    expect(screen.getAllByLabelText("짧은 소개")[0]?.tagName).toBe("TEXTAREA");
+    expect(screen.getAllByLabelText("블로그 주소")[0]).toHaveAttribute(
       "inputmode",
       "url",
     );
@@ -113,18 +115,22 @@ describe("AboutEditor", () => {
   it("adds, reorders and removes cards, then saves them in order", async () => {
     save.mockResolvedValue();
     const user = userEvent.setup();
-    wrap(<AboutEditor initial={ONE_EMPTY} />);
+    wrap(<AboutEditor initial={{ intro: "", items: [card()] }} />);
     await user.type(screen.getByLabelText("소개 글"), "전주 영어학원이에요.");
-    await user.type(screen.getAllByLabelText("제목")[0]!, "블로그");
+    await user.type(screen.getAllByLabelText("제목")[0]!, "희수영어 소개");
     await user.type(
-      screen.getAllByLabelText("링크 주소")[0]!,
-      "https://blog.naver.com/heesu",
+      screen.getAllByLabelText("짧은 소개")[0]!,
+      "무엇일까요?{enter}기준을 이야기해요.",
+    );
+    await user.type(
+      screen.getAllByLabelText("블로그 주소")[0]!,
+      "https://blog.naver.com/heesu/1",
     );
     await user.click(screen.getByRole("button", { name: "링크 추가" }));
-    await user.type(screen.getAllByLabelText("제목")[1]!, "인스타그램");
+    await user.type(screen.getAllByLabelText("제목")[1]!, "수업 이야기");
     await user.type(
-      screen.getAllByLabelText("링크 주소")[1]!,
-      "https://www.instagram.com/heesu",
+      screen.getAllByLabelText("블로그 주소")[1]!,
+      "https://blog.naver.com/heesu/2",
     );
     await user.click(screen.getByRole("button", { name: "링크 추가" }));
     await user.type(screen.getAllByLabelText("제목")[2]!, "지울 카드");
@@ -138,8 +144,16 @@ describe("AboutEditor", () => {
       expect(save).toHaveBeenCalledWith("about", {
         intro: "전주 영어학원이에요.",
         items: [
-          { title: "인스타그램", url: "https://www.instagram.com/heesu" },
-          { title: "블로그", url: "https://blog.naver.com/heesu" },
+          {
+            title: "수업 이야기",
+            url: "https://blog.naver.com/heesu/2",
+            teaser: null,
+          },
+          {
+            title: "희수영어 소개",
+            url: "https://blog.naver.com/heesu/1",
+            teaser: "무엇일까요?\n기준을 이야기해요.",
+          },
         ],
       }),
     );
@@ -147,9 +161,12 @@ describe("AboutEditor", () => {
 
   it("does not save a javascript: link and says how to fix it", async () => {
     const user = userEvent.setup();
-    wrap(<AboutEditor initial={ONE_EMPTY} />);
+    wrap(<AboutEditor initial={{ intro: "", items: [card()] }} />);
     await user.type(screen.getByLabelText("제목"), "위험");
-    await user.type(screen.getByLabelText("링크 주소"), "javascript:alert(1)");
+    await user.type(
+      screen.getByLabelText("블로그 주소"),
+      "javascript:alert(1)",
+    );
     await user.click(screen.getByRole("button", { name: "소개 저장" }));
     expect(
       await screen.findByText("https://로 시작하는 주소를 붙여 넣어 주세요."),
@@ -163,10 +180,9 @@ describe("AboutEditor", () => {
       <AboutEditor
         initial={{
           intro: "",
-          items: Array.from({ length: 9 }, (_, i) => ({
-            title: `t${i}`,
-            url: "https://a.example",
-          })),
+          items: Array.from({ length: 9 }, (_, i) =>
+            card(`t${i}`, "https://a.example"),
+          ),
         }}
       />,
     );

@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "@/design-system";
 import { EMPTY_SITE_CONTENT, type SiteContent } from "@/features/site-content";
-import { AboutSection, linkHost } from "./AboutSection";
+import { AboutSection, storyNumber } from "./AboutSection";
 import { ConsultSection } from "./ConsultSection";
 import { CtaBar } from "./CtaBar";
 import { NoticeBand } from "./NoticeBand";
@@ -201,56 +201,93 @@ describe("about section", () => {
     renderAll({ ...EMPTY_SITE_CONTENT, about: a });
     return document.getElementById("about") as HTMLElement;
   };
+  const stories = (section: HTMLElement) =>
+    within(section).getByRole("list", { name: "희수영어 이야기" });
 
-  it("shows the intro and link placeholders when empty, with no photo box", () => {
+  it("shows three numbered placeholder cards and no intro when empty", () => {
     const section = about({ intro: null, items: [] });
+    expect(within(section).queryByText("학원 소개 글 2~3문장")).toBeNull();
+    const cards = within(stories(section)).getAllByRole("listitem");
+    expect(cards).toHaveLength(3);
+    expect(within(section).getAllByText("블로그 글 제목")).toHaveLength(3);
+    expect(within(section).getAllByText("짧은 소개 2~3줄")).toHaveLength(3);
     expect(
-      within(section).getByText("학원 소개 글 2~3문장"),
+      within(cards[2] as HTMLElement).getByText("INTRO 03"),
     ).toBeInTheDocument();
-    expect(within(section).getByText("소개 글 링크")).toBeInTheDocument();
     expect(within(section).queryAllByRole("link")).toHaveLength(0);
-    expect(within(section).queryByRole("img")).toBeNull();
   });
 
-  it("keeps the intro's line breaks and lists safe link cards in order", () => {
+  it("makes each story card one safe link with the number, title, teaser and image", () => {
     const section = about({
       intro: "첫 줄\n둘째 줄",
       items: [
-        { title: "개원 이야기", url: "https://blog.naver.com/heesu/1" },
-        { title: "인스타그램", url: "https://www.instagram.com/heesu" },
+        {
+          title: "희수영어 소개",
+          url: "https://blog.naver.com/heesu/1",
+          teaser: "영어를 잘 가르친다는 것은 무엇일까요?\n기준을 이야기합니다.",
+        },
+        {
+          title: "수업 이야기",
+          url: "https://blog.naver.com/heesu/2",
+          teaser: null,
+        },
+        {
+          title: "숙제 이야기",
+          url: "https://blog.naver.com/heesu/3",
+          teaser: null,
+        },
+        {
+          title: "넷째 이야기",
+          url: "https://blog.naver.com/heesu/4",
+          teaser: null,
+        },
       ],
     });
     const intro = within(section).getByText(/첫 줄/);
     expect(intro.textContent).toBe("첫 줄\n둘째 줄");
     expect(intro).toHaveClass("whitespace-pre-line");
-    expect(within(section).queryByText("소개 글 링크")).toBeNull();
+    expect(within(section).queryByText("블로그 글 제목")).toBeNull();
+
     const links = within(section).getAllByRole("link");
     expect(links.map((a) => a.getAttribute("href"))).toEqual([
       "https://blog.naver.com/heesu/1",
-      "https://www.instagram.com/heesu",
+      "https://blog.naver.com/heesu/2",
+      "https://blog.naver.com/heesu/3",
+      "https://blog.naver.com/heesu/4",
     ]);
     for (const a of links) {
       expect(a).toHaveAttribute("target", "_blank");
       expect(a).toHaveAttribute("rel", "noopener noreferrer");
+      expect(within(a).getByText("이야기 읽기")).toBeInTheDocument();
     }
-    expect(
-      within(links[0] as HTMLElement).getByText("blog.naver.com"),
-    ).toBeInTheDocument();
-    expect(
-      within(links[1] as HTMLElement).getByText("instagram.com"),
-    ).toBeInTheDocument();
-    // 링크 카드는 소개 글 뒤, 대상·개원 정보 앞에 와요.
+    const first = links[0] as HTMLElement;
+    expect(within(first).getByRole("heading").textContent).toBe(
+      "INTRO 01 | 희수영어 소개",
+    );
+    const teaser = within(first).getByText(/무엇일까요/);
+    expect(teaser.textContent).toBe(
+      "영어를 잘 가르친다는 것은 무엇일까요?\n기준을 이야기합니다.",
+    );
+    expect(teaser).toHaveClass("whitespace-pre-line");
+    // 예시 사진은 세 장을 돌아가며 써요.
+    const srcs = links.map((a) => a.querySelector("img")?.getAttribute("src"));
+    expect(srcs).toEqual([
+      "/about/sample-1.svg",
+      "/about/sample-2.svg",
+      "/about/sample-3.svg",
+      "/about/sample-1.svg",
+    ]);
+    // 이야기 카드는 소개 글 뒤, 대상·개원 정보 앞에 와요.
     const order = Array.from(section.querySelectorAll("p, ul, a, span")).map(
       (el) => el.textContent ?? "",
     );
     const at = (t: string) => order.findIndex((x) => x.startsWith(t));
-    expect(at("첫 줄")).toBeLessThan(at("개원 이야기"));
-    expect(at("개원 이야기")).toBeLessThan(at("대상"));
+    expect(at("첫 줄")).toBeLessThan(at("INTRO 01"));
+    expect(at("INTRO 01")).toBeLessThan(at("대상"));
   });
 
-  it("strips www. from the host and never throws", () => {
-    expect(linkHost("https://www.instagram.com/x")).toBe("instagram.com");
-    expect(linkHost("https://blog.naver.com/x")).toBe("blog.naver.com");
-    expect(linkHost("not a url")).toBe("");
+  it("numbers cards with two digits", () => {
+    expect(storyNumber(0)).toBe("INTRO 01");
+    expect(storyNumber(9)).toBe("INTRO 10");
   });
 });

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EFE0CC"/><stop offset="1" stop-color="#CFAE8C"/></linearGradient></defs>
+<rect width="800" height="500" fill="url(#g)"/>
+<polygon points="0,500 0,360 220,300 430,350 640,280 800,320 800,500" fill="#8A6447" opacity=".22"/>
+<circle cx="560" cy="150" r="70" fill="#FFF6E6" opacity=".7"/>
+<rect x="160" y="190" width="10" height="130" fill="#8A6447" opacity=".45"/>
+<circle cx="165" cy="175" r="52" fill="#8A6447" opacity=".3"/><circle cx="135" cy="200" r="34" fill="#8A6447" opacity=".25"/><circle cx="198" cy="198" r="36" fill="#8A6447" opacity=".25"/>
+<rect x="290" y="250" width="200" height="70" rx="8" fill="#FFFDF8" opacity=".6"/>
+<text x="32" y="468" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif" font-size="26" fill="#8A6447" opacity=".85">(예시) 블로그 대표 사진</text>
+</svg>

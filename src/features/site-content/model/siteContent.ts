@@ -19,7 +19,8 @@ export type Legal = {
   subjects: string | null;
   tuitionNotice: string | null;
 };
-export type AboutLink = { title: string; url: string };
+/** 블로그 이야기 카드: 제목, 블로그 주소, 카드에 보이는 짧은 소개(여러 줄). */
+export type AboutLink = { title: string; url: string; teaser: string | null };
 export type About = { intro: string | null; items: AboutLink[] };
 export type SiteContent = {
   notice: Notice | null;
@@ -123,10 +124,12 @@ function parseAbout(value: unknown): About {
   const items = Array.isArray(o.items)
     ? o.items.flatMap((item): AboutLink[] => {
         if (typeof item !== "object" || item === null) return [];
-        const { title, url } = item as Record<string, unknown>;
+        const { title, url, teaser } = item as Record<string, unknown>;
         const t = typeof title === "string" ? title.trim() : "";
         const u = safeHttpsUrl(url);
-        return t !== "" && u !== null ? [{ title: t, url: u }] : [];
+        const parsedTeaser = text.safeParse(teaser);
+        const tz = parsedTeaser.success ? parsedTeaser.data : null;
+        return t !== "" && u !== null ? [{ title: t, url: u, teaser: tz }] : [];
       })
     : [];
   return {

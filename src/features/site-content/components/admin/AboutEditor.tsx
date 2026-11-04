@@ -16,7 +16,7 @@ import { EditorCard, useCardSave, type EditorMode } from "./EditorCard";
 type In = z.input<typeof aboutWriteSchema>;
 type Out = z.output<typeof aboutWriteSchema>;
 
-/** 소개 섹션: 소개 글과, 블로그·인스타그램 글로 가는 링크 카드예요. */
+/** 소개 섹션: 소개 글과, 블로그 글로 가는 이야기 카드예요. */
 export function AboutEditor({
   initial,
   bare,
@@ -57,10 +57,10 @@ export function AboutEditor({
         {...register("intro")}
       />
       <div className="flex flex-col gap-1">
-        <h3 className="text-label text-text">소개 링크</h3>
+        <h3 className="text-label text-text">이야기 카드</h3>
         <p className="text-caption text-text-muted">
-          블로그·인스타그램 글 주소를 붙여 넣으면 카드로 보여요. 제목과 주소를
-          둘 다 비운 카드는 저장할 때 빠져요.
+          블로그 글마다 카드 한 장이에요. 순서대로 INTRO 01, 02…로 보여요. 칸을
+          모두 비운 카드는 저장할 때 빠져요.
         </p>
       </div>
       {fields.map((field, i) => {
@@ -73,13 +73,21 @@ export function AboutEditor({
             <Input
               size="md"
               label="제목"
-              placeholder="네이버 블로그 — 개원 이야기"
+              placeholder="희수영어 소개"
               error={rowErrors?.title?.message}
               {...register(`items.${i}.title`)}
             />
             <Input
               size="md"
-              label="링크 주소"
+              multiline
+              label="짧은 소개"
+              hint="카드에 2~3줄로 보여요. 120자까지"
+              error={rowErrors?.teaser?.message}
+              {...register(`items.${i}.teaser`)}
+            />
+            <Input
+              size="md"
+              label="블로그 주소"
               inputMode="url"
               autoComplete="off"
               spellCheck={false}

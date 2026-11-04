@@ -131,8 +131,13 @@ describe("parseSiteContent", () => {
         value: {
           intro: "  첫 줄\n둘째 줄 ",
           items: [
-            { title: " 블로그 ", url: "https://blog.naver.com/heesu/1" },
+            {
+              title: " 블로그 ",
+              url: "https://blog.naver.com/heesu/1",
+              teaser: " 무엇일까요?\n기준을 이야기해요. ",
+            },
             { title: "인스타", url: "https://www.instagram.com/heesu" },
+            { title: "숫자 소개", url: "https://a.example", teaser: 3 },
           ],
         },
       },
@@ -140,8 +145,17 @@ describe("parseSiteContent", () => {
     expect(about).toEqual({
       intro: "첫 줄\n둘째 줄",
       items: [
-        { title: "블로그", url: "https://blog.naver.com/heesu/1" },
-        { title: "인스타", url: "https://www.instagram.com/heesu" },
+        {
+          title: "블로그",
+          url: "https://blog.naver.com/heesu/1",
+          teaser: "무엇일까요?\n기준을 이야기해요.",
+        },
+        {
+          title: "인스타",
+          url: "https://www.instagram.com/heesu",
+          teaser: null,
+        },
+        { title: "숫자 소개", url: "https://a.example", teaser: null },
       ],
     });
   });
@@ -168,7 +182,7 @@ describe("parseSiteContent", () => {
     ]);
     expect(about).toEqual({
       intro: null,
-      items: [{ title: "좋아요", url: "https://ok.example" }],
+      items: [{ title: "좋아요", url: "https://ok.example", teaser: null }],
     });
     expect(parseSiteContent([{ key: "about", value: "x" }]).about).toEqual(
       EMPTY_SITE_CONTENT.about,

@@ -118,7 +118,7 @@ describe("AdminLandingScreen", () => {
     expect(within(dialog).getByLabelText("전화번호")).toBeInTheDocument();
   });
 
-  it("opens the about editor in a modal and saves the intro and links", async () => {
+  it("opens the about editor in a modal and saves the intro and story cards", async () => {
     const user = setup();
     await user.click(screen.getByRole("button", { name: "소개 고치기" }));
     const dialog = await screen.findByRole("dialog", { name: "소개 고치기" });
@@ -126,16 +126,24 @@ describe("AdminLandingScreen", () => {
       await within(dialog).findByLabelText("소개 글"),
       "전주 영어학원이에요.",
     );
-    await user.type(within(dialog).getByLabelText("제목"), "블로그");
+    // 저장된 카드가 없으면 빈 카드 세 장으로 시작해요. 첫 장만 채워요.
+    expect(within(dialog).getAllByLabelText("제목")).toHaveLength(3);
+    await user.type(within(dialog).getAllByLabelText("제목")[0]!, "블로그");
     await user.type(
-      within(dialog).getByLabelText("링크 주소"),
+      within(dialog).getAllByLabelText("블로그 주소")[0]!,
       "https://blog.naver.com/heesu",
     );
     await user.click(within(dialog).getByRole("button", { name: "소개 저장" }));
     await waitFor(() =>
       expect(save).toHaveBeenCalledWith("about", {
         intro: "전주 영어학원이에요.",
-        items: [{ title: "블로그", url: "https://blog.naver.com/heesu" }],
+        items: [
+          {
+            title: "블로그",
+            url: "https://blog.naver.com/heesu",
+            teaser: null,
+          },
+        ],
       }),
     );
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());

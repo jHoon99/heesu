@@ -32,11 +32,17 @@ export type EditableSiteContent = {
   pointsGoal: string;
   about: { intro: string; items: EditableAboutLink[] };
 };
-export type EditableAboutLink = { title: string; url: string };
+export type EditableAboutLink = { title: string; url: string; teaser: string };
 
 export const MAX_CLASSES = 10;
 export const MAX_ABOUT_LINKS = 10;
-export const EMPTY_ABOUT_LINK: EditableAboutLink = { title: "", url: "" };
+export const EMPTY_ABOUT_LINK: EditableAboutLink = {
+  title: "",
+  url: "",
+  teaser: "",
+};
+/** 저장된 이야기 카드가 없을 때 처음 보여 줄 빈 카드 수예요. */
+export const STARTER_ABOUT_LINKS = 3;
 
 // ---- read (raw DB value -> form strings) ----
 
@@ -61,7 +67,7 @@ export function readEditable(
   const aboutItems: EditableAboutLink[] = Array.isArray(about.items)
     ? about.items.slice(0, MAX_ABOUT_LINKS).map((it) => {
         const o = obj(it);
-        return { title: str(o.title), url: str(o.url) };
+        return { title: str(o.title), url: str(o.url), teaser: str(o.teaser) };
       })
     : [];
   const classes: EditableClass[] = Array.isArray(classesRaw)
@@ -102,10 +108,15 @@ export function readEditable(
     },
     pointsGoal:
       typeof goal === "number" && Number.isInteger(goal) ? String(goal) : "",
-    // 저장된 링크가 없으면 빈 카드 하나로 시작해요.
+    // 저장된 이야기 카드가 없으면 빈 카드 세 장으로 시작해요.
     about: {
       intro: str(about.intro),
-      items: aboutItems.length > 0 ? aboutItems : [{ ...EMPTY_ABOUT_LINK }],
+      items:
+        aboutItems.length > 0
+          ? aboutItems
+          : Array.from({ length: STARTER_ABOUT_LINKS }, () => ({
+              ...EMPTY_ABOUT_LINK,
+            })),
     },
   };
 }
@@ -210,7 +221,7 @@ export const pointsGoalWriteSchema = z
       .refine((n) => n >= 1 && n <= 10000, GOAL_MESSAGE),
   );
 
-// 소개: 소개 글(여러 줄, 300자)과 링크 카드. 제목·주소가 둘 다 빈 카드는 저장할 때 빼요.
+// 소개: 소개 글(여러 줄, 300자)과 블로그 이야기 카드. 모두 빈 카드는 저장할 때 빼요.
 const URL_MESSAGE = "https://로 시작하는 주소를 붙여 넣어 주세요.";
 // DB 검사와 같은 규칙이에요: https://만, 공백·<>"'\\ 없이 뒤에 1~500자.
 const HTTPS_URL = /^https:\/\/[^\s<>"'\\]{1,500}$/;
@@ -233,15 +244,19 @@ const linkUrl = z
   .transform((v) => v.trim())
   .pipe(z.string().refine(isHttpsUrl, URL_MESSAGE));
 
-const aboutLinkSchema = z.object({ title: linkTitle, url: linkUrl });
+const aboutLinkSchema = z.object({
+  title: linkTitle,
+  url: linkUrl,
+  teaser: multi(120),
+});
 type AboutLinkOut = z.output<typeof aboutLinkSchema>;
 
 const isBlankLink = (v: EditableAboutLink) =>
-  v.title.trim() === "" && v.url.trim() === "";
+  v.title.trim() === "" && v.url.trim() === "" && v.teaser.trim() === "";
 
-// 제목·주소가 둘 다 빈 카드는 검사하지 않고 빼요. 오류는 화면의 그 칸에 붙어요.
+// 제목·주소·짧은 소개가 모두 빈 카드는 검사하지 않고 빼요. 오류는 화면의 그 칸에 붙어요.
 const aboutItemSchema = z
-  .object({ title: z.string(), url: z.string() })
+  .object({ title: z.string(), url: z.string(), teaser: z.string() })
   .transform((v, ctx): AboutLinkOut | null => {
     if (isBlankLink(v)) return null;
     const parsed = aboutLinkSchema.safeParse(v);

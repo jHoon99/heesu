@@ -201,12 +201,17 @@ describe("write schemas", () => {
 });
 
 describe("about", () => {
-  const link = (title: string, url: string) => ({ title, url });
+  const link = (title: string, url: string, teaser = "") => ({
+    title,
+    url,
+    teaser,
+  });
+  const EMPTY = link("", "");
 
-  it("starts the form with one empty card when nothing is saved", () => {
+  it("starts the form with three empty cards when nothing is saved", () => {
     expect(readEditable([]).about).toEqual({
       intro: "",
-      items: [{ title: "", url: "" }],
+      items: [EMPTY, EMPTY, EMPTY],
     });
     expect(
       readEditable([
@@ -223,13 +228,25 @@ describe("about", () => {
       aboutWriteSchema.parse({
         intro: " 첫 줄\n둘째 줄 ",
         items: [
-          link(" 블로그 ", " https://blog.naver.com/heesu "),
-          link("", "  "),
+          link(" 블로그 ", " https://blog.naver.com/heesu ", " 첫째\n둘째 "),
+          link("", "  ", " "),
+          link("인스타", "https://www.instagram.com/heesu"),
         ],
       }),
     ).toEqual({
       intro: "첫 줄\n둘째 줄",
-      items: [link("블로그", "https://blog.naver.com/heesu")],
+      items: [
+        {
+          title: "블로그",
+          url: "https://blog.naver.com/heesu",
+          teaser: "첫째\n둘째",
+        },
+        {
+          title: "인스타",
+          url: "https://www.instagram.com/heesu",
+          teaser: null,
+        },
+      ],
     });
     expect(
       aboutWriteSchema.parse({ intro: "", items: [link("", "")] }),
@@ -237,13 +254,20 @@ describe("about", () => {
   });
 
   it("says how to fix each field", () => {
-    const parse = (items: { title: string; url: string }[], intro = "") =>
-      issue(aboutWriteSchema.safeParse({ intro, items }));
+    const parse = (
+      items: { title: string; url: string; teaser: string }[],
+      intro = "",
+    ) => issue(aboutWriteSchema.safeParse({ intro, items }));
     expect(parse([link("", "https://a.b")])).toBe("제목을 입력해 주세요.");
     expect(parse([link("가".repeat(41), "https://a.b")])).toBe(
       "40자까지 쓸 수 있어요.",
     );
     expect(parse([], "가".repeat(301))).toBe("300자까지 쓸 수 있어요.");
+    expect(parse([link("t", "https://a.b", "가".repeat(121))])).toBe(
+      "120자까지 쓸 수 있어요.",
+    );
+    // 짧은 소개만 쓴 카드도 빈 카드가 아니라서 제목·주소를 물어봐요.
+    expect(parse([link("", "", "소개만")])).toBe("제목을 입력해 주세요.");
     const URL_MESSAGE = "https://로 시작하는 주소를 붙여 넣어 주세요.";
     for (const url of [
       "",
@@ -260,6 +284,9 @@ describe("about", () => {
     ).toBe("링크는 10개까지 넣을 수 있어요.");
     expect(parse([link("a\u0007", "https://a.b")])).toBe(CONTROL_CHAR_MESSAGE);
     expect(parse([], "a\u0007")).toBe(CONTROL_CHAR_MESSAGE);
+    expect(parse([link("t", "https://a.b", "a\u0007")])).toBe(
+      CONTROL_CHAR_MESSAGE,
+    );
   });
 
   it("puts a card's error on that card's field", () => {

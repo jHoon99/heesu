@@ -1,11 +1,12 @@
--- site_content에 소개(about) 키를 더한다: 소개 글과 소개 링크 카드. 키별 value 모양의 현재 기준은 이제 여기다
+-- site_content에 소개(about) 키를 더한다: 소개 글과 블로그 이야기 카드. 키별 value 모양의 현재 기준은 이제 여기다
 -- (20261110000200_site_content_write.sql은 이미 적용돼 고치지 않는다). DB는 snake_case, TS는 camelCase.
 --   notice {title, body, visible} · classes [{name, grades, schedule, capacity}] (≤ 10칸, capacity 빈칸 또는 1~50)
 --   tuition {monthly, textbook, note} · contact {phone, address} (phone 빈칸 또는 0xx-xxx(x)-xxxx)
 --   legal {academy_name, registration_no, subjects, tuition_notice}
 --   points_goal 정수 1~10000 (기본 30).
---   about {intro, items: [{title, url}]} (intro 빈칸 또는 ≤ 300자·여러 줄, items ≤ 10칸,
---     title 앞뒤 공백을 뺀 1~40자, url은 https://만 — javascript:·data:·http는 막는다)
+--   about {intro, items: [{title, url, teaser}]} (intro 빈칸 또는 ≤ 300자·여러 줄, items ≤ 10칸,
+--     title 앞뒤 공백을 뺀 1~40자, url은 https://만 — javascript:·data:·http는 막는다,
+--     teaser 빈칸 또는 ≤ 120자·여러 줄)
 -- 값 하나의 JSON 텍스트는 8192바이트 이하, 안의 문자열에는 제어 문자가 없다.
 -- 검사: supabase/tests/17_site_content_about.test.sql
 
@@ -89,7 +90,9 @@ begin
           if pg_catalog.jsonb_typeof(item) <> 'object'
              or pg_catalog.jsonb_typeof(item -> 'title') is distinct from 'string'
              or pg_catalog.jsonb_typeof(item -> 'url') is distinct from 'string'
-             or exists (select 1 from pg_catalog.jsonb_object_keys(item) ik where ik not in ('title', 'url'))
+             or exists (select 1 from pg_catalog.jsonb_object_keys(item) ik where ik not in ('title', 'url', 'teaser'))
+             or coalesce(pg_catalog.jsonb_typeof(item -> 'teaser'), 'null') not in ('string', 'null')
+             or pg_catalog.char_length(coalesce(item ->> 'teaser', '')) > 120
              or pg_catalog.char_length(pg_catalog.regexp_replace(item ->> 'title', '^[[:space:]]+|[[:space:]]+$', '', 'g'))
                 not between 1 and 40
              -- Postgres 정규식은 반복 횟수가 255까지라서 길이(https:// 뒤 1~500자)는 따로 잰다.

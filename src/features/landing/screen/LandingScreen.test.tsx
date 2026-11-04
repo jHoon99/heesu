@@ -59,7 +59,7 @@ describe("LandingScreen", () => {
 
   it("shows placeholders for content not decided yet", () => {
     const { container } = render(<LandingScreen />);
-    expect(screen.getByText("학원 소개 글 2~3문장")).toBeInTheDocument();
+    expect(screen.getAllByText("블로그 글 제목")).toHaveLength(3);
     const director = container.querySelector("section#director") as HTMLElement;
     expect(within(director).getByText("원장 이름")).toBeInTheDocument();
   });
