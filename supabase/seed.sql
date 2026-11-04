@@ -9,7 +9,8 @@ insert into public.site_content (key, value) values
    ]'),
   ('tuition', '{"monthly": "(예시) 월 00만 원", "textbook": "(예시) 교재비 별도", "note": "(예시) 수강료 안내 문구예요."}'),
   ('contact', '{"phone": "063-000-0000", "address": "전북 전주시 (예시 주소)"}'),
-  ('legal', '{"academy_name": "(예시) 희수영어", "registration_no": "(예시) 제0000-00호", "subjects": "(예시) 영어", "tuition_notice": "(예시) 교습비 게시 문구예요."}');
+  ('legal', '{"academy_name": "(예시) 희수영어", "registration_no": "(예시) 제0000-00호", "subjects": "(예시) 영어", "tuition_notice": "(예시) 교습비 게시 문구예요."}'),
+  ('points_goal', '30');
 
 -- ─── 로컬 로그인 계정 (가짜, 로컬 전용) ───────────────────────────────
 -- 아래 비밀번호는 로컬 확인용으로 공개된 값이에요. 클라우드에는 시드를 넣지 않아요(계획 7).

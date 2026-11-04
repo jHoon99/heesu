@@ -1,5 +1,5 @@
-import { StudentPlaceholderScreen } from "@/features/auth";
+import { StudentHomeScreen } from "@/features/student-home";
 
 export default function StudentHome() {
-  return <StudentPlaceholderScreen />;
+  return <StudentHomeScreen />;
 }

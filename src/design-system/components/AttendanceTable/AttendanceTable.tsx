@@ -11,7 +11,12 @@ import {
   type Homework,
 } from "../StatusChip/StatusChip";
 
-export type AttendanceCell = { att?: Attendance; hw?: Homework };
+export type AttendanceCell = {
+  att?: Attendance;
+  hw?: Homework;
+  /** 학생이 숙제를 제출한 시각(ISO). 표시만 하고 바꾸지 않아요. */
+  submittedAt?: string | null;
+};
 export type AttendanceRecords = Record<string, Record<string, AttendanceCell>>;
 
 export interface AttendanceTableProps {
@@ -27,6 +32,23 @@ export interface AttendanceTableProps {
   ) => void;
   showHomework?: boolean;
   maxHeight?: number;
+}
+
+const SEOUL_TIME = new Intl.DateTimeFormat("ko-KR", {
+  timeZone: "Asia/Seoul",
+  month: "numeric",
+  day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+/** 제출 시각을 서울 시간 "11/4 15:30"으로 보여줘요. */
+export function formatSubmittedAt(iso: string): string {
+  const p = Object.fromEntries(
+    SEOUL_TIME.formatToParts(new Date(iso)).map((x) => [x.type, x.value]),
+  );
+  return `${p.month}/${p.day} ${p.hour}:${p.minute}`;
 }
 
 const LOW_RATE = 0.6;
@@ -179,6 +201,9 @@ export function AttendanceTable({
                 </th>
                 {dates.flatMap((d) => {
                   const cell = row[d.key];
+                  const submitted = cell?.submittedAt
+                    ? formatSubmittedAt(cell.submittedAt)
+                    : null;
                   const bg = d.today ? "bg-brown-50" : undefined;
                   const tds = [
                     <td key={`${d.key}-att`} className={cn("px-1", bg)}>
@@ -200,19 +225,32 @@ export function AttendanceTable({
                   if (showHomework)
                     tds.push(
                       <td key={`${d.key}-hw`} className={cn("px-1", bg)}>
-                        <StatusChip
-                          size="sm"
-                          status={cell?.hw ?? "none"}
-                          ariaLabel={`${s.name} ${d.label} 숙제`}
-                          onClick={() =>
-                            change(
-                              s.id,
-                              d.key,
-                              "hw",
-                              nextHomework(cell?.hw ?? "none"),
-                            )
+                        <span
+                          className="relative inline-flex"
+                          title={
+                            submitted ? `학생 제출 ${submitted}` : undefined
                           }
-                        />
+                        >
+                          <StatusChip
+                            size="sm"
+                            status={cell?.hw ?? "none"}
+                            ariaLabel={`${s.name} ${d.label} 숙제${submitted ? `, 학생 제출 ${submitted}` : ""}`}
+                            onClick={() =>
+                              change(
+                                s.id,
+                                d.key,
+                                "hw",
+                                nextHomework(cell?.hw ?? "none"),
+                              )
+                            }
+                          />
+                          {submitted ? (
+                            <span
+                              aria-hidden="true"
+                              className="pointer-events-none absolute -top-0.5 -right-0.5 size-2 rounded-full bg-primary ring-2 ring-bg-surface"
+                            />
+                          ) : null}
+                        </span>
                       </td>,
                     );
                   return tds;

@@ -18,7 +18,13 @@ export type Board = {
   records: AttendanceRecords;
 };
 
-type Row<S> = { session_id: string; student_id: string; status: S };
+type Row<S> = {
+  session_id: string;
+  student_id: string;
+  status: S;
+  /** 학생이 제출한 시각(숙제 행만) */
+  submitted_at?: string | null;
+};
 
 export function buildBoard(input: {
   sessions: Session[];
@@ -48,6 +54,16 @@ export function buildBoard(input: {
       field,
       row.status,
     );
+    if (field === "hw" && row.submitted_at) {
+      const cell = records[row.student_id]?.[row.session_id];
+      records = {
+        ...records,
+        [row.student_id]: {
+          ...records[row.student_id],
+          [row.session_id]: { ...cell, submittedAt: row.submitted_at },
+        },
+      };
+    }
   };
   for (const row of input.attendance) put(row, "att");
   for (const row of input.homework) put(row, "hw");

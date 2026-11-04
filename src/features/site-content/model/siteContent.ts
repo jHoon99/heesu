@@ -7,7 +7,11 @@ export type ClassInfo = {
   schedule: string | null;
   capacity: number | null;
 };
-export type Tuition = { monthly: string | null; textbook: string | null; note: string | null };
+export type Tuition = {
+  monthly: string | null;
+  textbook: string | null;
+  note: string | null;
+};
 export type Contact = { phone: string | null; address: string | null };
 export type Legal = {
   academyName: string | null;
@@ -21,47 +25,71 @@ export type SiteContent = {
   tuition: Tuition;
   contact: Contact;
   legal: Legal;
+  pointsGoal: number;
 };
+
+export const DEFAULT_POINTS_GOAL = 30;
 
 export const EMPTY_SITE_CONTENT: SiteContent = {
   notice: null,
   classes: [],
   tuition: { monthly: null, textbook: null, note: null },
   contact: { phone: null, address: null },
-  legal: { academyName: null, registrationNo: null, subjects: null, tuitionNotice: null },
+  legal: {
+    academyName: null,
+    registrationNo: null,
+    subjects: null,
+    tuitionNotice: null,
+  },
+  pointsGoal: DEFAULT_POINTS_GOAL,
 };
 
 // Trimmed non-empty string, otherwise null. Never throws.
-const text = z.unknown().optional().transform((v) => {
-  if (typeof v !== "string") return null;
-  const t = v.trim();
-  return t === "" ? null : t;
-});
+const text = z
+  .unknown()
+  .optional()
+  .transform((v) => {
+    if (typeof v !== "string") return null;
+    const t = v.trim();
+    return t === "" ? null : t;
+  });
 
-const capacity = z.unknown().optional().transform((v) => (typeof v === "number" && Number.isInteger(v) && v >= 0 ? v : null));
+const capacity = z
+  .unknown()
+  .optional()
+  .transform((v) =>
+    typeof v === "number" && Number.isInteger(v) && v >= 0 ? v : null,
+  );
 
 const noticeSchema = z
   .object({ title: text, body: text, visible: z.unknown().optional() })
   .transform((v): Notice | null =>
-    v.visible === false || v.title === null ? null : { title: v.title, body: v.body ?? "" },
+    v.visible === false || v.title === null
+      ? null
+      : { title: v.title, body: v.body ?? "" },
   );
 
 const classItemSchema = z
   .object({ name: text, grades: text, schedule: text, capacity })
-  .transform((v): ClassInfo | null => (v.name === null ? null : { ...v, name: v.name }));
+  .transform((v): ClassInfo | null =>
+    v.name === null ? null : { ...v, name: v.name },
+  );
 
 const tuitionSchema = z.object({ monthly: text, textbook: text, note: text });
 const contactSchema = z.object({ phone: text, address: text });
 const legalSchema = z
-  .object({ academy_name: text, registration_no: text, subjects: text, tuition_notice: text })
-  .transform(
-    (v): Legal => ({
-      academyName: v.academy_name,
-      registrationNo: v.registration_no,
-      subjects: v.subjects,
-      tuitionNotice: v.tuition_notice,
-    }),
-  );
+  .object({
+    academy_name: text,
+    registration_no: text,
+    subjects: text,
+    tuition_notice: text,
+  })
+  .transform((v): Legal => ({
+    academyName: v.academy_name,
+    registrationNo: v.registration_no,
+    subjects: v.subjects,
+    tuitionNotice: v.tuition_notice,
+  }));
 
 function parseClasses(value: unknown): ClassInfo[] {
   if (!Array.isArray(value)) return [];
@@ -71,7 +99,9 @@ function parseClasses(value: unknown): ClassInfo[] {
   });
 }
 
-export function parseSiteContent(rows: { key: string; value: unknown }[]): SiteContent {
+export function parseSiteContent(
+  rows: { key: string; value: unknown }[],
+): SiteContent {
   const result: SiteContent = { ...EMPTY_SITE_CONTENT };
   for (const { key, value } of rows) {
     switch (key) {
@@ -98,6 +128,15 @@ export function parseSiteContent(rows: { key: string; value: unknown }[]): SiteC
         result.legal = p.success ? p.data : EMPTY_SITE_CONTENT.legal;
         break;
       }
+      case "points_goal":
+        result.pointsGoal =
+          typeof value === "number" &&
+          Number.isInteger(value) &&
+          value >= 1 &&
+          value <= 10000
+            ? value
+            : DEFAULT_POINTS_GOAL;
+        break;
     }
   }
   return result;

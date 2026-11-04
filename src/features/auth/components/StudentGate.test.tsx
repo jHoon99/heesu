@@ -57,6 +57,18 @@ describe("StudentGate", () => {
     expect(get).toHaveBeenCalledTimes(2);
   });
 
+  it("shows the offline message with retry and sign-out on a network error", async () => {
+    get.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    setup();
+    const user = userEvent.setup();
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "인터넷에 연결되지 않았어요. 연결을 확인하고 다시 시도해 주세요.",
+    );
+    expect(screen.getByRole("button", { name: "다시 시도" })).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "로그아웃" }));
+    expect(signOut).toHaveBeenCalledTimes(1);
+  });
+
   it("shows a contact message with sign-out when there is no student row", async () => {
     get.mockResolvedValue(null);
     setup();

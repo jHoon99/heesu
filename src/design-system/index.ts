@@ -22,6 +22,7 @@ export {
   AttendanceTable,
   AttendanceTableLegend,
   summarizeAttendanceRow,
+  formatSubmittedAt,
   type AttendanceTableProps,
   type AttendanceRecords,
   type AttendanceCell,
@@ -40,3 +41,14 @@ export {
   type AdminSidebarProps,
   type AdminSidebarItem,
 } from "./components/AdminSidebar/AdminSidebar";
+export {
+  StudentTabBar,
+  type StudentTabBarProps,
+  type StudentTabItem,
+} from "./components/StudentTabBar/StudentTabBar";
+export {
+  PointsProgress,
+  pointsRemaining,
+  progressPercent,
+  type PointsProgressProps,
+} from "./components/PointsProgress/PointsProgress";
