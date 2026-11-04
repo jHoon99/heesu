@@ -20,16 +20,16 @@
 - [x] Points history: client-side sort by shown date, "최근 50건만 보여요" note at the cap, and the student detail shows recent records + points.
 
 ## guardian-records
-- Add `points_goal` (jsonb integer 1~10000) editing to the landing admin (student home reward goal; changing it celebrates once more for the new goal).
-- `classes` INSERT is still table-level for `authenticated`: add a column-level grant (name, level, schedule, capacity) like UPDATE got in `20261107000100_tighten_grants.sql`.
-- site_content editor must write exactly the jsonb shape in `20261105000000_site_content.sql` (legal keys snake_case in DB, camelCase in TS) — put a shared zod write schema in `features/site-content/model`.
-- useSiteContent hook tests: isLoading state; malformed row through the hook.
-- Landing DB-text containers need `min-w-0` / `break-words` (long tokens overflow at 390px) once admins can type long text.
-- Phone editor validation: `telHref` joins every digit (extensions) — validate phone format in the editor.
-- Consent version is duplicated in `src/features/consultations/model/consultation.ts` and `supabase/functions/submit-consultation/handler.ts` — add a cross-check test or single source when consents change.
-- pg_cron deletion of unregistered consultations after 6 months (privacy page states it).
-- Don't export CONSENT_VERSION/TURNSTILE_SITE_KEY from consultations index; landing bundle pulls react-query via consultations index.
-- Optional: pass admin id as audit hint for service_role writes.
+- [x] Add `points_goal` (jsonb integer 1~10000) editing to the landing admin (student home reward goal; changing it celebrates once more for the new goal). (Task 7 DB check, Task 8 보상 목표 card; Task 11 E2E: goal 5 → /s progress max 5)
+- [x] `classes` INSERT is still table-level for `authenticated`: add a column-level grant (name, level, schedule, capacity) like UPDATE got in `20261107000100_tighten_grants.sql`. (Task 4)
+- [x] site_content editor must write exactly the jsonb shape in `20261105000000_site_content.sql` (legal keys snake_case in DB, camelCase in TS) — put a shared zod write schema in `features/site-content/model`. (Task 8 `siteContentWrite.ts`)
+- [x] useSiteContent hook tests: isLoading state; malformed row through the hook. (Task 8)
+- [x] Landing DB-text containers need `min-w-0` / `break-words` (long tokens overflow at 390px) once admins can type long text. (Task 8; Task 11 E2E: 500-char notice body, landing scrollWidth 390)
+- [x] Phone editor validation: `telHref` joins every digit (extensions) — validate phone format in the editor. (Task 7 DB check, Task 8 zod)
+- [x] Consent version is duplicated in `src/features/consultations/model/consultation.ts` and `supabase/functions/submit-consultation/handler.ts` — add a cross-check test or single source when consents change. (Task 6 cross-check test)
+- [x] pg_cron deletion of unregistered consultations after 6 months (privacy page states it). (Task 4 `purge-stale-consultations`; cloud check → demo-deploy-qa)
+- [x] Don't export CONSENT_VERSION/TURNSTILE_SITE_KEY from consultations index; landing bundle pulls react-query via consultations index. (index still does not export them, kept in Task 5; react-query is needed on the landing anyway by `useSiteContent`, so nothing to split)
+- Optional: pass admin id as audit hint for service_role writes. (left → v2 in foundation-followups)
 
 ## demo-deploy-qa
 - QA: iPhone Safari add to home screen (standalone, bottom safe-area, icon) and Android Chrome install; on the deploy preview confirm SW registration and the offline message under the CSP (worker-src, manifest-src).
@@ -87,10 +87,10 @@
 - Admin web push needs a separate registration scoped `/admin` (or scope `/` with path guards); keep `push`/`notificationclick` handlers outside fetch path guards.
 
 ## guardian-records (from student-app final review)
-- Students who join a class later see all its past homework as submittable — filter by `class_members.created_at`.
-- Manual point reasons are visible to students — add hint "학생 화면에도 보여요" in ManualPointForm.
-- `PointsCard` fallback duplicates PointsProgress markup — goal-optional PointsProgress.
-- site_content migration header comment: document `points_goal`.
+- [x] Students who join a class later see all its past homework as submittable — filter by `class_members.created_at`. (Task 6 screen filter; `guardian_view` uses the same rule, Task 1)
+- [x] Manual point reasons are visible to students — add hint "학생 화면에도 보여요" in ManualPointForm. (Task 6)
+- `PointsCard` fallback duplicates PointsProgress markup — goal-optional PointsProgress. (left → v2: design-system contract change, together with the design source)
+- [x] site_content migration header comment: document `points_goal`. (Task 7 new migration header; applied files are not edited)
 
 ## demo-deploy-qa (from student-app final review)
 - iOS standalone storage is separate from Safari: install guide should say "추가한 뒤 앱에서 다시 로그인해요"; celebration may fire once per context.
@@ -106,7 +106,7 @@
 - 서비스워커는 production 빌드에서만 등록된다 — 배포 미리보기에서 /s 오프라인 셸, ?id= 영상 화면 캐시 1개, Storage 영상 재생(Range 통과) 확인.
 
 ## guardian-records (from videos-questions)
-- 퇴원 처리 때 Storage 파일 정리(S12)는 영상이 반 단위라 해당 없음 — 학생별 파일이 생기면 다시 본다.
-- S9: 등록 서류에 수업 녹화·공개 동의 항목 추가(정보 동의 화면·문서).
-- `video_views.watched_seconds`는 클라이언트가 보고한 값이다 — 시청 활동 기록일 뿐 증빙이 아니다(원장 화면 문구·학부모 안내에서 단정하지 않기).
-- answers UPDATE(body) 권한·정책은 '답변 고치기' 화면용으로 남겨 둠(현재 UI 없음).
+- [x] 퇴원 처리 때 Storage 파일 정리(S12)는 영상이 반 단위라 해당 없음 — 학생별 파일이 생기면 다시 본다. (기록만, Task 11)
+- [x] S9: 등록 서류에 수업 녹화·공개 동의 항목 추가(정보 동의 화면·문서). (Task 6 ConsentCard 안내; 동의서 실물 확인은 demo-deploy-qa '누나 확인' 항목)
+- [x] `video_views.watched_seconds`는 클라이언트가 보고한 값이다 — 시청 활동 기록일 뿐 증빙이 아니다(원장 화면 문구·학부모 안내에서 단정하지 않기). (Task 6 원장 문구; `/g`는 영상 기록을 보여 주지 않는다, Task 1)
+- answers UPDATE(body) 권한·정책은 '답변 고치기' 화면용으로 남겨 둠(현재 UI 없음). (그대로 — 고치기 화면이 생길 때 쓴다)

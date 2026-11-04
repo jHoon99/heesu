@@ -39,7 +39,7 @@
 - `supabase secrets set TURNSTILE_SECRET_KEY=...` (test secret during the demo; before 12/1 swap in the real secret and the site-key constant).
 - `supabase functions deploy submit-consultation` (verify_jwt=false comes from config.toml).
 - Turnstile widget allowed hostnames: `heesu.pages.dev`, `dev.heesu.pages.dev`.
-- pg_cron deletion of unregistered consultations (plan 6) must ship before the page goes public (`/privacy` promises deletion after 6 months).
+- [x] pg_cron deletion of unregistered consultations (plan 6) must ship before the page goes public (`/privacy` promises deletion after 6 months). (Task 4) — 클라우드에서 cron.job 확인은 계획 7
 - Re-enable /privacy indexing (remove `robots: { index: false }` from the page metadata) + add it back to `public/sitemap.xml` after legal review and the Blank values are filled.
 - `supabase link` + `supabase db push` for all migrations.
 - Deploy functions and set secrets (`TURNSTILE_SECRET_KEY` test key for the demo).
@@ -54,3 +54,14 @@
 - Verify an old refresh token fails after an admin password reset (passed locally). Note: with asymmetric JWT keys a signed-out admin's access token stays valid until expiry (up to 1h).
 - Before applying the 20261107 migrations to cloud, check that existing student and class names contain no control characters (the new check constraints would fail the whole push).
 - Local build needs `.env.local` (copy values from `supabase status`).
+
+## demo-deploy-qa
+- db push 뒤 클라우드에서 pg_cron 확장·cron.job 'purge-stale-consultations' 확인(Free 프로젝트도 Database → Extensions에서 켤 수 있어야 한다).
+- 배포 미리보기에서 curl -sI /g → Referrer-Policy: no-referrer, X-Robots-Tag: noindex.
+- QA: 카카오톡 인앱 브라우저(아이폰·안드로이드)에서 학부모 링크 열기·새로고침·링크 미리보기에 토큰이 안 보이는지.
+- 누나 확인: 등록 동의서에 수업 녹화·영상 게시 동의 항목(S9).
+- guardian_view 반복 호출은 DB에서 막지 않는다 — Supabase 사용량 알림(S14)을 켠다.
+
+## v2
+- service_role 쓰기(create-student 등)의 감사 actor가 null — 호출한 원장 id를 남기는 방법.
+- PointsProgress goal 선택 prop(디자인 시스템 계약 변경, 디자인 원본과 같이).
