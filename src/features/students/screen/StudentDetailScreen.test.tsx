@@ -11,6 +11,7 @@ import {
   saveStudentPrivate,
   setStudentClasses,
 } from "../data/detail";
+import { getGuardianLinkStatus } from "@/features/guardian/data/guardian";
 import { resetStudentPassword } from "../data/functions";
 import { getStudent } from "../data/students";
 import { StudentFunctionError, type StudentSummary } from "../model/students";
@@ -24,6 +25,7 @@ vi.mock("next/navigation", () => ({
 vi.mock("../data/students");
 vi.mock("../data/detail");
 vi.mock("../data/functions");
+vi.mock("@/features/guardian/data/guardian");
 let recordsResult: { isPending: boolean; isError: boolean; data?: unknown[] } =
   {
     isPending: false,
@@ -103,6 +105,7 @@ describe("StudentDetailScreen", () => {
     savePriv.mockResolvedValue(undefined);
     add.mockResolvedValue(undefined);
     reset.mockResolvedValue(undefined);
+    vi.mocked(getGuardianLinkStatus).mockResolvedValue(null);
   });
 
   it("shows the not-found card without an id", () => {
@@ -128,9 +131,19 @@ describe("StudentDetailScreen", () => {
       "학교·보호자",
       "보호자 동의",
       "비밀번호 초기화",
+      "학부모 링크",
     ]) {
       expect(screen.getByRole("heading", { name: t })).toBeInTheDocument();
     }
+  });
+
+  it("hides link creation for a student who left", async () => {
+    get.mockResolvedValue({ ...student, status: "left" });
+    setup();
+    expect(
+      await screen.findByText("퇴원한 학생은 학부모 링크를 만들 수 없어요."),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "링크 만들기" })).toBeNull();
   });
 
   it("shows recent records with status chips", async () => {

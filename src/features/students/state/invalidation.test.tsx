@@ -27,6 +27,7 @@ function setup() {
   const client = new QueryClient();
   client.setQueryData(["attendance", "day", "2026-11-04"], {});
   client.setQueryData(["points", "totals"], []);
+  client.setQueryData(["guardian", "status", "s1"], null);
   const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={client}>{children}</QueryClientProvider>
   );
@@ -64,6 +65,9 @@ describe("student mutations invalidate attendance and points", () => {
       });
     });
     await expectBothInvalidated(client);
+    expect(
+      client.getQueryState(["guardian", "status", "s1"])?.isInvalidated,
+    ).toBe(true);
   });
 
   it("useCreateStudent", async () => {

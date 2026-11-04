@@ -41,6 +41,7 @@ const ADMIN_UI_FILES = [
   "src/features/videos/screen/Admin*",
   "src/features/questions/components/admin/**",
   "src/features/questions/screen/Admin*",
+  "src/features/guardian/components/admin/**",
 ];
 
 const ENTRANCE_MOTION = [
