@@ -28,8 +28,14 @@ export function VideoPlayerScreen() {
 
   const onVideoError = () => {
     errorCount.current += 1;
-    if (errorCount.current === 1) playback.refresh();
-    else setFailedOnce(true);
+    if (errorCount.current === 1) {
+      void playback.refresh().then((url) => {
+        // 같은 초에 다시 발급하면 주소가 같아 src가 안 바뀌니 직접 다시 읽어요.
+        if (url !== null && el !== null && el.getAttribute("src") === url) {
+          el.load();
+        }
+      });
+    } else setFailedOnce(true);
   };
 
   const back = (

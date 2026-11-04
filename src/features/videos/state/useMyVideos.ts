@@ -45,11 +45,14 @@ export function usePlaybackUrl(video: MyVideo | null) {
     refetchOnWindowFocus: false,
   });
   const { refetch } = query;
-  const refresh = useCallback(() => {
+  /** 새로 발급한 주소를 돌려줘요(너무 잦거나 실패하면 null). */
+  const refresh = useCallback((): Promise<string | null> => {
     const now = Date.now();
-    if (now - lastRefresh.current < REFRESH_MIN_INTERVAL_MS) return;
+    if (now - lastRefresh.current < REFRESH_MIN_INTERVAL_MS) {
+      return Promise.resolve(null);
+    }
     lastRefresh.current = now;
-    void refetch();
+    return refetch().then((r) => r.data ?? null);
   }, [refetch]);
   return { url: query.data ?? null, isError: query.isError, refresh };
 }

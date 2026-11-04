@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useMyVideo, usePlaybackUrl } from "../state/useMyVideos";
 import { VideoPlayerScreen } from "./VideoPlayerScreen";
@@ -40,6 +40,7 @@ function setVideo(data: unknown, isFetchedAfterMount = true) {
 describe("VideoPlayerScreen", () => {
   beforeEach(() => {
     refresh.mockReset();
+    refresh.mockResolvedValue(null);
     setVideo(video);
     playback.mockReturnValue({
       url: "https://s/v.mp4",
@@ -94,5 +95,30 @@ describe("VideoPlayerScreen", () => {
     fireEvent.error(el);
     expect(refresh).toHaveBeenCalledTimes(1);
     expect(screen.getByText(/영상을 열 수 없어요/)).toBeInTheDocument();
+  });
+
+  it("reloads the element when the refreshed url is the same string", async () => {
+    // 같은 초에 다시 발급하면 토큰이 같아 src가 안 바뀌어요 — 그때는 직접 다시 읽어요.
+    const load = vi
+      .spyOn(HTMLMediaElement.prototype, "load")
+      .mockImplementation(() => {});
+    refresh.mockResolvedValue("https://s/v.mp4");
+    const { container } = render(<VideoPlayerScreen />);
+    fireEvent.error(container.querySelector("video") as HTMLVideoElement);
+    await waitFor(() => expect(load).toHaveBeenCalledTimes(1));
+    load.mockRestore();
+  });
+
+  it("lets the new src load by itself when the refreshed url differs", async () => {
+    const load = vi
+      .spyOn(HTMLMediaElement.prototype, "load")
+      .mockImplementation(() => {});
+    refresh.mockResolvedValue("https://s/v2.mp4");
+    const { container } = render(<VideoPlayerScreen />);
+    fireEvent.error(container.querySelector("video") as HTMLVideoElement);
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+    await Promise.resolve();
+    expect(load).not.toHaveBeenCalled();
+    load.mockRestore();
   });
 });
