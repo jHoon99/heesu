@@ -22,6 +22,7 @@ export {
   AttendanceTable,
   AttendanceTableLegend,
   summarizeAttendanceRow,
+  formatSubmittedAt,
   type AttendanceTableProps,
   type AttendanceRecords,
   type AttendanceCell,

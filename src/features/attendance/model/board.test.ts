@@ -73,3 +73,28 @@ describe("toTableDates", () => {
     ]);
   });
 });
+
+describe("buildBoard submittedAt", () => {
+  it("carries submitted_at onto the homework cell and survives an admin edit", () => {
+    const board = buildBoard({
+      sessions: [session("s1", "2026-11-03")],
+      members: [{ id: "u1", name: "김하늘", grade: "중1", status: "active" }],
+      attendance: [],
+      homework: [
+        {
+          session_id: "s1",
+          student_id: "u1",
+          status: "none",
+          submitted_at: "2026-11-03T06:30:00Z",
+        },
+      ],
+    });
+    expect(board.records.u1.s1).toEqual({
+      hw: "none",
+      submittedAt: "2026-11-03T06:30:00Z",
+    });
+    expect(
+      applyCell(board.records, "u1", "s1", "hw", "done").u1.s1.submittedAt,
+    ).toBe("2026-11-03T06:30:00Z");
+  });
+});

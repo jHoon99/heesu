@@ -6,6 +6,7 @@ import { buildBoard, RECENT_SESSION_COUNT, type Board } from "../model/board";
 
 const SESSION_COLUMNS = "id, class_id, date, summary, homework, homework_due";
 const ROW_COLUMNS = "session_id, student_id, status";
+const HOMEWORK_COLUMNS = "session_id, student_id, status, submitted_at";
 
 function toSession(r: {
   id: string;
@@ -37,7 +38,7 @@ async function attendanceRows(ids: string[]) {
 async function homeworkRows(ids: string[]) {
   const { data, error } = await supabase
     .from("homework_checks")
-    .select(ROW_COLUMNS)
+    .select(HOMEWORK_COLUMNS)
     .in("session_id", ids);
   if (error) throw error;
   return data;
@@ -176,6 +177,8 @@ export type StudentRecord = {
   className: string;
   att: Attendance;
   hw: Homework;
+  /** 학생이 숙제를 제출한 시각(ISO) */
+  submittedAt: string | null;
 };
 
 /** 그 학생이 지금 속한 반들의 최근 수업 8개(날짜 내림차순)와 그 학생의 출결·숙제. */
@@ -208,19 +211,20 @@ export async function listStudentRecords(
       .in("session_id", ids),
     supabase
       .from("homework_checks")
-      .select(ROW_COLUMNS)
+      .select(HOMEWORK_COLUMNS)
       .eq("student_id", studentId)
       .in("session_id", ids),
   ]);
   if (attRes.error) throw attRes.error;
   if (hwRes.error) throw hwRes.error;
   const att = new Map(attRes.data.map((r) => [r.session_id, r.status]));
-  const hw = new Map(hwRes.data.map((r) => [r.session_id, r.status]));
+  const hw = new Map(hwRes.data.map((r) => [r.session_id, r]));
   return sessions.map((s) => ({
     sessionId: s.id,
     date: s.date,
     className: classNames.get(s.class_id) ?? "",
     att: att.get(s.id) ?? "none",
-    hw: hw.get(s.id) ?? "none",
+    hw: hw.get(s.id)?.status ?? "none",
+    submittedAt: hw.get(s.id)?.submitted_at ?? null,
   }));
 }

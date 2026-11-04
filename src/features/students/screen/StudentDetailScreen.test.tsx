@@ -144,6 +144,7 @@ describe("StudentDetailScreen", () => {
           className: "중등 기초반",
           att: "present",
           hw: "missing",
+          submittedAt: "2026-11-04T06:30:00Z",
         },
         {
           sessionId: "b",
@@ -151,6 +152,7 @@ describe("StudentDetailScreen", () => {
           className: "중등 기초반",
           att: "late",
           hw: "done",
+          submittedAt: null,
         },
       ],
     };
@@ -160,6 +162,8 @@ describe("StudentDetailScreen", () => {
     expect(within(row).getByText("중등 기초반")).toBeInTheDocument();
     expect(within(row).getByText("출석")).toBeInTheDocument();
     expect(within(row).getByText("미완료")).toBeInTheDocument();
+    expect(within(row).getByText("제출 15:30")).toBeInTheDocument();
+    expect(screen.getAllByText(/^제출 /)).toHaveLength(1);
     expect(row.closest("table")!.querySelectorAll("tr")).toHaveLength(3);
   });
 

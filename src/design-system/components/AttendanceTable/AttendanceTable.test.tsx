@@ -40,6 +40,32 @@ describe("AttendanceTable", () => {
     expect(onChange).toHaveBeenCalledTimes(5);
   });
 
+  it("marks a student-submitted homework cell and keeps click-to-cycle", async () => {
+    const onChange = vi.fn();
+    render(
+      <AttendanceTable
+        students={students}
+        dates={dates}
+        onChange={onChange}
+        defaultRecords={{
+          s1: { d1: { hw: "none", submittedAt: "2026-11-04T06:30:00Z" } },
+        }}
+      />,
+    );
+    const btn = screen.getByRole("button", {
+      name: "김하늘 11/3 숙제, 학생 제출 11/4 15:30 미입력",
+    });
+    expect(btn.closest("span[title]")).toHaveAttribute(
+      "title",
+      "학생 제출 11/4 15:30",
+    );
+    expect(
+      screen.getByRole("button", { name: "이도윤 11/3 숙제 미입력" }),
+    ).toBeInTheDocument();
+    await userEvent.click(btn);
+    expect(onChange).toHaveBeenCalledWith("s1", "d1", "hw", "done");
+  });
+
   it("cycles homework none→done→missing→none", async () => {
     render(<AttendanceTable students={students} dates={dates} />);
     for (const word of ["완료", "미완료", "미입력"]) {

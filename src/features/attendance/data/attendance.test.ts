@@ -65,6 +65,17 @@ describe("setAttendance / setHomework", () => {
     ]);
   });
 
+  it("never sends submitted_at when saving homework", async () => {
+    const calls = mockTables({
+      homework_checks: { data: [{ session_id: "s1" }], error: null },
+    });
+    await setHomework("s1", "u1", "done");
+    expect(calls.find((c) => c.method === "upsert")?.args).toEqual([
+      { session_id: "s1", student_id: "u1", status: "done" },
+      { onConflict: "session_id,student_id" },
+    ]);
+  });
+
   it("throws SaveNotAppliedError on 0 rows", async () => {
     mockTables({ homework_checks: { data: [], error: null } });
     await expect(setHomework("s1", "u1", "done")).rejects.toBeInstanceOf(
@@ -125,14 +136,29 @@ describe("getBoard", () => {
         error: null,
       },
       homework_checks: {
-        data: [{ session_id: "s2", student_id: "u1", status: "missing" }],
+        data: [
+          {
+            session_id: "s2",
+            student_id: "u1",
+            status: "missing",
+            submitted_at: "2026-11-05T06:30:00Z",
+          },
+        ],
         error: null,
       },
     });
     const board = await getBoard("c1");
     expect(board.sessions.map((s) => s.id)).toEqual(["s1", "s2"]);
     expect(board.records).toEqual({
-      u1: { s1: { att: "present" }, s2: { hw: "missing" } },
+      u1: {
+        s1: { att: "present" },
+        s2: { hw: "missing", submittedAt: "2026-11-05T06:30:00Z" },
+      },
+    });
+    expect(calls).toContainEqual({
+      table: "homework_checks",
+      method: "select",
+      args: ["session_id, student_id, status, submitted_at"],
     });
     expect(calls).toContainEqual({
       table: "sessions",
@@ -258,7 +284,14 @@ describe("listStudentRecords", () => {
         error: null,
       },
       homework_checks: {
-        data: [{ session_id: "s2", student_id: "u1", status: "done" }],
+        data: [
+          {
+            session_id: "s2",
+            student_id: "u1",
+            status: "done",
+            submitted_at: "2026-11-04T06:30:00Z",
+          },
+        ],
         error: null,
       },
     });
@@ -269,6 +302,7 @@ describe("listStudentRecords", () => {
         className: "중등 심화반",
         att: "none",
         hw: "none",
+        submittedAt: null,
       },
       {
         sessionId: "s2",
@@ -276,6 +310,7 @@ describe("listStudentRecords", () => {
         className: "중등 기초반",
         att: "late",
         hw: "done",
+        submittedAt: "2026-11-04T06:30:00Z",
       },
       {
         sessionId: "s1",
@@ -283,6 +318,7 @@ describe("listStudentRecords", () => {
         className: "중등 기초반",
         att: "none",
         hw: "none",
+        submittedAt: null,
       },
     ]);
     expect(calls).toContainEqual({

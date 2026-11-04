@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, StatusChip } from "@/design-system";
+import { Card, StatusChip, formatSubmittedAt } from "@/design-system";
 import { classifyError } from "@/core/supabase/error";
 import { useStudentRecords } from "@/features/attendance";
 import { formatShortDate } from "@/features/sessions";
@@ -48,6 +48,11 @@ export function RecentRecordsCard({ studentId }: { studentId: string }) {
                 </td>
                 <td>
                   <StatusChip status={r.hw} size="sm" />
+                  {r.submittedAt ? (
+                    <span className="ml-1 text-caption text-text-muted">
+                      {`제출 ${formatSubmittedAt(r.submittedAt).split(" ")[1]}`}
+                    </span>
+                  ) : null}
                 </td>
               </tr>
             ))}
