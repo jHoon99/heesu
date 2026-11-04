@@ -4,9 +4,12 @@
 --
 -- 넣는 법:
 --   1) 원장 화면 학생 추가로 demo_haneul·demo_minjun 두 학생을 먼저 만들어요(이름·학년은 이 파일이 바꿔요).
---   2) 대시보드 SQL Editor에 이 파일 전체를 붙여 넣고 한 번에 실행해요(한 트랜잭션: 중간에 실패하면 아무것도 남지 않아요).
+--   2) 대시보드 SQL Editor(역할 postgres)에 이 파일 전체를 붙여 넣고 Run을 한 번만 눌러요. 일부만 선택해서 실행하지 않아요.
+--      한 트랜잭션으로 돌아서 중간에 실패하면 아무것도 남지 않아요.
 --   날짜는 모두 실행한 날의 서울 날짜 기준이에요. 시연 전날 밤에 넣으면 빈 날이 없어요.
 --   다시 넣으려면 seed-demo-clear.sql을 먼저 실행해요(이미 들어 있으면 이 파일이 거절해요).
+-- 랜딩 문구는 키가 없거나 아직 예시 값일 때만 넣어요(원장이 고친 키는 그대로 두고 NOTICE로 알려 줘요).
+--   연락처 전화 063-000-0000은 형식 검사 때문에 (예시)를 붙일 수 없는 가짜 번호예요. 시연 뒤 원장 화면에서 실제 번호로 바꿔요.
 -- 넣지 않는 것: 로그인 계정·비밀번호, 원장 계정, 영상·시청 기록, 학부모 링크 토큰(원장 화면에서 만들어요).
 -- 로컬 검사: npm run db:demo-check (로컬 DB에서 넣기·거절·지우기·다시 넣기를 해 보고 rollback해요).
 --
@@ -24,7 +27,9 @@ begin
   if current_setting('heesu.demo_seed_probe', true) is distinct from 'on' then
     raise exception '시연 데이터는 파일 전체를 한 번에 실행해야 해요. SQL Editor에 파일 전체를 붙여 넣고 실행해 주세요.';
   end if;
-  if exists (select 1 from public.classes where id::text like 'de000002-%') then
+  if exists (select 1 from public.classes where id::text like 'de000002-%')
+     or exists (select 1 from public.students where id::text like 'de000001-%')
+     or exists (select 1 from public.questions where id::text like 'de000003-%') then
     raise exception '시연 데이터가 이미 들어 있어요. 다시 넣으려면 supabase/seed-demo-clear.sql을 먼저 실행해 주세요.';
   end if;
   if (select count(*) from public.students
@@ -182,7 +187,7 @@ begin
     raise exception '김하늘 (예시)의 포인트 보정 값(%)을 넣을 수 없어요. seed-demo-clear.sql을 실행한 뒤 다시 넣어 주세요.', v_amount;
   end if;
   insert into public.points (student_id, amount, reason)
-  values (v_student_id, v_amount, '(예시) 단어 시험 보너스');
+  values (v_student_id, v_amount, '(예시) 학기 초 보너스');
 end $$;
 
 insert into public.points (student_id, amount, reason)
@@ -274,8 +279,23 @@ select s.id, to_char(now() at time zone 'Asia/Seoul', 'YYYY-MM'),
  where s.login_id in ('demo_haneul', 'demo_minjun', 'demo_seoyeon', 'demo_jiwoo', 'demo_siwoo', 'demo_harin');
 
 -- ─── 10. 랜딩 문구 ───────────────────────────────────────────────────
--- 원장이 실제 값으로 바꿀 자리예요. 모든 글에 (예시)를 붙여요.
+-- 원장이 실제 값으로 바꿀 자리예요. 모든 글에 (예시)를 붙여요(contact.phone은 형식 검사 때문에 063-000-0000).
+-- 키가 없거나 아직 예시 값((예시)가 든 값, points_goal은 기본값 30)일 때만 넣는다. 원장이 고친 키는 그대로 두고 알려 줘요.
+-- (마이그레이션은 site_content 행을 만들지 않는다: db push만 한 클라우드 DB는 키가 하나도 없다.)
 -- seed-demo-clear.sql은 이 값 그대로인 행만 지워요(원장이 고친 값은 남는다) — 바꾸면 그 파일도 같이 바꿔요.
+do $$
+declare
+  v_kept text;
+begin
+  select string_agg(key, ', ' order by key) into v_kept
+    from public.site_content
+   where key in ('notice', 'classes', 'tuition', 'contact', 'legal', 'points_goal')
+     and not (value::text like '%(예시)%' or (key = 'points_goal' and value = '30'::jsonb));
+  if v_kept is not null then
+    raise notice '원장이 고친 랜딩 문구(%)는 그대로 두었어요. 시연에서 예시 값이 필요하면 원장 화면에서 바꿔 주세요.', v_kept;
+  end if;
+end $$;
+
 insert into public.site_content (key, value) values
   ('notice', '{"title": "(예시) 12월 상담 안내", "body": "(예시) 원장이 실제 공지로 바꿔요.", "visible": true}'),
   ('classes', '[
@@ -286,4 +306,6 @@ insert into public.site_content (key, value) values
   ('contact', '{"phone": "063-000-0000", "address": "(예시) 전북 전주시 OO구 OO로 00"}'),
   ('legal', '{"academy_name": "(예시) 학원 이름", "registration_no": "(예시) 제0000-00호", "subjects": "(예시) 영어", "tuition_notice": "(예시) 원장이 실제 교습비 게시 문구로 바꿔요."}'),
   ('points_goal', '30')
-on conflict (key) do update set value = excluded.value;
+on conflict (key) do update set value = excluded.value
+ where public.site_content.value::text like '%(예시)%'
+    or (public.site_content.key = 'points_goal' and public.site_content.value = '30'::jsonb);

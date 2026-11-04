@@ -12,7 +12,23 @@
 --   Storage videos 버킷의 시연 영상 파일(대시보드 Storage에서 지워요. 영상 행은 위에서 지워진다).
 --   원장이 고친 랜딩 문구(시드 값과 다르면 건드리지 않는다)와 points_goal.
 --   private.audit_log(추가만 하는 기록이라 지우지 않아요).
+-- 시연 반에 실제 학생이 배정돼 있으면 아무것도 지우지 않고 멈춰요(그 학생을 다른 반으로 옮긴 뒤 다시 실행해요).
 -- 스키마를 바꾸지 않아요. 다시 실행해도 지울 것이 없으면 아무 일도 없어요.
+
+-- 가드: 원장이 시연 반에 실제 학생을 배정했으면 아무것도 지우지 않는다(반을 지우면 그 학생의 출결·숙제도 함께 지워진다).
+do $$
+begin
+  if exists (
+    select 1
+      from public.class_members m
+      join public.students s on s.id = m.student_id
+     where m.class_id::text like 'de000002-%'
+       and s.id::text not like 'de000001-%'
+       and s.login_id not in ('demo_haneul', 'demo_minjun')
+  ) then
+    raise exception '시연 반에 실제 학생이 배정돼 있어요. 그 학생을 다른 반으로 먼저 옮긴 뒤 다시 실행해 주세요.';
+  end if;
+end $$;
 
 -- 반을 지우면 소속·수업(→ 출결·숙제·자동 포인트)·영상(→ 시청 기록)이 함께 지워지고, 질문의 수업·영상 연결은 끊긴다.
 delete from public.classes where id::text like 'de000002-%';

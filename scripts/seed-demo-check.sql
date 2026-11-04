@@ -1,7 +1,7 @@
 -- 시연 데이터 로컬 검사(scripts/seed-demo-check.sh가 저장소 루트에서 부른다). 가짜 데이터만 쓴다.
 -- 전부 한 트랜잭션 안에서 하고 마지막에 rollback한다: 로컬 DB는 그대로예요.
 -- 성공해야 하는 실행은 \gexec로 파일 전체를 쿼리 하나로 보낸다(대시보드 SQL Editor와 같은 모양: 한 암묵 트랜잭션).
--- 실패해야 하는 실행(계정 없음·두 번째 실행)은 pg_temp.expect_seed_error가 EXECUTE로 파일 전체를 돌리고
+-- 실패해야 하는 실행(계정 없음·두 번째 실행·실제 학생이 든 반 지우기)은 pg_temp.expect_error가 EXECUTE로 파일 전체를 돌리고
 -- 오류 문구를 비교한다. 예외 처리는 서브트랜잭션이라 그 실행이 남긴 것도 되돌아가고, 예상된 오류가 화면에 찍히지 않는다.
 -- (psql \ir + ON_ERROR_STOP 0으로는 가드 뒤 문장들이 "current transaction is aborted"로 :LAST_ERROR_MESSAGE를 덮어써서
 --  가드 문구를 비교할 수 없다.)
@@ -13,8 +13,10 @@ begin;
 set local timezone = 'UTC';
 set local client_min_messages = warning;
 select set_config('demo_check.seed', :'seed', true) is not null as demo_seed_loaded \gset
+select set_config('demo_check.clear', :'clear', true) is not null as demo_clear_loaded \gset
 
-create function pg_temp.expect_seed_error(p_label text, p_expected text)
+-- p_file: 'seed' 또는 'clear'
+create function pg_temp.expect_error(p_label text, p_file text, p_expected text)
 returns void
 language plpgsql
 as $$
@@ -22,7 +24,7 @@ declare
   v_err text;
 begin
   begin
-    execute current_setting('demo_check.seed');
+    execute current_setting('demo_check.' || p_file);
   exception when others then
     v_err := sqlerrm;
   end;
@@ -34,7 +36,7 @@ $$;
 
 -- ─── 1. 계정 없는 상태는 거절 ───────────────────────────────────────────
 do $$ begin
-  perform pg_temp.expect_seed_error('계정 없이 실행',
+  perform pg_temp.expect_error('계정 없이 실행', 'seed',
     '시연용 학생 계정 demo_haneul·demo_minjun을 원장 화면 학생 추가로 먼저 만들어 주세요.');
 end $$;
 
@@ -45,6 +47,11 @@ insert into auth.users (id, email) values
 insert into public.students (user_id, login_id, name, grade) values
   ('00000000-0000-4000-8000-0000000000c7', 'demo_haneul', '임시', '중1'),
   ('00000000-0000-4000-8000-0000000000d7', 'demo_minjun', '임시', '중1');
+
+-- 원장이 이미 고친 랜딩 문구(예시 표시 없음): 시드도 지우기도 건드리면 안 된다.
+insert into public.site_content (key, value)
+values ('contact', '{"phone": "063-111-2222", "address": "원장이 고친 주소"}')
+on conflict (key) do update set value = excluded.value;
 
 -- ─── 3. 시연 데이터 넣기 ───────────────────────────────────────────────
 select :'seed' \gexec
@@ -137,6 +144,14 @@ do $$ begin
   if (select count(*) from public.site_content) <> 6 then
     raise exception 'FAIL: site_content가 6키가 아니에요';
   end if;
+  if (select value from public.site_content where key = 'contact')
+     <> '{"phone": "063-111-2222", "address": "원장이 고친 주소"}'::jsonb then
+    raise exception 'FAIL: 원장이 고친 contact를 시드가 덮어썼어요';
+  end if;
+  if (select value ->> 'registration_no' from public.site_content where key = 'legal') not like '(예시)%'
+     or (select value ->> 'title' from public.site_content where key = 'notice') not like '(예시)%' then
+    raise exception 'FAIL: 랜딩 예시 값에 (예시) 표시가 없어요';
+  end if;
   if (select value from public.site_content where key = 'points_goal') <> '30'::jsonb then
     raise exception 'FAIL: points_goal이 30이 아니에요';
   end if;
@@ -187,14 +202,37 @@ reset role;
 
 -- ─── 5. 두 번째 실행은 거절 ─────────────────────────────────────────────
 do $$ begin
-  perform pg_temp.expect_seed_error('두 번째 실행',
+  perform pg_temp.expect_error('두 번째 실행', 'seed',
     '시연 데이터가 이미 들어 있어요. 다시 넣으려면 supabase/seed-demo-clear.sql을 먼저 실행해 주세요.');
   if (select count(*) from public.students where login_id like 'demo\_%') <> 8 then
     raise exception 'FAIL: 두 번째 실행 뒤 demo_ 학생이 8명이 아니에요';
   end if;
 end $$;
 
+-- 시연 반만 지워진 상태에서도 중복 키 오류가 아니라 같은 문구로 거절한다.
+savepoint classes_gone;
+delete from public.classes where id::text like 'de000002-%';
+do $$ begin
+  perform pg_temp.expect_error('시연 반만 지운 뒤 다시 실행', 'seed',
+    '시연 데이터가 이미 들어 있어요. 다시 넣으려면 supabase/seed-demo-clear.sql을 먼저 실행해 주세요.');
+end $$;
+rollback to savepoint classes_gone;
+
 -- ─── 6. 지우기 → 다시 넣기 ──────────────────────────────────────────────
+-- 시연 반에 실제 학생(seed.sql의 haneul)이 배정돼 있으면 지우기를 거절하고 아무것도 지우지 않는다.
+savepoint real_member;
+insert into public.class_members (class_id, student_id)
+values ('de000002-0000-4000-8000-000000000001', '10000000-0000-4000-8000-5ee0000000c1');
+do $$ begin
+  perform pg_temp.expect_error('실제 학생이 든 시연 반 지우기', 'clear',
+    '시연 반에 실제 학생이 배정돼 있어요. 그 학생을 다른 반으로 먼저 옮긴 뒤 다시 실행해 주세요.');
+  if (select count(*) from public.students where login_id like 'demo\_%') <> 8
+     or (select count(*) from public.classes where id::text like 'de000002-%') <> 2 then
+    raise exception 'FAIL: 거절된 지우기가 시연 데이터를 지웠어요';
+  end if;
+end $$;
+rollback to savepoint real_member;
+
 -- 지우기는 두 전제 학생 행(과 Auth 사용자)을 남긴다: 계정을 다시 만들지 않고 바로 다시 넣을 수 있다.
 select :'clear' \gexec
 
@@ -225,8 +263,12 @@ do $$ begin
   if exists (select 1 from public.consultations where phone in ('010-0000-0081', '010-0000-0082')) then
     raise exception 'FAIL: 지운 뒤 시연 상담이 남아 있어요';
   end if;
-  if exists (select 1 from public.site_content where key <> 'points_goal') then
+  if exists (select 1 from public.site_content where key not in ('points_goal', 'contact')) then
     raise exception 'FAIL: 지운 뒤 시연 site_content 예시 값이 남아 있어요';
+  end if;
+  if (select value from public.site_content where key = 'contact')
+     is distinct from '{"phone": "063-111-2222", "address": "원장이 고친 주소"}'::jsonb then
+    raise exception 'FAIL: 지우기가 원장이 고친 contact를 지웠어요';
   end if;
   if not exists (select 1 from public.students where login_id = 'haneul')
      or (select count(*) from public.class_members where class_id = '20000000-0000-4000-8000-5ee0000000a1') <> 2 then
