@@ -5,7 +5,27 @@ export type Database = {
   
   "public": {
           Tables: {
-            "attendance": {
+            "answers": {
+                  Row: {
+                    "body": string,"created_at": string,"id": string,"question_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body": string,"created_at"?: string,"id"?: string,"question_id": string
+                  }
+                  Update: {
+                    "body"?: string,"created_at"?: string,"id"?: string,"question_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "answers_question_id_fkey"
+      columns: ["question_id"]
+isOneToOne: false
+      referencedRelation: "questions"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"attendance": {
                   Row: {
                     "session_id": string,"status": Database["public"]['Enums']["attendance_status"],"student_id": string,"updated_at": string
                   }
@@ -184,6 +204,44 @@ isOneToOne: false
       columns: ["student_id"]
 isOneToOne: false
       referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"questions": {
+                  Row: {
+                    "answered_at": string | null,"body": string,"created_at": string,"id": string,"session_id": string | null,"student_id": string,"video_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "answered_at"?: string | null,"body": string,"created_at"?: string,"id"?: string,"session_id"?: string | null,"student_id": string,"video_id"?: string | null
+                  }
+                  Update: {
+                    "answered_at"?: string | null,"body"?: string,"created_at"?: string,"id"?: string,"session_id"?: string | null,"student_id"?: string,"video_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "questions_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "sessions"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "questions_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "student_point_totals"
+      referencedColumns: ["student_id"]
+    },{
+      foreignKeyName: "questions_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "questions_video_id_fkey"
+      columns: ["video_id"]
+isOneToOne: false
+      referencedRelation: "videos"
       referencedColumns: ["id"]
     }
                   ]
