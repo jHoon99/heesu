@@ -17,7 +17,7 @@
 - [x] Import `SaveNotAppliedError` from core directly (no classes model shim); paused vs left status tone (cb9a362).
 - [x] Attendance board and progress exclude `status = 'left'` students via the `class_roster` view (defe7d1).
 - [ ] `class_members` counts on the class list still read `class_members` directly, so they include `left` students — switch to `class_roster`.
-- [x] Points history: client-side sort by shown date, "최근 50건만 보여요" note at the cap, and the student detail shows recent records + points (Task 8).
+- [x] Points history: client-side sort by shown date, "최근 50건만 보여요" note at the cap, and the student detail shows recent records + points.
 
 ## guardian-records
 - Add `points_goal` (jsonb integer 1~10000) editing to the landing admin (student home reward goal; changing it celebrates once more for the new goal).
@@ -36,7 +36,7 @@
 - QA: student password change does not ask for the current password (assumes a signed-in device) — confirm with the director.
 - SW: prune `/_next/static` cache growth (old build entries accumulate in hs-shell-v1).
 - Headers test: pin exact `worker-src 'self'` / `manifest-src 'self'` values.
-- Offline before the first controlled visit: the SW only controls the page after the first reload; cover that case. Also an offline reload of a cached /s page shows a blank screen for ~3s (role query retries) and then the generic role-error message — add an offline-aware message.
+- Offline before the first controlled visit: the SW only controls the page after the first reload (`clients.claim` narrows this window but does not remove it); cover that case. Also an offline reload of a cached /s page shows a blank screen for ~3s (role query retries) and then the generic role-error message — add an offline-aware message.
 - PWA leak test should grep all of src/app except `s/` for the manifest/SW wiring.
 - InstallGuideCard: use `useSyncExternalStore` instead of mount-time state.
 - ChangePasswordCard: ref-based in-flight guard against double submit.
@@ -79,4 +79,18 @@
 - AttendanceTable: `th` scope=col/colgroup; roving tab stops; showHomework=false header + controlled double-click tests.
 - Attendance undo on a stale toast overwrites a newer value (per-cell sequence number would fix ABA too).
 - 오늘 card shows 수업 시작 briefly while progress loads; screen test for starting a pre-existing session.
-- Points history `limit(50)` note; `aria-selected` on `tr`; history row / negative styling / failure / invalidation tests.
+- `aria-selected` on `tr`; points history row / negative styling / failure / invalidation tests.
+
+## videos-questions (from student-app final review)
+- SW navigation cache keyed by full URL — normalise (ignoreSearch / pathname key) before adding `/s/videos/watch?id=…`; prune `/_next/static` entries on activate.
+- Admin web push needs a separate registration scoped `/admin` (or scope `/` with path guards); keep `push`/`notificationclick` handlers outside fetch path guards.
+
+## guardian-records (from student-app final review)
+- Students who join a class later see all its past homework as submittable — filter by `class_members.created_at`.
+- Manual point reasons are visible to students — add hint "학생 화면에도 보여요" in ManualPointForm.
+- `PointsCard` fallback duplicates PointsProgress markup — goal-optional PointsProgress.
+- site_content migration header comment: document `points_goal`.
+
+## demo-deploy-qa (from student-app final review)
+- iOS standalone storage is separate from Safari: install guide should say "추가한 뒤 앱에서 다시 로그인해요"; celebration may fire once per context.
+- Confirm `/s` is not redirected on Cloudflare Pages (precache of redirected response).
