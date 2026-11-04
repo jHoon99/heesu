@@ -63,8 +63,9 @@ select results_eq($$select public, allowed_mime_types, file_size_limit from stor
 
 -- ─── 정책 모양 ───────────────────────────────────────────────────────
 select policies_are('storage', 'objects',
-  ARRAY['videos_admin_delete', 'videos_admin_insert', 'videos_admin_select', 'videos_admin_update', 'videos_member_select'],
-  'storage.objects 정책 = 원장 4개 + 학생 select 1개');
+  ARRAY['site_images_admin_delete', 'site_images_admin_insert', 'site_images_admin_select',
+        'videos_admin_delete', 'videos_admin_insert', 'videos_admin_select', 'videos_admin_update', 'videos_member_select'],
+  'storage.objects 정책 = videos(원장 4개 + 학생 select 1개) + site-images(원장 3개)');
 select policy_roles_are('storage', 'objects', 'videos_admin_select', ARRAY['authenticated'], 'videos_admin_select는 authenticated');
 select policy_roles_are('storage', 'objects', 'videos_admin_insert', ARRAY['authenticated'], 'videos_admin_insert는 authenticated');
 select policy_roles_are('storage', 'objects', 'videos_admin_update', ARRAY['authenticated'], 'videos_admin_update는 authenticated');

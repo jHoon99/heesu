@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isSiteImagePath } from "./siteImages";
 
 export type Notice = { title: string; body: string };
 export type ClassInfo = {
@@ -20,7 +21,13 @@ export type Legal = {
   tuitionNotice: string | null;
 };
 /** 블로그 이야기 카드: 제목, 블로그 주소, 카드에 보이는 짧은 소개(여러 줄). */
-export type AboutLink = { title: string; url: string; teaser: string | null };
+export type AboutLink = {
+  title: string;
+  url: string;
+  teaser: string | null;
+  /** site-images 버킷 안 경로. 없으면 null(예시 그림을 보여 줘요). */
+  image: string | null;
+};
 export type About = { intro: string | null; items: AboutLink[] };
 export type SiteContent = {
   notice: Notice | null;
@@ -124,12 +131,15 @@ function parseAbout(value: unknown): About {
   const items = Array.isArray(o.items)
     ? o.items.flatMap((item): AboutLink[] => {
         if (typeof item !== "object" || item === null) return [];
-        const { title, url, teaser } = item as Record<string, unknown>;
+        const { title, url, teaser, image } = item as Record<string, unknown>;
         const t = typeof title === "string" ? title.trim() : "";
         const u = safeHttpsUrl(url);
         const parsedTeaser = text.safeParse(teaser);
         const tz = parsedTeaser.success ? parsedTeaser.data : null;
-        return t !== "" && u !== null ? [{ title: t, url: u, teaser: tz }] : [];
+        const img = isSiteImagePath(image) ? image : null;
+        return t !== "" && u !== null
+          ? [{ title: t, url: u, teaser: tz, image: img }]
+          : [];
       })
     : [];
   return {

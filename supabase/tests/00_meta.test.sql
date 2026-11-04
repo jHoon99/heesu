@@ -140,21 +140,21 @@ select is(
   'private: anon·authenticated 권한이 있는 테이블이 없다'
 );
 
--- S9: storage.objects 정책 = 허용 목록(버킷 videos뿐). 새 버킷 정책을 만들 때 여기에 이름을 알파벳 순으로 추가한다.
+-- S9: storage.objects 정책 = 허용 목록(버킷 site-images·videos). 새 버킷 정책을 만들 때 여기에 이름을 알파벳 순으로 추가한다.
 -- storage.buckets에는 정책을 두지 않는다(클라이언트가 버킷 목록을 볼 일이 없다).
 select is(
   (select coalesce(array_agg(policyname::text order by policyname), '{}')
      from pg_catalog.pg_policies
     where schemaname = 'storage'),
-  '{videos_admin_delete,videos_admin_insert,videos_admin_select,videos_admin_update,videos_member_select}'::text[],
+  '{site_images_admin_delete,site_images_admin_insert,site_images_admin_select,videos_admin_delete,videos_admin_insert,videos_admin_select,videos_admin_update,videos_member_select}'::text[],
   'storage: 정책 = 허용 목록'
 );
 
--- S9: 공개 버킷이 없다(공개 버킷의 파일은 정책 없이 누구나 URL로 읽는다).
+-- S9: 공개 버킷 = site-images뿐(공개 버킷의 파일은 정책 없이 누구나 URL로 읽는다). 홈페이지 홍보 사진만 둔다.
 select is(
   (select coalesce(array_agg(id order by id), '{}') from storage.buckets where public),
-  '{}'::text[],
-  'storage: 공개 버킷이 없다'
+  '{site-images}'::text[],
+  'storage: 공개 버킷 = site-images뿐'
 );
 
 -- S8: Realtime publication = questions·answers뿐. 다른 테이블을 실으면 postgres_changes로 새어 나갈 수 있다.

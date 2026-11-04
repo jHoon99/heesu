@@ -217,6 +217,33 @@ describe("about section", () => {
     expect(within(section).queryAllByRole("link")).toHaveLength(0);
   });
 
+  it("shows the uploaded photo when a card has one", () => {
+    const section = about({
+      intro: null,
+      items: [
+        {
+          title: "희수영어 소개",
+          url: "https://blog.naver.com/heesu",
+          teaser: null,
+          image: "about/11111111-1111-4111-8111-111111111111.jpg",
+        },
+        {
+          title: "수업 이야기",
+          url: "https://blog.naver.com/heesu",
+          teaser: null,
+          image: null,
+        },
+      ],
+    });
+    const srcs = within(section)
+      .getAllByRole("link")
+      .map((a) => a.querySelector("img")?.getAttribute("src"));
+    expect(srcs).toEqual([
+      "http://127.0.0.1:56321/storage/v1/object/public/site-images/about/11111111-1111-4111-8111-111111111111.jpg",
+      "/about/sample-2.svg",
+    ]);
+  });
+
   it("makes each story card one safe link with the number, title, teaser and image", () => {
     const section = about({
       intro: "첫 줄\n둘째 줄",
@@ -225,21 +252,25 @@ describe("about section", () => {
           title: "희수영어 소개",
           url: "https://blog.naver.com/heesu/1",
           teaser: "영어를 잘 가르친다는 것은 무엇일까요?\n기준을 이야기합니다.",
+          image: null,
         },
         {
           title: "수업 이야기",
           url: "https://blog.naver.com/heesu/2",
           teaser: null,
+          image: null,
         },
         {
           title: "숙제 이야기",
           url: "https://blog.naver.com/heesu/3",
           teaser: null,
+          image: null,
         },
         {
           title: "넷째 이야기",
           url: "https://blog.naver.com/heesu/4",
           teaser: null,
+          image: null,
         },
       ],
     });

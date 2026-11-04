@@ -142,6 +142,7 @@ describe("AdminLandingScreen", () => {
             title: "블로그",
             url: "https://blog.naver.com/heesu",
             teaser: null,
+            image: null,
           },
         ],
       }),

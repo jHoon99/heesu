@@ -3,6 +3,7 @@ export {
   EMPTY_SITE_CONTENT,
   parseSiteContent,
 } from "./model/siteContent";
+export { siteImageUrl } from "./model/siteImages";
 export type {
   About,
   AboutLink,

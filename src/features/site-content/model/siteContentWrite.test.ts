@@ -201,10 +201,11 @@ describe("write schemas", () => {
 });
 
 describe("about", () => {
-  const link = (title: string, url: string, teaser = "") => ({
+  const link = (title: string, url: string, teaser = "", image = "") => ({
     title,
     url,
     teaser,
+    image,
   });
   const EMPTY = link("", "");
 
@@ -240,11 +241,13 @@ describe("about", () => {
           title: "블로그",
           url: "https://blog.naver.com/heesu",
           teaser: "첫째\n둘째",
+          image: null,
         },
         {
           title: "인스타",
           url: "https://www.instagram.com/heesu",
           teaser: null,
+          image: null,
         },
       ],
     });
@@ -255,7 +258,7 @@ describe("about", () => {
 
   it("says how to fix each field", () => {
     const parse = (
-      items: { title: string; url: string; teaser: string }[],
+      items: { title: string; url: string; teaser: string; image: string }[],
       intro = "",
     ) => issue(aboutWriteSchema.safeParse({ intro, items }));
     expect(parse([link("", "https://a.b")])).toBe("제목을 입력해 주세요.");
@@ -287,6 +290,51 @@ describe("about", () => {
     expect(parse([link("t", "https://a.b", "a\u0007")])).toBe(
       CONTROL_CHAR_MESSAGE,
     );
+  });
+
+  const IMG = "about/11111111-1111-4111-8111-111111111111.jpg";
+
+  it("keeps an uploaded photo path and refuses any other address", () => {
+    expect(
+      readEditable([
+        {
+          key: "about",
+          value: {
+            items: [
+              { title: "a", url: "https://a.b", image: IMG },
+              {
+                title: "b",
+                url: "https://a.b",
+                image: "https://evil.example/x.jpg",
+              },
+            ],
+          },
+        },
+      ]).about.items.map((it) => it.image),
+    ).toEqual([IMG, ""]);
+    expect(
+      aboutWriteSchema.parse({
+        intro: "",
+        items: [link("t", "https://a.b", "", IMG)],
+      }).items[0]?.image,
+    ).toBe(IMG);
+    expect(
+      issue(
+        aboutWriteSchema.safeParse({
+          intro: "",
+          items: [link("t", "https://a.b", "", "../videos/x.mp4")],
+        }),
+      ),
+    ).toBe("사진을 다시 올려 주세요.");
+    // 사진만 올린 카드는 빈 카드가 아니라서 제목·주소를 물어봐요.
+    expect(
+      issue(
+        aboutWriteSchema.safeParse({
+          intro: "",
+          items: [link("", "", "", IMG)],
+        }),
+      ),
+    ).toBe("제목을 입력해 주세요.");
   });
 
   it("puts a card's error on that card's field", () => {

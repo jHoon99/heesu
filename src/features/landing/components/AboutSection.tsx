@@ -2,7 +2,11 @@ import type { ReactNode } from "react";
 import { ArrowRight, Clock, MapPin, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn, Reveal } from "@/design-system";
-import type { AboutLink, SiteContent } from "@/features/site-content";
+import {
+  siteImageUrl,
+  type AboutLink,
+  type SiteContent,
+} from "@/features/site-content";
 import { Blank } from "./Blank";
 import { SectionHeading } from "./SectionHeading";
 
@@ -31,7 +35,7 @@ function InfoRow({
   );
 }
 
-/** 블로그 대표 사진이 정해질 때까지 쓰는 예시 그림이에요. 카드 순서대로 돌아가며 써요. */
+/** 카드에 사진을 올리지 않았을 때 쓰는 예시 그림이에요. 카드 순서대로 돌아가며 써요. */
 const SAMPLE_IMAGES = [
   "/about/sample-1.svg",
   "/about/sample-2.svg",
@@ -47,16 +51,23 @@ function StoryCardBody({
   index,
   title,
   teaser,
+  image = null,
 }: {
   index: number;
   title: ReactNode;
   teaser: ReactNode;
+  /** site-images 버킷 안 경로. 없으면 예시 그림이에요. */
+  image?: string | null;
 }) {
   return (
     <>
       {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기, 최적화 없음 */}
       <img
-        src={SAMPLE_IMAGES[index % SAMPLE_IMAGES.length]}
+        src={
+          image
+            ? siteImageUrl(image)
+            : SAMPLE_IMAGES[index % SAMPLE_IMAGES.length]
+        }
         alt=""
         width={800}
         height={500}
@@ -92,7 +103,12 @@ function StoryCard({ link, index }: { link: AboutLink; index: number }) {
         "transition-colors duration-(--dur-fast) ease-out hover:border-border-strong focus-visible:border-border-strong",
       )}
     >
-      <StoryCardBody index={index} title={link.title} teaser={link.teaser} />
+      <StoryCardBody
+        index={index}
+        title={link.title}
+        teaser={link.teaser}
+        image={link.image}
+      />
       <span className="inline-flex items-center gap-1 text-body-sm font-semibold text-text-brand">
         이야기 읽기
         <ArrowRight size={16} strokeWidth={1.75} aria-hidden="true" />

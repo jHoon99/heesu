@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CONTROL_CHAR_MESSAGE, hasControlChars } from "@/core/text";
+import { isSiteImagePath } from "./siteImages";
 
 export const SITE_CONTENT_KEYS = [
   "notice",
@@ -32,7 +33,13 @@ export type EditableSiteContent = {
   pointsGoal: string;
   about: { intro: string; items: EditableAboutLink[] };
 };
-export type EditableAboutLink = { title: string; url: string; teaser: string };
+export type EditableAboutLink = {
+  title: string;
+  url: string;
+  teaser: string;
+  /** site-images 버킷 안 경로. 빈칸이면 사진 없음. */
+  image: string;
+};
 
 export const MAX_CLASSES = 10;
 export const MAX_ABOUT_LINKS = 10;
@@ -40,6 +47,7 @@ export const EMPTY_ABOUT_LINK: EditableAboutLink = {
   title: "",
   url: "",
   teaser: "",
+  image: "",
 };
 /** 저장된 이야기 카드가 없을 때 처음 보여 줄 빈 카드 수예요. */
 export const STARTER_ABOUT_LINKS = 3;
@@ -67,7 +75,12 @@ export function readEditable(
   const aboutItems: EditableAboutLink[] = Array.isArray(about.items)
     ? about.items.slice(0, MAX_ABOUT_LINKS).map((it) => {
         const o = obj(it);
-        return { title: str(o.title), url: str(o.url), teaser: str(o.teaser) };
+        return {
+          title: str(o.title),
+          url: str(o.url),
+          teaser: str(o.teaser),
+          image: isSiteImagePath(o.image) ? o.image : "",
+        };
       })
     : [];
   const classes: EditableClass[] = Array.isArray(classesRaw)
@@ -248,15 +261,27 @@ const aboutLinkSchema = z.object({
   title: linkTitle,
   url: linkUrl,
   teaser: multi(120),
+  image: z
+    .string()
+    .refine((v) => v === "" || isSiteImagePath(v), "사진을 다시 올려 주세요.")
+    .transform((v) => (v === "" ? null : v)),
 });
 type AboutLinkOut = z.output<typeof aboutLinkSchema>;
 
 const isBlankLink = (v: EditableAboutLink) =>
-  v.title.trim() === "" && v.url.trim() === "" && v.teaser.trim() === "";
+  v.title.trim() === "" &&
+  v.url.trim() === "" &&
+  v.teaser.trim() === "" &&
+  v.image === "";
 
-// 제목·주소·짧은 소개가 모두 빈 카드는 검사하지 않고 빼요. 오류는 화면의 그 칸에 붙어요.
+// 제목·주소·짧은 소개·사진이 모두 빈 카드는 검사하지 않고 빼요. 오류는 화면의 그 칸에 붙어요.
 const aboutItemSchema = z
-  .object({ title: z.string(), url: z.string(), teaser: z.string() })
+  .object({
+    title: z.string(),
+    url: z.string(),
+    teaser: z.string(),
+    image: z.string(),
+  })
   .transform((v, ctx): AboutLinkOut | null => {
     if (isBlankLink(v)) return null;
     const parsed = aboutLinkSchema.safeParse(v);

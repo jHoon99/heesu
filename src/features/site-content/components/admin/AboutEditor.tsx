@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import type { z } from "zod";
 import { Button, Input } from "@/design-system";
 import {
@@ -11,6 +11,7 @@ import {
   MAX_ABOUT_LINKS,
   type EditableSiteContent,
 } from "../../model/siteContentWrite";
+import { AboutImageField } from "./AboutImageField";
 import { EditorCard, useCardSave, type EditorMode } from "./EditorCard";
 
 type In = z.input<typeof aboutWriteSchema>;
@@ -59,8 +60,9 @@ export function AboutEditor({
       <div className="flex flex-col gap-1">
         <h3 className="text-label text-text">이야기 카드</h3>
         <p className="text-caption text-text-muted">
-          블로그 글마다 카드 한 장이에요. 순서대로 INTRO 01, 02…로 보여요. 칸을
-          모두 비운 카드는 저장할 때 빠져요.
+          블로그 글마다 카드 한 장이에요. 순서대로 INTRO 01, 02…로 보여요.
+          사진을 고른 뒤에도 아래 저장을 눌러야 홈페이지에 반영돼요. 칸을 모두
+          비운 카드는 저장할 때 빠져요.
         </p>
       </div>
       {fields.map((field, i) => {
@@ -70,6 +72,17 @@ export function AboutEditor({
             key={field.id}
             className="flex min-w-0 flex-col gap-3 rounded-md border border-border p-3"
           >
+            <Controller
+              control={control}
+              name={`items.${i}.image`}
+              render={({ field: f }) => (
+                <AboutImageField
+                  index={i}
+                  value={f.value}
+                  onChange={f.onChange}
+                />
+              )}
+            />
             <Input
               size="md"
               label="제목"

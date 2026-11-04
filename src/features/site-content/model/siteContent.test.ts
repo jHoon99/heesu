@@ -149,13 +149,20 @@ describe("parseSiteContent", () => {
           title: "블로그",
           url: "https://blog.naver.com/heesu/1",
           teaser: "무엇일까요?\n기준을 이야기해요.",
+          image: null,
         },
         {
           title: "인스타",
           url: "https://www.instagram.com/heesu",
           teaser: null,
+          image: null,
         },
-        { title: "숫자 소개", url: "https://a.example", teaser: null },
+        {
+          title: "숫자 소개",
+          url: "https://a.example",
+          teaser: null,
+          image: null,
+        },
       ],
     });
   });
@@ -182,7 +189,14 @@ describe("parseSiteContent", () => {
     ]);
     expect(about).toEqual({
       intro: null,
-      items: [{ title: "좋아요", url: "https://ok.example", teaser: null }],
+      items: [
+        {
+          title: "좋아요",
+          url: "https://ok.example",
+          teaser: null,
+          image: null,
+        },
+      ],
     });
     expect(parseSiteContent([{ key: "about", value: "x" }]).about).toEqual(
       EMPTY_SITE_CONTENT.about,
