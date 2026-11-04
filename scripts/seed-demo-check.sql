@@ -233,6 +233,67 @@ do $$ begin
 end $$;
 rollback to savepoint real_member;
 
+-- 반 소속에서는 빠졌지만(소속을 지워도 기록은 남는다) 시연 수업·영상에 기록이 남은 실제 학생이 있어도 거절한다:
+-- 반을 지우면 그 기록도 함께 지워진다. 실제 학생 = seed.sql의 haneul(…5ee0000000c1). 기록 종류마다 한 번씩 확인한다.
+do $$
+declare
+  v_msg constant text := '시연 수업이나 영상에 실제 학생의 기록이 남아 있어요. 그 기록을 다른 반으로 옮기거나 지운 뒤 다시 실행해 주세요.';
+  v_session constant uuid := (select id from public.sessions where class_id::text like 'de000002-%' order by date limit 1);
+  v_video constant uuid := '5ee00000-0000-4000-8000-0000000000f1';
+  v_real constant uuid := '10000000-0000-4000-8000-5ee0000000c1';
+begin
+  insert into public.videos (id, class_id, title, storage_path, duration_seconds)
+  values (v_video, 'de000002-0000-4000-8000-000000000001', '(예시) 점검 영상',
+          'de000002-0000-4000-8000-000000000001/5ee00000-0000-4000-8000-0000000000f1.mp4', 10);
+
+  -- 소속이 있어야 출결·숙제를 넣을 수 있으니 넣고, 기록을 넣은 뒤 소속만 뺀다.
+  insert into public.class_members (class_id, student_id)
+  values ('de000002-0000-4000-8000-000000000001', v_real);
+  insert into public.attendance (session_id, student_id) values (v_session, v_real);
+  insert into public.homework_checks (session_id, student_id) values (v_session, v_real);
+  insert into public.points (student_id, session_id, amount, reason) values (v_real, v_session, 1, '(예시) 점검');
+  insert into public.video_views (video_id, student_id) values (v_video, v_real);
+  delete from public.class_members where student_id = v_real and class_id::text like 'de000002-%';
+
+  -- 한 번에 한 종류만 남기고 거절을 확인한다.
+  delete from public.homework_checks where student_id = v_real;
+  delete from public.points where student_id = v_real;
+  delete from public.video_views where student_id = v_real;
+  perform pg_temp.expect_error('실제 학생 출결이 든 시연 수업 지우기', 'clear', v_msg);
+
+  insert into public.class_members (class_id, student_id)
+  values ('de000002-0000-4000-8000-000000000001', v_real);
+  insert into public.homework_checks (session_id, student_id) values (v_session, v_real);
+  delete from public.class_members where student_id = v_real and class_id::text like 'de000002-%';
+  delete from public.attendance where student_id = v_real;
+  perform pg_temp.expect_error('실제 학생 숙제가 든 시연 수업 지우기', 'clear', v_msg);
+  delete from public.homework_checks where student_id = v_real;
+
+  insert into public.points (student_id, session_id, amount, reason) values (v_real, v_session, 1, '(예시) 점검');
+  perform pg_temp.expect_error('실제 학생 포인트가 든 시연 수업 지우기', 'clear', v_msg);
+  delete from public.points where student_id = v_real;
+
+  insert into public.video_views (video_id, student_id) values (v_video, v_real);
+  perform pg_temp.expect_error('실제 학생 시청 기록이 든 시연 영상 지우기', 'clear', v_msg);
+  delete from public.video_views where student_id = v_real;
+  delete from public.videos where id = v_video;
+
+  if (select count(*) from public.students where login_id like 'demo\_%') <> 8
+     or (select count(*) from public.classes where id::text like 'de000002-%') <> 2 then
+    raise exception 'FAIL: 거절된 지우기가 시연 데이터를 지웠어요';
+  end if;
+end $$;
+
+-- 원장이 시연 반 이름을 실제 반으로 바꿨으면(끝이 (예시)가 아님) 지우기를 거절한다.
+savepoint renamed_class;
+update public.classes set name = '원장이 바꾼 반 이름'
+ where id = 'de000002-0000-4000-8000-000000000001';
+do $$ begin
+  perform pg_temp.expect_error('이름이 바뀐 시연 반 지우기', 'clear',
+    '시연 반 이름이 바뀌어 실제 반으로 보여요. 이름 끝을 (예시)로 되돌리거나 그 반을 다른 반으로 옮긴 뒤 다시 실행해 주세요.');
+end $$;
+rollback to savepoint renamed_class;
+
 -- 지우기는 두 전제 학생 행(과 Auth 사용자)을 남긴다: 계정을 다시 만들지 않고 바로 다시 넣을 수 있다.
 select :'clear' \gexec
 
