@@ -38,14 +38,14 @@
 - [x] No schema edits from the dashboard (spec §7) — local meta tests can't see them. → 런북 §0 금지 목록
 - [x] `supabase secrets set TURNSTILE_SECRET_KEY=...` (test secret during the demo; before 12/1 swap in the real secret and the site-key constant). → 런북 §2·§8, QA §9
 - [x] `supabase functions deploy submit-consultation` (verify_jwt=false comes from config.toml). → 런북 §2
-- [x] Turnstile widget allowed hostnames: `heesu.pages.dev`, `dev.heesu.pages.dev`. → 런북 §8
+- [x] Turnstile widget allowed hostnames: `heesu.pages.dev`, `dev.heesu.pages.dev`. → 런북 §9
 - [x] pg_cron deletion of unregistered consultations (plan 6) must ship before the page goes public (`/privacy` promises deletion after 6 months). (Task 4) — 클라우드에서 cron.job 확인은 계획 7
-- [x] Re-enable /privacy indexing (remove `robots: { index: false }` from the page metadata) + add it back to `public/sitemap.xml` after legal review and the Blank values are filled. → 런북 §8, QA §9
+- [x] Re-enable /privacy indexing (remove `robots: { index: false }` from the page metadata) + add it back to `public/sitemap.xml` after legal review and the Blank values are filled. → 런북 §9, QA §9
 - [x] `supabase link` + `supabase db push` for all migrations. → 런북 §1
 - [x] Deploy functions and set secrets (`TURNSTILE_SECRET_KEY` test key for the demo). → 런북 §2
 - [x] Hosted smoke test: real submit from dev.heesu.pages.dev; `curl` with a foreign Origin must return 403. → 런북 §5
 - [x] Check whether the project disabled legacy API keys — if so, `SUPABASE_SERVICE_ROLE_KEY` in functions must come from a custom secret holding the new `sb_secret_…` key. → 런북 §2 (legacy 키는 켜 둔다), QA §10
-- [x] Test Turnstile keys let bots pass until the real keys are in on 12/1. → 런북 §8
+- [x] Test Turnstile keys let bots pass until the real keys are in on 12/1. → 런북 §9
 - [x] Dashboard Auth Redirect URLs = exactly 3 addresses: `http://localhost:3000`, `https://dev.heesu.pages.dev`, `https://heesu.pages.dev`. → 런북 §3
 - [x] Deploy `create-student` and `reset-student-password` with `--no-verify-jwt` (same as config.toml; the functions check the admin session themselves). → 런북 §2
 - [x] After creating the admin account, insert it into `private.admins`; enroll TOTP at the first login. → 런북 §6

@@ -44,7 +44,7 @@
 - 시연 영상은 시드에 넣지 않는다(Storage 객체가 필요) — 원장 화면 업로드로 2개(각 50MB 미만).
 - 시연일이 일요일이라 고등 반에 일요일 14:00–16:00 칸을 둔다(오늘 화면 시연). 오늘 수업은 만들지 않는다("수업 시작" 시연).
 - 하늘 포인트 27/30: 원장이 +3을 주면 축하가 한 번 뜨는 장면을 보여 준다.
-- Turnstile은 시연 동안 테스트 키(spec §11). 실제 키는 런북 §8(12/1 전)로 따로.
+- Turnstile은 시연 동안 테스트 키(spec §11). 실제 키는 런북 §9(12/1 전)로 따로.
 - legacy API 키는 시연 동안 켜 둔다(함수가 자동 주입 `SUPABASE_SERVICE_ROLE_KEY`를 쓴다).
 - 준비용 TOTP는 시연 전날 `auth.mfa_factors`에서 지워 누나가 첫 로그인 때 자기 폰으로 등록한다(spec §8).
 - 쌓인 PR은 앞 PR squash 뒤 `rebase --onto`로 옮겨 하나씩 squash, `dev → main`은 merge commit.
@@ -172,8 +172,8 @@
   - 실제 상담 신청 1건(§6 뒤, `$H`에서 폼 제출) → 성공 카드 → 원장 상담 목록에 보임 → 상태 `보류` 처리.
   - 원장 계정: SQL Editor `select count(*) from private.admins a join auth.users u on u.id = a.user_id where u.email like '%@example.test'` → 0.
 - [ ] **Step 7: 런북 §6 원장 계정·시연 데이터** — Authentication > Users > Add user > Create new user: `<원장 이메일>`, 비밀번호 **12자 이상**(비밀번호 관리자에 저장), Auto Confirm 켬 → SQL Editor `insert into private.admins (user_id) select id from auth.users where email = '<원장 이메일>';`(실행 뒤 편집기에서 지운다, 저장된 쿼리로 남기지 않는다) → `$H/login` 로그인 → TOTP 등록(사용자 인증 앱, 준비용) → QR이 CSP 아래에서 보이는지 → `/admin` 학생 추가 2번: 아이디 `demo_haneul`(이름 아무거나, 학년 중2), `demo_minjun`(고1), 임시 비밀번호는 비밀번호 관리자에만 → SQL Editor에 `supabase/seed-demo.sql` 전체 붙여 넣고 Run → **확인:** `select count(*) from public.students where login_id like 'demo\_%'` = 8. 오류가 나면 문구대로 고치고(트랜잭션이라 반쯤 들어가지 않는다 — 같은 쿼리로 0인지 확인) 다시 → `/admin` 영상: 두 반에 짧은 mp4(각 50MB 미만, 저작권 문제 없는 직접 찍은 클립) 하나씩 업로드 → `demo_haneul` 상세 > 학부모 링크 만들기(시연 때 누나 폰으로 열어 보기). **시연 전날 밤(최종 런북에서는 §7 뒤 §8로 옮김):** 준비용 TOTP를 지워 누나가 첫 로그인 때 자기 폰으로 등록하게 — SQL Editor `delete from auth.mfa_factors where user_id = (select id from auth.users where email = '<원장 이메일>');` → 원장 로그인 시 등록 화면이 뜨는지 한 번 확인 후 로그아웃(등록하지 않고).
-- [ ] **Step 8: 런북 §7 운영 배포(`dev → main`)와 §8 12/1 공개 전(시연과 별개)** — §7: GitHub PR `dev → main`, **Create a merge commit**(squash 금지 — dev와 main 역사를 맞춘다) → CI 통과 → 머지 → Cloudflare 프로덕션 빌드 → §5를 `H=https://heesu.pages.dev`로 다시. §8: Cloudflare Turnstile 위젯 만들기(허용 호스트 `heesu.pages.dev`, `dev.heesu.pages.dev`) → 사이트 키는 `src/features/consultations/model/consultation.ts` `TURNSTILE_SITE_KEY`를 PR로 교체(공개 값) + 함수 hostname 검사 코드(후속 항목) → `read -rs` 방식으로 `TURNSTILE_SECRET_KEY` 교체 → 함수 재배포 → 실제 신청 1건. `/privacy` 관문(빈칸 채움·없는 기능 문구 제거·법률 검토 → `robots: { index: false }` 제거 + `public/sitemap.xml`에 다시 추가).
-- [ ] **Step 9: 런북 §9 되돌리기** — 프론트: Cloudflare > Deployments > 이전 프로덕션 배포 > Rollback to this deployment(빌드 없이 즉시). 함수: `git switch --detach <이전 커밋> && supabase functions deploy <이름> --no-verify-jwt && git switch -`. DB: 되돌리는 마이그레이션은 없다 — 앞으로 고치는 새 마이그레이션만(하위 호환으로 썼으므로 프론트만 되돌려도 동작). Free는 백업이 없다 → 시연 데이터가 꼬이면 `seed-demo-clear.sql` → 다시 `seed-demo.sql`. 비밀: `supabase secrets unset <이름>`. 최후 수단(새 프로젝트)은 ref가 바뀌어 `_headers` CSP·`headers.test.ts`·Cloudflare 변수·Turnstile을 같이 바꿔야 한다 — 시연 전에는 하지 않는다. 계정 문제: 학생 추가 중 끊겨 로그인만 되는 Auth 사용자(students 행 없음)가 남으면 그 아이디를 다시 못 쓴다 → Authentication > Users에서 `<아이디>@student.heesu.internal` 삭제.
+- [ ] **Step 8: 런북 §7 운영 배포(`dev → main`), §8 시연 전날 밤, §9 12/1 공개 전(시연과 별개)** — §7: GitHub PR `dev → main`, **Create a merge commit**(squash 금지 — dev와 main 역사를 맞춘다) → CI 통과 → 머지 → Cloudflare 프로덕션 빌드 → §5를 `H=https://heesu.pages.dev`로 다시. §8: 시연 전날 밤 리셋(B9). §9: Cloudflare Turnstile 위젯 만들기(허용 호스트 `heesu.pages.dev`, `dev.heesu.pages.dev`) → 사이트 키는 `src/features/consultations/model/consultation.ts` `TURNSTILE_SITE_KEY`를 PR로 교체(공개 값) + 함수 hostname 검사 코드(후속 항목) → `read -rs` 방식으로 `TURNSTILE_SECRET_KEY` 교체 → 함수 재배포 → 실제 신청 1건. `/privacy` 관문(빈칸 채움·없는 기능 문구 제거·법률 검토 → `robots: { index: false }` 제거 + `public/sitemap.xml`에 다시 추가).
+- [ ] **Step 9: 런북 §10 되돌리기** — 프론트: Cloudflare > Deployments > 이전 프로덕션 배포 > Rollback to this deployment(빌드 없이 즉시). 함수: `git switch --detach <이전 커밋> && supabase functions deploy <이름> --no-verify-jwt && git switch -`. DB: 되돌리는 마이그레이션은 없다 — 앞으로 고치는 새 마이그레이션만(하위 호환으로 썼으므로 프론트만 되돌려도 동작). Free는 백업이 없다 → 시연 데이터가 꼬이면 `seed-demo-clear.sql` → 다시 `seed-demo.sql`. 비밀: `supabase secrets unset <이름>`. 최후 수단(새 프로젝트)은 ref가 바뀌어 `_headers` CSP·`headers.test.ts`·Cloudflare 변수·Turnstile을 같이 바꿔야 한다 — 시연 전에는 하지 않는다. 계정 문제: 학생 추가 중 끊겨 로그인만 되는 Auth 사용자(students 행 없음)가 남으면 그 아이디를 다시 못 쓴다 → Authentication > Users에서 `<아이디>@student.heesu.internal` 삭제.
 - [ ] **Step 10: README** — 제목 `희수영어`, "로컬 실행"(OrbStack PATH, `supabase start`, `.env.local`을 `.env.example`에서 복사하고 값은 `supabase status`의 API URL·publishable 키로, `npm run dev`는 반드시 `:3000` — Edge Function Origin 허용 목록), "검증"(AGENTS.md 명령 + `npm run fn:check`, `npm run db:demo-check`), "문서"(설계·계획·런북·QA 경로). 비밀 값 없음.
 - [ ] **Step 11:** 검증 — `rg -n "sb_secret_|sb_publishable_[A-Za-z0-9]|eyJ[A-Za-z0-9_-]{20,}|1x0000000000000000000000000000000AA" docs/deploy README.md` → 0건. `rg -c "확인:" docs/deploy/2026-11-cloud-runbook.md` ≥ 8. 전체 검증 PASS.
 - [ ] **Step 12: Commit**
@@ -202,7 +202,7 @@
   6. **PWA·오프라인**(production 빌드만 SW 등록 — 미리보기에서): SW 등록(개발자 도구 없이: 홈 화면 앱 두 번째 실행부터 비행기 모드로 `/s` 셸), 오프라인 문구, 첫 방문 직후(새로고침 전) 오프라인은 셸이 안 뜰 수 있음(알려진 한계), 오프라인 새로고침 시 몇 초 빈 화면 뒤 역할 오류 문구(알려진 한계 — 시연 뒤 고침), 영상 화면 `?id=` 캐시 1개, Storage 영상이 SW를 거치지 않고 재생.
   7. **보안(도구 없이)**: 가입 시도(로그인 화면에 가입 없음, 런북 §5 curl 결과 옮겨 적기), 학생으로 `/admin` 주소 입력 → 학생 홈으로, 원장 TOTP 없이(aal1) `/admin` 안 열림, 학생 A로 로그인해 B의 이름·포인트·출결이 어디에도 없음(순위는 숫자만), 학생 질문에 `<script>` 넣기 → 글자 그대로, 학부모 링크 위조(한 글자·쿼리 `?t=`·없음) → 같은 문구, 퇴원 처리 → 그 학생 로그인 시 데이터 0·링크 실패, 원장 비밀번호 바꾼 뒤 다른 기기 옛 세션이 다음 갱신에서 로그아웃(접속 토큰은 최대 1시간 유효 — 알려진 한계), 로그아웃 후 뒤로 가기에 개인정보 안 보임, Realtime: 다른 학생 질문이 실시간으로 안 옴.
   8. **누나에게 받을 정보·확인할 것**: 원장 이력, 주소, 전화, 교습비·교재비, 반·시간표, 학원 명칭·등록번호·교습과목·교습비 게시 문구(법정 표시 4), 개인정보 문의처, 등록 동의서에 **수업 녹화·영상 게시 동의**(S9), 학생 비밀번호 변경이 현재 비밀번호를 묻지 않아도 되는지, 일요일 수업 칸 유지 여부, 보상 목표 30점, 포인트 규칙(출석+숙제 완료=1점).
-  9. **12/1 랜딩 공개 전 관문**: 런북 §8 전부(Turnstile 실제 키·hostname 검사, `/privacy` 관문), `(예시)` 값이 랜딩에 남지 않음, 시연 뒤 고칠 목록(아래 반영표 "시연 뒤") 처리.
+  9. **12/1 랜딩 공개 전 관문**: 런북 §9 전부(Turnstile 실제 키·hostname 검사, `/privacy` 관문), `(예시)` 값이 랜딩에 남지 않음, 시연 뒤 고칠 목록(아래 반영표 "시연 뒤") 처리.
   10. **개원 전 Pro 전환 체크리스트**: 조직 Pro 업그레이드, Storage 전역 한도 1GiB + `src/features/videos/model/videos.ts` `VIDEO_MAX_BYTES`를 1GiB로, `seed-demo-clear.sql` + 시연 Auth 사용자·영상 파일 삭제, Leaked password protection·원장 세션 비활동 타임아웃 켬(S5), 일일 백업 확인 + 월 1회 암호화 덤프(S12), 퇴원생 Auth 삭제·개인정보 파기 절차(스펙 §11), staging 프로젝트와 Preview 변수 분리(S13) + 환경별 CSP, CSP `'unsafe-inline'` 제거 스크립트(S10), legacy API 키 끄기 전 함수 비밀 이름 변경, 사용량 알림.
   11. **알려진 한계(v1)**: 발급된 영상 signed URL은 최대 3시간 열림(S9), Realtime DELETE 이벤트는 PK만(S8), 로그아웃한 원장의 aal2 접속 토큰은 만료까지 유효, 업로드 성공 뒤 행 저장 전에 탭을 닫으면 Storage에 고아 파일(대시보드에서 지움), 시청 시간은 학생 기기가 보고한 값(증빙 아님).
 - [ ] **Step 2:** 검증 — `rg -c "기대:" docs/qa/2026-11-v1-qa.md` ≥ 100. 키워드가 모두 있는지 `for k in 카카오톡 "홈 화면" playsinline "두 번 연속" "녹화" "Pro 전환" "aal2" "Realtime" "Turnstile" "/privacy" "safe-area" "현재 비밀번호" "StrictMode"; do rg -q "$k" docs/qa/2026-11-v1-qa.md || echo "없음: $k"; done` → 출력 없음. Task 4 Step 11의 비밀 패턴 `rg` → 0건.
@@ -269,8 +269,8 @@
 | foundation Cloud | 대시보드 스키마 수정 금지 | 런북 §0 금지 목록 |
 | foundation Cloud | `TURNSTILE_SECRET_KEY` 테스트 비밀, 12/1 교체 | 런북 §2·§8, QA §9 |
 | foundation Cloud | 함수 배포(`verify_jwt` false) 3개 | 런북 §2 |
-| foundation Cloud | Turnstile 허용 호스트 | 런북 §8 |
-| foundation Cloud | `/privacy` 색인 다시 켜기 | 런북 §8, QA §9 |
+| foundation Cloud | Turnstile 허용 호스트 | 런북 §9 |
+| foundation Cloud | `/privacy` 색인 다시 켜기 | 런북 §9, QA §9 |
 | foundation Cloud | `supabase link` + `db push` | 런북 §1 |
 | foundation Cloud | 실제 신청 스모크, 다른 Origin 403 | 런북 §5 |
 | foundation Cloud | legacy API 키 끔 여부 | 런북 §2(켜 둔다), QA §10 |
@@ -298,14 +298,14 @@
 | v1 demo-deploy-qa | Turnstile 5초 제한·non-2xx·non-JSON | Task 2 |
 | v1 demo-deploy-qa | 함수 클라이언트 `Database` 타입 | 시연 뒤 |
 | v1 demo-deploy-qa | 함수 클라이언트 hosted 스모크 | 런북 §5·§6 |
-| v1 demo-deploy-qa | Turnstile hostname 검사 | 런북 §8(실제 키와 같이) |
+| v1 demo-deploy-qa | Turnstile hostname 검사 | 런북 §9(실제 키와 같이) |
 | v1 demo-deploy-qa | A11y 묶음 | 시연 뒤 |
 | v1 demo-deploy-qa | 시각 묶음 | 시연 뒤 |
 | v1 demo-deploy-qa | StrictMode Turnstile | QA §1 |
-| v1 demo-deploy-qa | 공개 전 관문 | 런북 §8, QA §9 |
+| v1 demo-deploy-qa | 공개 전 관문 | 런북 §9, QA §9 |
 | v1 demo-deploy-qa | 클라우드 옛 refresh token, 접속 토큰 ≤1h | QA §7·§11 |
 | v1 demo-deploy-qa | `getUser` 네트워크 실패가 401(“로그인 만료”)로 보임 | 시연 뒤 |
-| v1 demo-deploy-qa | aal2 토큰·고아 Auth 사용자·클라우드 CORS | QA §11, 런북 §9·§5 |
+| v1 demo-deploy-qa | aal2 토큰·고아 Auth 사용자·클라우드 CORS | QA §11, 런북 §10·§5 |
 | v1 demo-deploy-qa | TOTP QR CSP | 런북 §6 |
 | v1 demo-deploy-qa | CI `cancel-in-progress` | Task 3 |
 | v1 demo-deploy-qa | 학교·보호자 두 번째 저장 | QA §2 |

@@ -45,16 +45,16 @@
 - [x] `create-student` Edge Function rejects control characters in names (`CONTROL_CHARS` in `supabase/functions/create-student/handler.ts`).
 - [x] Turnstile siteverify fetch timeout (5s) + tests for non-2xx / non-JSON fail-closed. (`supabase/functions/submit-consultation/turnstile.ts`, `turnstile_test.ts`, Task 2)
 - Type the Edge Function's supabase client with `Database` so `deno check` catches RPC param drift. → 시연 뒤(12/1 전). (hosted smoke: [x] → 런북 §5·§6)
-- Turnstile hostname check — ship together with real keys before 12/1. → 런북 §8
+- Turnstile hostname check — ship together with real keys before 12/1. → 런북 §9
 - A11y pass: role=alert on missing-token and Turnstile failure text; clear Turnstile `failed` after recovery; focus the success card; phone caret jump. → 시연 뒤(12/1 전)
 - Visual pass: section tab row scroll back to left when none active; icon differences vs mock; footer privacy link underline; `text-h2` + `text-[20px]` conflict without cn in SiteHeader and PrivacyScreen. → 시연 뒤(12/1 전)
 - [x] StrictMode Turnstile re-render check in a browser. → QA §1
 - [x] README: local build needs `.env.local` (`README.md`, Task 4).
 - SiteFooter hard-codes 대표 and 사업자등록번호 as null (`src/features/landing/components/SiteFooter.tsx`; not editable from 랜딩 관리): fill via a code change or the legal site_content before public launch. → 시연 뒤(12/1 전)
-- Hard gate before public launch: /privacy Blank values filled, claims about unbuilt features removed or built, legal review, then re-enable indexing. → 런북 §8, QA §9
+- Hard gate before public launch: /privacy Blank values filled, claims about unbuilt features removed or built, legal review, then re-enable indexing. → 런북 §9, QA §9
 - [x] Re-verify on cloud that an old refresh token fails after reset; access token valid ≤1h. → QA §7·§11
 - `getUser` network failure maps to 401 not 500 on the HS256 fallback path. → 시연 뒤(12/1 전)
-- [x] QA notes: signed-out aal2 token valid until exp; create-student orphan auth user; cloud CORS on OPTIONS. → QA §11, 런북 §9·§5
+- [x] QA notes: signed-out aal2 token valid until exp; create-student orphan auth user; cloud CORS on OPTIONS. → QA §11, 런북 §10·§5
 - [x] Verify TOTP QR renders under the real CSP on the deployed preview. → 런북 §6
 - [x] CI: `cancel-in-progress: ${{ github.event_name == 'pull_request' }}` (`.github/workflows`, Task 3).
 - [x] QA step: second save of 학교·보호자 against the real DB. → QA §2
