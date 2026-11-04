@@ -48,13 +48,6 @@
 
 ## §1 Supabase 연결과 마이그레이션
 
-- [ ] (원격에 진짜 데이터가 이미 있을 때만) 되돌릴 수 있게 데이터만 백업해요. 파일은 저장소 밖에 둬요(비밀·개인정보가 들어 있어요).
-
-  ```bash
-  supabase db dump --data-only -f ~/heesu-remote-data-backup.sql
-  ```
-
-  **확인:** 파일이 생겨요. 이 단계는 `supabase link` 뒤에 해야 하니 아래 연결을 먼저 하고 돌아와도 돼요.
 - [ ] 로그인하고 프로젝트에 연결해요. DB 비밀번호는 프롬프트에 입력해요.
 
   ```bash
@@ -63,6 +56,15 @@
   ```
 
   **확인:** `Finished supabase link.` 가 나와요.
+
+- [ ] (원격에 진짜 데이터가 이미 있을 때만) 되돌릴 수 있게 데이터만 백업해요. 파일은 저장소 밖에 둬요(비밀·개인정보가 들어 있어요).
+
+  ```bash
+  supabase db dump --data-only -f ~/heesu-remote-data-backup.sql
+  ```
+
+  **확인:** 파일이 생겨요.
+
 - [ ] 원격에 이미 적용된 마이그레이션을 봐요.
 
   ```bash
@@ -271,8 +273,13 @@ read -r PK                            # publishable 키(공개 값)를 붙여 �
 - [ ] Authentication > Users > Add user > Create new user: `<원장 이메일>`, 비밀번호 **12자 이상**(비밀번호 관리자에 저장), Auto Confirm 켬.
 - [ ] SQL Editor(역할 `postgres`)에서 원장 권한을 줘요. 실행 뒤 편집기에서 지우고 저장된 쿼리로 남기지 않아요(`<원장 이메일>`은 커밋하지 않아요).
 
+  ```sql
+  insert into private.admins (user_id)
+  select id from auth.users where email = '<원장 이메일>'
+  returning user_id;
+  ```
 
-  위 쿼리 끝에 `returning user_id` 를 붙여 실행해요: `insert into private.admins (user_id) select id from auth.users where email = '<원장 이메일>' returning user_id;` SQL Editor는 0행이어도 "No rows returned" 만 보여 주니 반드시 이 반환 행으로 봐요.
+  SQL Editor는 0행이 들어가도 "No rows returned"만 보여 주니, 반드시 반환된 행으로 확인해요.
 
   **확인:** 정확히 1행(uuid)이 반환돼요. 이어서 실행해요: `select count(*) from private.admins a join auth.users u on u.id = a.user_id where u.email = '<원장 이메일>';` 기대 `1`. 0행이면 이메일 철자를 확인하고 다시 해요.
 - [ ] `$H/login` 에서 로그인해요 → TOTP 등록(준비용으로 내 인증 앱에) → QR이 CSP 아래에서 보이는지 확인해요.
