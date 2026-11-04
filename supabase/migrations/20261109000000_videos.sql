@@ -9,8 +9,13 @@
 
 -- ─── 버킷 ───────────────────────────────────────────────────────────
 -- config.toml이 아니라 마이그레이션에서 만든다: 클라우드 db push에도 같은 버킷이 생기게.
+-- 대시보드 등에서 먼저 만들어져 있어도 실패하지 않고 비공개·크기·형식을 이 값으로 맞춘다.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('videos', 'videos', false, 1073741824, array['video/mp4']);
+values ('videos', 'videos', false, 1073741824, array['video/mp4'])
+on conflict (id) do update
+  set public = excluded.public,
+      file_size_limit = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;
 
 -- ─── 테이블 ─────────────────────────────────────────────────────────
 -- 제목은 한 줄: 줄바꿈을 포함한 제어 문자 전부 금지(앱은 hasControlChars로 먼저 막는다).
