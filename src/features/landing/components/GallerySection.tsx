@@ -35,7 +35,7 @@ export function GallerySection() {
     <section
       id="gallery"
       aria-label="학원 사진"
-      className="flex flex-col gap-6 pt-4 pb-16"
+      className="flex flex-col gap-6"
     >
       <div className="mx-auto w-full max-w-[720px] px-4">
         <Reveal>

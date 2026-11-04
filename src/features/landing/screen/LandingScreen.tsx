@@ -18,16 +18,21 @@ export function LandingScreen() {
       {(content) => (
         <>
           <SiteHeader />
-          <main className="mx-auto flex max-w-[720px] flex-col gap-12 px-4 pb-16 md:gap-16">
-            <Hero />
-            <NoticeBand notice={content.notice} />
-            <LeafDivider />
-            <AboutSection content={content} />
-            <DirectorSection />
-            <TuitionSection content={content} />
-            <ConsultSection content={content} />
+          {/* 사진 띠만 화면 끝까지 쓰고, 나머지는 720px 폭 안에 둬요. */}
+          <main className="flex flex-col gap-12 pb-16 md:gap-16">
+            <div className="mx-auto flex w-full max-w-[720px] flex-col gap-12 px-4 md:gap-16">
+              <Hero />
+              <NoticeBand notice={content.notice} />
+              <LeafDivider />
+              <AboutSection content={content} />
+              <DirectorSection />
+              <TuitionSection content={content} />
+            </div>
+            <GallerySection />
+            <div className="mx-auto w-full max-w-[720px] px-4">
+              <ConsultSection content={content} />
+            </div>
           </main>
-          <GallerySection />
           <CtaBar content={content} />
         </>
       )}

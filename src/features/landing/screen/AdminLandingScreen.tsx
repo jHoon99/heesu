@@ -50,7 +50,7 @@ export function AdminLandingScreen() {
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-bg-page text-text">
-        <div className="mx-auto flex max-w-[720px] flex-col gap-12 px-6 pb-16 md:gap-16">
+        <div className="mx-auto flex max-w-[720px] flex-col gap-12 px-6 pt-0 pb-12 md:gap-16 md:pb-16">
           <Hero />
           <EditableRegion label="공지" onEdit={edit("notice")}>
             {content.notice ? (
@@ -70,11 +70,14 @@ export function AdminLandingScreen() {
           <EditableRegion label="수강료" onEdit={edit("tuition")}>
             <TuitionSection content={content} />
           </EditableRegion>
+        </div>
+        {/* 사진 띠: 지금은 예시 그림이라 여기서 고치지 않아요. */}
+        <GallerySection />
+        <div className="mx-auto max-w-[720px] px-6 pt-12 pb-16 md:pt-16">
           <EditableRegion label="주소·전화번호" onEdit={edit("contact")}>
             <ConsultSection content={content} preview />
           </EditableRegion>
         </div>
-        <GallerySection />
         <EditableRegion label="학원 정보" onEdit={edit("footer")}>
           <SiteFooter content={content} />
         </EditableRegion>
