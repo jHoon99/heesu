@@ -4,8 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "@/design-system";
 import { saveSiteContent } from "../../data/saveSiteContent";
-import type { EditableClass } from "../../model/siteContentWrite";
-import { ClassesEditor } from "./ClassesEditor";
 import { ContactEditor } from "./ContactEditor";
 import { NoticeEditor } from "./NoticeEditor";
 import { DEFAULT_POINTS_GOAL } from "../../model/siteContent";
@@ -25,63 +23,8 @@ function wrap(ui: React.ReactNode) {
   );
 }
 
-const cls = (n: string): EditableClass => ({
-  name: n,
-  grades: "",
-  schedule: "",
-  capacity: "",
-});
-
 beforeEach(() => {
   save.mockReset();
-});
-
-describe("ClassesEditor", () => {
-  it("moves a row down and saves the new order", async () => {
-    save.mockResolvedValue();
-    const user = userEvent.setup();
-    wrap(<ClassesEditor initial={[cls("A"), cls("B"), cls("C")]} />);
-    await user.click(
-      screen.getAllByRole("button", { name: "아래로 옮기기" })[0]!,
-    );
-    await user.click(screen.getByRole("button", { name: "반·시간표 저장" }));
-    await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
-    const [key, value] = save.mock.calls[0]!;
-    expect(key).toBe("classes");
-    expect((value as { name: string }[]).map((c) => c.name)).toEqual([
-      "B",
-      "A",
-      "C",
-    ]);
-  });
-
-  it("disables add at 10 rows and deletes a row", async () => {
-    const user = userEvent.setup();
-    wrap(
-      <ClassesEditor
-        initial={Array.from({ length: 10 }, (_, i) => cls(`반${i}`))}
-      />,
-    );
-    expect(screen.getByRole("button", { name: "반 추가" })).toBeDisabled();
-    expect(
-      screen.getByText("반은 10개까지 넣을 수 있어요."),
-    ).toBeInTheDocument();
-    await user.click(
-      screen.getAllByRole("button", { name: "이 반 지우기" })[0]!,
-    );
-    expect(screen.getAllByLabelText("반 이름")).toHaveLength(9);
-    expect(screen.getByRole("button", { name: "반 추가" })).toBeEnabled();
-  });
-
-  it("shows a field error and does not save a blank name", async () => {
-    const user = userEvent.setup();
-    wrap(<ClassesEditor initial={[cls("")]} />);
-    await user.click(screen.getByRole("button", { name: "반·시간표 저장" }));
-    expect(
-      await screen.findByText("반 이름을 입력해 주세요."),
-    ).toBeInTheDocument();
-    expect(save).not.toHaveBeenCalled();
-  });
 });
 
 describe("saving", () => {

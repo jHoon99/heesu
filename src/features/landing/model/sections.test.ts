@@ -6,10 +6,7 @@ describe("SECTIONS", () => {
     expect(SECTIONS.map((s) => s.id)).toEqual([
       "about",
       "director",
-      "program",
-      "classes",
       "tuition",
-      "location",
       "consult",
     ]);
   });

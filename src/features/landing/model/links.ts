@@ -4,8 +4,3 @@ export function telHref(phone: string | null): string | null {
   const digits = phone.replace(/\D/g, "");
   return /^0\d{8,10}$/.test(digits) ? `tel:${digits}` : null;
 }
-
-export function naverMapHref(address: string | null): string | null {
-  if (!address) return null;
-  return `https://map.naver.com/p/search/${encodeURIComponent(address)}`;
-}

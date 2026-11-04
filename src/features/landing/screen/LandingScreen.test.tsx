@@ -40,7 +40,7 @@ describe("LandingScreen", () => {
     const { container } = render(<LandingScreen />);
     const nav = screen.getByRole("navigation", { name: "섹션 바로가기" });
     const links = within(nav).getAllByRole("link");
-    expect(links).toHaveLength(7);
+    expect(links).toHaveLength(SECTIONS.length);
     links.forEach((link, i) => {
       const id = SECTIONS[i]?.id;
       expect(link).toHaveAttribute("href", `#${id}`);

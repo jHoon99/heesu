@@ -49,10 +49,8 @@ describe("AdminLandingScreen", () => {
     ).toBeInTheDocument();
     for (const label of [
       "공지 고치기",
-      "반·시간표 고치기",
       "수강료 고치기",
       "주소·전화번호 고치기",
-      "전화번호 고치기",
       "학원 정보 고치기",
     ])
       expect(screen.getByRole("button", { name: label })).toBeInTheDocument();

@@ -1,19 +1,9 @@
-export type SectionId =
-  | "about"
-  | "director"
-  | "program"
-  | "classes"
-  | "tuition"
-  | "location"
-  | "consult";
+export type SectionId = "about" | "director" | "tuition" | "consult";
 
 export const SECTIONS: readonly { id: SectionId; label: string }[] = [
   { id: "about", label: "소개" },
   { id: "director", label: "원장" },
-  { id: "program", label: "수업 방식" },
-  { id: "classes", label: "반·시간표" },
   { id: "tuition", label: "수강료" },
-  { id: "location", label: "오시는 길" },
   { id: "consult", label: "상담" },
 ];
 

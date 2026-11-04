@@ -1,7 +1,6 @@
 "use client";
 
 import { Modal } from "@/design-system";
-import { ClassesEditor } from "./ClassesEditor";
 import { ContactEditor } from "./ContactEditor";
 import { EditableLoader } from "./EditableLoader";
 import { LegalEditor } from "./LegalEditor";
@@ -9,12 +8,10 @@ import { NoticeEditor } from "./NoticeEditor";
 import { TuitionEditor } from "./TuitionEditor";
 
 /** 홈페이지 관리에서 누를 수 있는 부분이에요. */
-export type LandingSection =
-  "notice" | "classes" | "tuition" | "contact" | "footer";
+export type LandingSection = "notice" | "tuition" | "contact" | "footer";
 
 const TITLES: Record<LandingSection, string> = {
   notice: "공지 고치기",
-  classes: "반·시간표 고치기",
   tuition: "수강료 고치기",
   contact: "주소·전화번호 고치기",
   footer: "학원 정보 고치기",
@@ -22,7 +19,6 @@ const TITLES: Record<LandingSection, string> = {
 
 const WIDTHS: Record<LandingSection, number> = {
   notice: 520,
-  classes: 680,
   tuition: 520,
   contact: 520,
   footer: 560,
@@ -51,10 +47,6 @@ export function LandingEditModal({
                 case "notice":
                   return (
                     <NoticeEditor bare initial={e.notice} onSaved={onClose} />
-                  );
-                case "classes":
-                  return (
-                    <ClassesEditor bare initial={e.classes} onSaved={onClose} />
                   );
                 case "tuition":
                   return (

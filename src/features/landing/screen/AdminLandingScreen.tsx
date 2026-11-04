@@ -8,14 +8,11 @@ import {
   type LandingSection,
 } from "@/features/site-content";
 import { AboutSection } from "../components/AboutSection";
-import { ClassesSection } from "../components/ClassesSection";
 import { ConsultSection } from "../components/ConsultSection";
 import { DirectorSection } from "../components/DirectorSection";
 import { Hero } from "../components/Hero";
 import { LeafDivider } from "../components/LeafDivider";
-import { LocationSection } from "../components/LocationSection";
 import { NoticeBand } from "../components/NoticeBand";
-import { ProgramSection } from "../components/ProgramSection";
 import { SiteFooter } from "../components/SiteFooter";
 import { TuitionSection } from "../components/TuitionSection";
 import { EditableRegion } from "../components/admin/EditableRegion";
@@ -67,17 +64,10 @@ export function AdminLandingScreen() {
           <LeafDivider />
           <AboutSection content={content} />
           <DirectorSection />
-          <ProgramSection />
-          <EditableRegion label="반·시간표" onEdit={edit("classes")}>
-            <ClassesSection content={content} />
-          </EditableRegion>
           <EditableRegion label="수강료" onEdit={edit("tuition")}>
             <TuitionSection content={content} />
           </EditableRegion>
           <EditableRegion label="주소·전화번호" onEdit={edit("contact")}>
-            <LocationSection content={content} />
-          </EditableRegion>
-          <EditableRegion label="전화번호" onEdit={edit("contact")}>
             <ConsultSection content={content} preview />
           </EditableRegion>
         </div>
