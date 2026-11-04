@@ -180,7 +180,8 @@ describe("useUploadVideo", () => {
     await act(() => hook.result.current.start(input));
     expect(hook.result.current.state).toMatchObject({
       phase: "error",
-      error: "파일이 너무 커요. 영상을 나누거나 화질을 낮춰 다시 올려 주세요.",
+      error:
+        "파일이 너무 커요. 50MB 이하로 영상을 나누거나 화질을 낮춰 다시 올려 주세요.",
     });
     expect(create).not.toHaveBeenCalled();
   });

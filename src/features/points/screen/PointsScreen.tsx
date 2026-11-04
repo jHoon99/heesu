@@ -39,7 +39,7 @@ export function PointsScreen() {
     );
   } else {
     body = (
-      <div className="grid grid-cols-[minmax(0,1fr)_380px] gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
         <PointRankingTable
           rows={rows}
           selectedId={selected?.studentId ?? null}

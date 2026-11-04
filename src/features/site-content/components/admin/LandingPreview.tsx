@@ -39,7 +39,7 @@ export function LandingPreview() {
   return (
     <Card
       tone="raised"
-      className="sticky top-6 flex flex-col gap-3 self-start p-4"
+      className="sticky top-6 hidden flex-col gap-3 self-start p-4 xl:flex"
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex flex-col">

@@ -8,7 +8,7 @@ const res = (status: number, body = "") => ({
 describe("uploadErrorMessage", () => {
   it("maps 413 to a size message", () => {
     expect(uploadErrorMessage(res(413))).toBe(
-      "파일이 너무 커요. 영상을 나누거나 화질을 낮춰 다시 올려 주세요.",
+      "파일이 너무 커요. 50MB 이하로 영상을 나누거나 화질을 낮춰 다시 올려 주세요.",
     );
   });
 

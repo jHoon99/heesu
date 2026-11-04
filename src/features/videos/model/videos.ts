@@ -12,7 +12,7 @@ export const VIDEO_MAX_BYTES = 50 * 1024 * 1024;
 export const MP4_ONLY_MESSAGE =
   "mp4 파일만 올릴 수 있어요. 파일 형식을 확인해 주세요.";
 export const FILE_TOO_LARGE_MESSAGE =
-  "파일이 너무 커요. 영상을 나누거나 화질을 낮춰 다시 올려 주세요.";
+  "파일이 너무 커요. 50MB 이하로 영상을 나누거나 화질을 낮춰 다시 올려 주세요.";
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
