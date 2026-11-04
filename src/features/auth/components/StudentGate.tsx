@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useSignOut } from "@/core/auth";
+import { classifyError } from "@/core/supabase/error";
 import { Button } from "@/design-system";
 import { FirstLoginPasswordScreen } from "../screen/FirstLoginPasswordScreen";
 import { useMyStudent } from "../state/useMyStudent";
@@ -38,7 +39,11 @@ export function StudentGate({ children }: { children: ReactNode }) {
   if (student.isError && student.data === undefined && !student.isFetching) {
     return (
       <GateMessage
-        message="학생 정보를 불러오지 못했어요. 다시 시도하거나 로그아웃해 주세요."
+        message={
+          classifyError(student.error).kind === "network"
+            ? "인터넷에 연결되지 않았어요. 연결을 확인하고 다시 시도해 주세요."
+            : "학생 정보를 불러오지 못했어요. 다시 시도하거나 로그아웃해 주세요."
+        }
         onRetry={() => void student.refetch()}
       />
     );

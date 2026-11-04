@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
+import { classifyError } from "@/core/supabase/error";
 import { decideGuard, type Role } from "./role";
 import { useAuthSession, useMyRole, useSignOut } from "./session";
 
@@ -12,9 +13,11 @@ const BUTTON =
   "inline-flex h-10 items-center justify-center rounded-md px-4 text-label transition-colors duration-(--dur-fast) ease-out";
 
 function RoleError({
+  offline,
   onRetry,
   onSignOut,
 }: {
+  offline: boolean;
   onRetry: () => void;
   onSignOut: () => void;
 }) {
@@ -25,7 +28,9 @@ function RoleError({
         className="flex flex-col items-center gap-4 text-center"
       >
         <p className="text-body text-text">
-          권한을 확인하지 못했어요. 다시 시도하거나 로그아웃해 주세요.
+          {offline
+            ? "인터넷에 연결되지 않았어요. 연결을 확인하고 다시 시도해 주세요."
+            : "권한을 확인하지 못했어요. 다시 시도하거나 로그아웃해 주세요."}
         </p>
         <div className="flex gap-2">
           <button
@@ -82,6 +87,7 @@ export function RequireRole({
   ) {
     return (
       <RoleError
+        offline={classifyError(myRole.error).kind === "network"}
         onRetry={() => void myRole.refetch()}
         onSignOut={() => void signOut()}
       />

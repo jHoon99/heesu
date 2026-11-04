@@ -92,4 +92,23 @@ describe("RequireRole", () => {
     expect(signOut).toHaveBeenCalledTimes(1);
     expect(replace).not.toHaveBeenCalled();
   });
+
+  it("shows the offline message with retry when the role check fails on the network", async () => {
+    const refetch = vi.fn();
+    useAuthSession.mockReturnValue({ status: "signedIn", session });
+    useMyRole.mockReturnValue({
+      data: undefined,
+      isError: true,
+      isFetching: false,
+      error: new TypeError("Failed to fetch"),
+      refetch,
+    });
+    const user = userEvent.setup();
+    render(<RequireRole role="admin">관리 화면</RequireRole>);
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "인터넷에 연결되지 않았어요. 연결을 확인하고 다시 시도해 주세요.",
+    );
+    await user.click(screen.getByRole("button", { name: "다시 시도" }));
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
 });
