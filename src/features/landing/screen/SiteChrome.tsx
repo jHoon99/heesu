@@ -13,7 +13,7 @@ export function SiteChrome({
   // 읽는 동안에도 자리표시로 그려요 (스피너 없음).
   const { content } = useSiteContent();
   return (
-    <div id="top" className="min-h-screen bg-bg-page text-text">
+    <div id="top" className="site-tone min-h-screen bg-bg-page text-text">
       {children(content)}
       <SiteFooter content={content} />
     </div>

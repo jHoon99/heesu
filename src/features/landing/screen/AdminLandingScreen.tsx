@@ -49,7 +49,7 @@ export function AdminLandingScreen() {
         </a>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-border bg-bg-page text-text">
+      <div className="site-tone overflow-hidden rounded-xl border border-border bg-bg-page text-text">
         <div className="mx-auto flex max-w-[720px] flex-col gap-12 px-6 pt-0 pb-12 md:gap-16 md:pb-16">
           <Hero />
           <EditableRegion label="공지" onEdit={edit("notice")}>
