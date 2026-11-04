@@ -31,6 +31,8 @@ export function usePayments(months: string[]) {
     queryKey: paymentKeys.range(from, to),
     queryFn: () => listPayments(from, to),
     refetchOnMount: "always",
+    // 이전 달·다음 달로 캐시된 범위에 돌아와도 다시 읽는다. 그래야 isFetchedAfterMount가 켜져 칸을 열 수 있다.
+    staleTime: 0,
   });
 }
 
