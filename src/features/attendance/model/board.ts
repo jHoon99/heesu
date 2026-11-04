@@ -55,7 +55,7 @@ export function buildBoard(input: {
       row.status,
     );
     if (field === "hw" && row.submitted_at) {
-      const cell = records[row.student_id][row.session_id];
+      const cell = records[row.student_id]?.[row.session_id];
       records = {
         ...records,
         [row.student_id]: {

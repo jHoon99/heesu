@@ -89,12 +89,12 @@ describe("buildBoard submittedAt", () => {
         },
       ],
     });
-    expect(board.records.u1.s1).toEqual({
+    expect(board.records.u1?.s1).toEqual({
       hw: "none",
       submittedAt: "2026-11-03T06:30:00Z",
     });
     expect(
-      applyCell(board.records, "u1", "s1", "hw", "done").u1.s1.submittedAt,
+      applyCell(board.records, "u1", "s1", "hw", "done").u1?.s1?.submittedAt,
     ).toBe("2026-11-03T06:30:00Z");
   });
 });
