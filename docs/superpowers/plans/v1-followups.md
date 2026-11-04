@@ -102,8 +102,11 @@
 - db push 뒤 storage.buckets videos(public false, video/mp4) 확인.
 - QA: 아이폰 Safari에서 영상 재생(playsinline)·이어 보기·홈 화면 앱에서 재생.
 - 업로드 성공 뒤 행 저장 전에 탭이 닫히면 Storage에 고아 영상 파일이 남는다 — 원장용 정리(행 없는 videos 객체 삭제) 추가.
+- Pro 전환 때 영상 최대 크기(src/features/videos/model/videos.ts)를 1GiB로 되돌리고 Storage 전역 한도도 올린다.
 - 서비스워커는 production 빌드에서만 등록된다 — 배포 미리보기에서 /s 오프라인 셸, ?id= 영상 화면 캐시 1개, Storage 영상 재생(Range 통과) 확인.
 
 ## guardian-records (from videos-questions)
 - 퇴원 처리 때 Storage 파일 정리(S12)는 영상이 반 단위라 해당 없음 — 학생별 파일이 생기면 다시 본다.
 - S9: 등록 서류에 수업 녹화·공개 동의 항목 추가(정보 동의 화면·문서).
+- `video_views.watched_seconds`는 클라이언트가 보고한 값이다 — 시청 활동 기록일 뿐 증빙이 아니다(원장 화면 문구·학부모 안내에서 단정하지 않기).
+- answers UPDATE(body) 권한·정책은 '답변 고치기' 화면용으로 남겨 둠(현재 UI 없음).

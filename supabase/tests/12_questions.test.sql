@@ -288,41 +288,44 @@ select policy_roles_are('realtime', 'messages', 'question_topics_select', ARRAY[
   'question_topics_select는 authenticated에만');
 
 -- Realtime이 private 채널 참여를 판단하는 방식대로(realtime.topic 설정 + select) 정책을 직접 확인한다.
--- 그날의 파티션은 Realtime 서비스가 만든다. 없으면 이 다섯 검사는 건너뛴다.
+-- Realtime 서비스가 날짜별 파티션을 며칠 앞뒤로 만들어 둔다(테스트 역할은 파티션을 만들 수 없다).
+-- 오늘 파티션이 없어도 존재하는 날짜로 probe 행을 넣어 다섯 검사가 항상 돈다.
 do $$
+declare
+  offs int;
+  done boolean := false;
 begin
-  insert into realtime.messages (topic, extension, private) values ('questions:probe', 'broadcast', true);
-  perform set_config('test.has_partition', 'true', true);
-exception when check_violation then
-  perform set_config('test.has_partition', 'false', true);
+  foreach offs in array array[0, 1, -1, 2, -2, 3, -3] loop
+    begin
+      insert into realtime.messages (topic, extension, private, inserted_at)
+        values ('questions:probe', 'broadcast', true, (now() at time zone 'utc') + make_interval(days => offs));
+      done := true;
+      exit;
+    exception when check_violation then
+      null;
+    end;
+  end loop;
+  if not done then
+    raise exception 'realtime.messages 파티션이 하나도 없어요. supabase start 뒤 Realtime이 뜰 때까지 기다려 주세요.';
+  end if;
 end;
 $$;
 
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-00000000c012","role":"authenticated","aal":"aal1"}';
 set local realtime.topic = 'questions:student:10000000-0000-4000-8000-00000000c012';
-select case when current_setting('test.has_partition') = 'true'
-  then ok((select count(*) from realtime.messages) > 0, 'realtime: A는 자기 주제에서 messages를 읽는다')
-  else skip('realtime.messages 오늘 파티션 없음', 1) end;
+select ok((select count(*) from realtime.messages) > 0, 'realtime: A는 자기 주제에서 messages를 읽는다');
 set local realtime.topic = 'questions:student:10000000-0000-4000-8000-00000000d012';
-select case when current_setting('test.has_partition') = 'true'
-  then is((select count(*)::int from realtime.messages), 0, 'realtime: A는 B 주제에서 0행')
-  else skip('realtime.messages 오늘 파티션 없음', 1) end;
+select is((select count(*)::int from realtime.messages), 0, 'realtime: A는 B 주제에서 0행');
 set local realtime.topic = 'questions:admin';
-select case when current_setting('test.has_partition') = 'true'
-  then is((select count(*)::int from realtime.messages), 0, 'realtime: A는 원장 주제에서 0행')
-  else skip('realtime.messages 오늘 파티션 없음', 1) end;
+select is((select count(*)::int from realtime.messages), 0, 'realtime: A는 원장 주제에서 0행');
 set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-00000000a012","role":"authenticated","aal":"aal2"}';
-select case when current_setting('test.has_partition') = 'true'
-  then ok((select count(*) from realtime.messages) > 0, 'realtime: 원장 aal2는 원장 주제에서 messages를 읽는다')
-  else skip('realtime.messages 오늘 파티션 없음', 1) end;
+select ok((select count(*) from realtime.messages) > 0, 'realtime: 원장 aal2는 원장 주제에서 messages를 읽는다');
 set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-00000000c012","role":"authenticated","aal":"aal1"}';
 set local realtime.topic = 'questions:student:10000000-0000-4000-8000-00000000c012';
-select case when current_setting('test.has_partition') = 'true'
-  then throws_ok($$insert into realtime.messages (topic, extension, private)
+select throws_ok($$insert into realtime.messages (topic, extension, private)
                    values ('questions:student:10000000-0000-4000-8000-00000000c012', 'broadcast', true)$$,
-    '42501', null, 'realtime: A는 자기 주제에도 broadcast(insert) 못 한다')
-  else skip('realtime.messages 오늘 파티션 없음', 1) end;
+    '42501', null, 'realtime: A는 자기 주제에도 broadcast(insert) 못 한다');
 reset role;
 
 select * from finish();
