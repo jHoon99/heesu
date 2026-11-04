@@ -34,8 +34,8 @@ insert into public.class_members (class_id, student_id) values
   ('20000000-0000-4000-8000-00000000b005', '10000000-0000-4000-8000-00000000d005');
 
 -- ─── 권한 표 (service_role도 명시) ───────────────────────────────────
-select table_privs_are('public', 'classes', 'authenticated', ARRAY['INSERT', 'SELECT'],
-  'authenticated: classes 테이블 권한은 SELECT·INSERT (UPDATE는 컬럼 단위, DELETE 없음)');
+select table_privs_are('public', 'classes', 'authenticated', ARRAY['SELECT'],
+  'authenticated: classes 테이블 권한은 SELECT뿐 (INSERT·UPDATE는 컬럼 단위, DELETE 없음)');
 select column_privs_are('public', 'classes', 'name', 'authenticated', ARRAY['INSERT', 'SELECT', 'UPDATE'],
   'authenticated: classes.name은 INSERT·SELECT·UPDATE');
 select column_privs_are('public', 'classes', 'level', 'authenticated', ARRAY['INSERT', 'SELECT', 'UPDATE'],
@@ -44,10 +44,10 @@ select column_privs_are('public', 'classes', 'schedule', 'authenticated', ARRAY[
   'authenticated: classes.schedule은 INSERT·SELECT·UPDATE');
 select column_privs_are('public', 'classes', 'capacity', 'authenticated', ARRAY['INSERT', 'SELECT', 'UPDATE'],
   'authenticated: classes.capacity는 INSERT·SELECT·UPDATE');
-select column_privs_are('public', 'classes', 'id', 'authenticated', ARRAY['INSERT', 'SELECT'],
-  'authenticated: classes.id는 update 불가');
-select column_privs_are('public', 'classes', 'created_at', 'authenticated', ARRAY['INSERT', 'SELECT'],
-  'authenticated: classes.created_at은 update 불가');
+select column_privs_are('public', 'classes', 'id', 'authenticated', ARRAY['SELECT'],
+  'authenticated: classes.id는 insert·update 불가');
+select column_privs_are('public', 'classes', 'created_at', 'authenticated', ARRAY['SELECT'],
+  'authenticated: classes.created_at은 insert·update 불가');
 select table_privs_are('public', 'class_members', 'authenticated', ARRAY['DELETE', 'INSERT', 'SELECT'],
   'authenticated: class_members 권한은 SELECT·INSERT·DELETE (UPDATE 없음)');
 select table_privs_are('public', 'classes', 'anon', ARRAY[]::text[], 'anon: classes 권한 없음');

@@ -70,7 +70,31 @@ describe("listMyHomework", () => {
     expect(out.map((i) => i.sessionId)).toEqual(["old", "s1"]);
   });
 
-  it("makes only two queries when every missing session is loaded", async () => {
+  it("reads own class_members and hides homework from before the join", async () => {
+    const calls = mockTables({
+      sessions: [
+        {
+          data: [row("s1", "2026-11-04"), row("s0", "2026-11-03")],
+          error: null,
+        },
+      ],
+      class_members: [
+        {
+          data: [{ class_id: "c1", created_at: "2026-11-03T15:30:00Z" }],
+          error: null,
+        },
+      ],
+    });
+    const out = await listMyHomework("st1", "2026-11-05");
+    const memberCalls = calls.filter((c) => c.table === "class_members");
+    expect(memberCalls.find((c) => c.method === "eq")?.args).toEqual([
+      "student_id",
+      "st1",
+    ]);
+    expect(out.map((i) => i.sessionId)).toEqual(["s1"]);
+  });
+
+  it("makes only three queries when every missing session is loaded", async () => {
     mockTables({
       sessions: [{ data: [row("s1", "2026-11-04")], error: null }],
       homework_checks: [
@@ -81,7 +105,7 @@ describe("listMyHomework", () => {
       ],
     });
     await listMyHomework("st1", "2026-11-05");
-    expect(from).toHaveBeenCalledTimes(2);
+    expect(from).toHaveBeenCalledTimes(3);
   });
 });
 

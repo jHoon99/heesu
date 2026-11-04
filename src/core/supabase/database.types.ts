@@ -143,6 +143,32 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"guardian_tokens": {
+                  Row: {
+                    "created_at": string,"expires_at": string,"id": string,"revoked_at": string | null,"student_id": string,"token_hash": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"expires_at": string,"id"?: string,"revoked_at"?: string | null,"student_id": string,"token_hash": string
+                  }
+                  Update: {
+                    "created_at"?: string,"expires_at"?: string,"id"?: string,"revoked_at"?: string | null,"student_id"?: string,"token_hash"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "guardian_tokens_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "student_point_totals"
+      referencedColumns: ["student_id"]
+    },{
+      foreignKeyName: "guardian_tokens_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"homework_checks": {
                   Row: {
                     "session_id": string,"status": Database["public"]['Enums']["homework_status"],"student_id": string,"submitted_at": string | null,"updated_at": string
@@ -169,6 +195,32 @@ isOneToOne: false
       referencedColumns: ["student_id"]
     },{
       foreignKeyName: "homework_checks_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"payments": {
+                  Row: {
+                    "amount": number,"created_at": string,"id": string,"memo": string | null,"month": string,"paid_at": string | null,"student_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount": number,"created_at"?: string,"id"?: string,"memo"?: string | null,"month": string,"paid_at"?: string | null,"student_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "amount"?: number,"created_at"?: string,"id"?: string,"memo"?: string | null,"month"?: string,"paid_at"?: string | null,"student_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "payments_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "student_point_totals"
+      referencedColumns: ["student_id"]
+    },{
+      foreignKeyName: "payments_student_id_fkey"
       columns: ["student_id"]
 isOneToOne: false
       referencedRelation: "students"
@@ -413,6 +465,12 @@ isOneToOne: false
           Functions: {
             "admin_user_exists":
 { Args: { "p_user_id": string }; Returns: boolean
+                           },
+"guardian_view":
+{ Args: { "p_token": string }; Returns: Json
+                           },
+"issue_guardian_token":
+{ Args: { "p_student_id": string }; Returns: string
                            },
 "my_rank":
 { Args: Record<PropertyKey, never>; Returns: {

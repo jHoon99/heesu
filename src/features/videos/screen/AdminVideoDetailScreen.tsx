@@ -172,6 +172,9 @@ function ViewsCard({ video }: { video: AdminVideo }) {
   return (
     <Card tone="raised" className="flex flex-col gap-3">
       <h2 className="text-h3 text-text">시청 현황</h2>
+      <p className="text-body-sm text-text-muted">
+        시청 기록은 학생 기기가 보낸 값이라 참고용이에요.
+      </p>
       {body}
     </Card>
   );

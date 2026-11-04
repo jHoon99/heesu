@@ -3,13 +3,12 @@
 -- 함수 허용 목록 규칙: 스키마별로 `proname`(스키마 없는 함수 이름)만 담은
 -- 정렬·중복 제거된 text[]로 비교한다. 새 함수를 anon/authenticated에 열 때는
 -- 아래 해당 스키마의 허용 목록에 이름을 알파벳 순으로 추가한다.
--- (예: guardian_view 추가 시 anon public 목록을 '{guardian_view}'::text[]로)
 -- `admin_user_exists`·`submit_consultation`은 service_role 전용이라 anon·authenticated 목록에 없고,
 -- service_role 목록에만 있다. service_role에 함수를 열 때도 그 목록을 고친다.
 begin;
 set local client_min_messages = warning;
 create extension if not exists pgtap with schema extensions;
-select plan(19);
+select plan(21);
 
 -- S2: public의 모든 테이블은 RLS가 켜져 있고, RLS를 걸 수 없는 foreign table은 없다.
 select is(
@@ -30,7 +29,7 @@ select is(
      join pg_catalog.pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public'
       and has_function_privilege('anon', p.oid, 'execute')),
-  '{}'::text[],
+  '{guardian_view}'::text[],
   'public: anon이 실행할 수 있는 함수 = 허용 목록'
 );
 
@@ -41,7 +40,7 @@ select is(
      join pg_catalog.pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public'
       and has_function_privilege('authenticated', p.oid, 'execute')),
-  '{my_rank,my_role,password_changed,save_video_progress,submit_homework}'::text[],
+  '{guardian_view,issue_guardian_token,my_rank,my_role,password_changed,save_video_progress,submit_homework}'::text[],
   'public: authenticated가 실행할 수 있는 함수 = 허용 목록'
 );
 
@@ -175,6 +174,43 @@ select is(
     where n.nspname = 'public' and c.relkind = 'r' and c.relreplident = 'f'),
   0,
   'REPLICA IDENTITY FULL 테이블이 없다'
+);
+
+-- S12: 감사 트리거(private.audit)가 달린 public 테이블 = spec §7 감사 대상 목록.
+-- 감사 대상 테이블을 새로 만들 때(예: payments) 여기에 이름을 알파벳 순으로 추가한다.
+select is(
+  (select coalesce(array_agg(distinct c.relname::text order by c.relname::text), '{}')
+     from pg_catalog.pg_trigger t
+     join pg_catalog.pg_class c on c.oid = t.tgrelid
+     join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+     join pg_catalog.pg_proc p on p.oid = t.tgfoid
+     join pg_catalog.pg_namespace pn on pn.oid = p.pronamespace
+    where n.nspname = 'public'
+      and pn.nspname = 'private'
+      and p.proname = 'audit'
+      and not t.tgisinternal),
+  '{consents,consultations,guardian_tokens,payments,student_private,students}'::text[],
+  'S12: 감사 트리거가 달린 public 테이블 = 허용 목록'
+);
+
+-- S12: 감사 트리거는 모두 AFTER … FOR EACH ROW, INSERT·UPDATE·DELETE 전부, 컬럼 목록(update of)·WHEN 조건 없음.
+-- tgtype 비트: ROW 1, BEFORE 2, INSERT 4, DELETE 8, UPDATE 16, TRUNCATE 32, INSTEAD 64 → 기대값 1+4+8+16 = 29.
+select is(
+  (select coalesce(array_agg(c.relname || ':' || t.tgname order by 1), '{}')
+     from pg_catalog.pg_trigger t
+     join pg_catalog.pg_class c on c.oid = t.tgrelid
+     join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+     join pg_catalog.pg_proc p on p.oid = t.tgfoid
+     join pg_catalog.pg_namespace pn on pn.oid = p.pronamespace
+    where n.nspname = 'public'
+      and pn.nspname = 'private'
+      and p.proname = 'audit'
+      and not t.tgisinternal
+      and ((t.tgtype::int & 127) <> 29
+           or t.tgqual is not null
+           or coalesce(cardinality(t.tgattr::int2[]), 0) > 0)),
+  '{}'::text[],
+  'S12: 감사 트리거는 모두 AFTER·FOR EACH ROW·INSERT|UPDATE|DELETE (컬럼 목록·WHEN 없음)'
 );
 
 -- S2: 쓰지 않는 pg_graphql은 꺼져 있다.

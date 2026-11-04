@@ -24,6 +24,21 @@ vi.mock("next/navigation", () => ({
 vi.mock("../data/students");
 vi.mock("../data/detail");
 vi.mock("../data/functions");
+vi.mock("@/features/guardian", () => ({
+  GuardianLinkCard: ({ left }: { left: boolean }) => (
+    <section>
+      <h2>학부모 링크</h2>
+      {left ? <p>퇴원한 학생은 학부모 링크를 만들 수 없어요.</p> : null}
+    </section>
+  ),
+}));
+vi.mock("@/features/payments", () => ({
+  PaymentHistoryCard: () => (
+    <section>
+      <h2>결제 기록</h2>
+    </section>
+  ),
+}));
 let recordsResult: { isPending: boolean; isError: boolean; data?: unknown[] } =
   {
     isPending: false,
@@ -128,9 +143,19 @@ describe("StudentDetailScreen", () => {
       "학교·보호자",
       "보호자 동의",
       "비밀번호 초기화",
+      "학부모 링크",
+      "결제 기록",
     ]) {
       expect(screen.getByRole("heading", { name: t })).toBeInTheDocument();
     }
+  });
+
+  it("hides link creation for a student who left", async () => {
+    get.mockResolvedValue({ ...student, status: "left" });
+    setup();
+    expect(
+      await screen.findByText("퇴원한 학생은 학부모 링크를 만들 수 없어요."),
+    ).toBeInTheDocument();
   });
 
   it("shows recent records with status chips", async () => {
@@ -287,6 +312,15 @@ describe("StudentDetailScreen", () => {
     });
     expect(
       await screen.findByText("동의 기록을 추가했어요."),
+    ).toBeInTheDocument();
+  });
+
+  it("reminds to check the recording consent item before recording", async () => {
+    setup();
+    expect(
+      await screen.findByText(
+        "등록 동의서에 수업 녹화·영상 게시 동의 항목이 들어 있는지 확인한 뒤 기록해 주세요.",
+      ),
     ).toBeInTheDocument();
   });
 

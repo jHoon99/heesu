@@ -1,5 +1,5 @@
-import { ComingSoonScreen } from "@/features/admin-shell";
+import { AdminSiteContentScreen } from "@/features/site-content";
 
 export default function Page() {
-  return <ComingSoonScreen title="랜딩 관리" />;
+  return <AdminSiteContentScreen />;
 }

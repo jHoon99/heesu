@@ -219,3 +219,49 @@ describe("copy address", () => {
     ).toBeInTheDocument();
   });
 });
+
+describe("long unbroken text", () => {
+  const LONG = "가".repeat(300);
+
+  function expectWrapped(el: HTMLElement) {
+    expect(el.className).toContain("break-words");
+    expect(el.parentElement?.className).toContain("min-w-0");
+  }
+
+  it("wraps the notice title", () => {
+    render(<NoticeBand notice={{ title: LONG, body: LONG + "a" }} />);
+    expectWrapped(screen.getByText(LONG));
+    expectWrapped(screen.getByText(LONG + "a"));
+  });
+
+  it("wraps class, tuition, address and legal values", () => {
+    const content: SiteContent = {
+      ...FILLED,
+      classes: [
+        {
+          name: LONG,
+          grades: LONG + "1",
+          schedule: LONG + "2",
+          capacity: null,
+        },
+      ],
+      tuition: { monthly: LONG + "3", textbook: LONG + "4", note: LONG + "5" },
+      contact: { phone: null, address: LONG + "6" },
+      legal: {
+        academyName: LONG + "7",
+        registrationNo: LONG + "8",
+        subjects: LONG + "9",
+        tuitionNotice: LONG + "0",
+      },
+    };
+    renderAll(content);
+    expectWrapped(screen.getByRole("heading", { name: LONG }));
+    expectWrapped(screen.getByText(LONG + "3"));
+    expectWrapped(screen.getByText(LONG + "4"));
+    const footer = within(screen.getByRole("contentinfo"));
+    for (const t of ["6", "7", "8", "9", "0"])
+      expectWrapped(footer.getByText(LONG + t));
+    const loc = document.getElementById("location") as HTMLElement;
+    expectWrapped(within(loc).getByText(LONG + "6"));
+  });
+});

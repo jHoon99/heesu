@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Badge, buttonVariants, Card } from "@/design-system";
 import { classifyError } from "@/core/supabase/error";
+import { GuardianLinkCard } from "@/features/guardian";
+import { PaymentHistoryCard } from "@/features/payments";
 import { PointHistoryList } from "@/features/points";
 import { ClassAssignCard } from "../components/ClassAssignCard";
 import { ConsentCard } from "../components/ConsentCard";
@@ -82,7 +84,13 @@ export function StudentDetailScreen() {
         <PointHistoryList studentId={id} />
       </Card>
       <GuardianCard studentId={id} />
+      <GuardianLinkCard
+        key={id}
+        studentId={id}
+        left={student.status === "left"}
+      />
       <ConsentCard studentId={id} />
+      <PaymentHistoryCard studentId={id} />
       <PasswordResetCard studentId={id} left={student.status === "left"} />
     </div>
   );

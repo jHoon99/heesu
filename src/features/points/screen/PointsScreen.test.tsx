@@ -99,6 +99,14 @@ describe("PointsScreen", () => {
     expect(screen.getByLabelText("사유")).toHaveValue("");
   });
 
+  it("describes the reason input as visible to the student", async () => {
+    const user = setup();
+    await pick(user);
+    expect(screen.getByLabelText("사유")).toHaveAccessibleDescription(
+      "학생 화면에도 보여요. 학생이 봐도 괜찮은 말로 적어 주세요.",
+    );
+  });
+
   it("shows the reason message and does not call on empty reason", async () => {
     const user = setup();
     await pick(user);

@@ -20,6 +20,8 @@ function invalidateStudentViews(client: QueryClient) {
     client.invalidateQueries({ queryKey: studentKeys.all }),
     client.invalidateQueries({ queryKey: ["attendance"] }),
     client.invalidateQueries({ queryKey: ["points"] }),
+    // 퇴원으로 바뀐 학부모 링크 상태를 다시 읽는다(guardian을 import하지 않는다: 순환 금지).
+    client.invalidateQueries({ queryKey: ["guardian"] }),
   ]);
 }
 
