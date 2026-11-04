@@ -1,5 +1,5 @@
 import { assertEquals, assertRejects } from "@std/assert";
-import { verifyTurnstile } from "./turnstile.ts";
+import { SITEVERIFY_TIMEOUT_MS, verifyTurnstile } from "./turnstile.ts";
 
 function fakeFetch(response: unknown) {
   const seen: Request[] = [];
@@ -59,4 +59,30 @@ Deno.test("fetch throwing propagates", async () => {
     () => verifyTurnstile("sek", "tok", null, fetchFn),
     TypeError,
   );
+});
+
+Deno.test("passes an abort signal to fetch", async () => {
+  let signal: AbortSignal | null | undefined;
+  const fetchFn: typeof fetch = (_input, init) => {
+    signal = init?.signal;
+    return Promise.resolve(Response.json({ success: true }));
+  };
+  await verifyTurnstile("sek", "tok", null, fetchFn);
+  assertEquals(signal instanceof AbortSignal, true);
+});
+
+Deno.test("non-2xx throws", async () => {
+  const fetchFn: typeof fetch = () =>
+    Promise.resolve(new Response("x", { status: 502 }));
+  await assertRejects(() => verifyTurnstile("sek", "tok", null, fetchFn));
+});
+
+Deno.test("non-JSON body throws", async () => {
+  const fetchFn: typeof fetch = () =>
+    Promise.resolve(new Response("<html>", { status: 200 }));
+  await assertRejects(() => verifyTurnstile("sek", "tok", null, fetchFn));
+});
+
+Deno.test("timeout is 5 seconds", () => {
+  assertEquals(SITEVERIFY_TIMEOUT_MS, 5000);
 });
