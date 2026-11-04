@@ -17,8 +17,13 @@ const DS_EXTERNAL_ALLOWLIST = [
 const SUPABASE_MESSAGE =
   "supabase-js는 src/core/supabase 와 src/features/*/data 에서만 import 해요.";
 
+const TUS_MESSAGE = "tus-js-client는 src/features/*/data 에서만 import 해요.";
+
 const SUPABASE_RESTRICTION = {
-  paths: [{ name: "@supabase/supabase-js", message: SUPABASE_MESSAGE }],
+  paths: [
+    { name: "@supabase/supabase-js", message: SUPABASE_MESSAGE },
+    { name: "tus-js-client", message: TUS_MESSAGE },
+  ],
   patterns: [{ group: ["@supabase/supabase-js/*"], message: SUPABASE_MESSAGE }],
 };
 
@@ -32,6 +37,10 @@ const ADMIN_UI_FILES = [
   "src/features/attendance/**",
   "src/features/points/**",
   "src/features/today/**",
+  "src/features/videos/components/admin/**",
+  "src/features/videos/screen/Admin*",
+  "src/features/questions/components/admin/**",
+  "src/features/questions/screen/Admin*",
 ];
 
 const ENTRANCE_MOTION = [
