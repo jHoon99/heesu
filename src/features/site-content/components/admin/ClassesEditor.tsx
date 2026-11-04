@@ -10,7 +10,7 @@ import {
   MAX_CLASSES,
   type EditableClass,
 } from "../../model/siteContentWrite";
-import { EditorCard, useCardSave } from "./EditorCard";
+import { EditorCard, useCardSave, type EditorMode } from "./EditorCard";
 
 const formSchema = z.object({ classes: classesWriteSchema });
 type In = z.input<typeof formSchema>;
@@ -23,8 +23,12 @@ const EMPTY: EditableClass = {
   capacity: "",
 };
 
-export function ClassesEditor({ initial }: { initial: EditableClass[] }) {
-  const { save, error, pending } = useCardSave("classes");
+export function ClassesEditor({
+  initial,
+  bare,
+  onSaved,
+}: { initial: EditableClass[] } & EditorMode) {
+  const { save, error, pending } = useCardSave("classes", onSaved);
   const {
     register,
     control,
@@ -43,15 +47,15 @@ export function ClassesEditor({ initial }: { initial: EditableClass[] }) {
 
   return (
     <EditorCard
+      bare={bare}
       title="반·시간표"
-      where="랜딩 ‘반·시간표’ 섹션에 보여요."
       saveLabel="반·시간표 저장"
       pending={pending}
       error={error}
       onSubmit={(e) => void handleSubmit((v) => save(v.classes))(e)}
     >
       <p className="text-body-sm text-text-muted">
-        여기 목록은 랜딩 표시용이에요. 실제 반은 &apos;반&apos; 화면에서
+        여기 목록은 홈페이지 표시용이에요. 실제 반은 &apos;반&apos; 화면에서
         관리해요.
       </p>
       {fields.map((field, i) => {

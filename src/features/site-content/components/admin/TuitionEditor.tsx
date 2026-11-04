@@ -8,17 +8,19 @@ import {
   tuitionWriteSchema,
   type EditableSiteContent,
 } from "../../model/siteContentWrite";
-import { EditorCard, useCardSave } from "./EditorCard";
+import { EditorCard, useCardSave, type EditorMode } from "./EditorCard";
 
 type In = z.input<typeof tuitionWriteSchema>;
 type Out = z.output<typeof tuitionWriteSchema>;
 
 export function TuitionEditor({
   initial,
+  bare,
+  onSaved,
 }: {
   initial: EditableSiteContent["tuition"];
-}) {
-  const { save, error, pending } = useCardSave("tuition");
+} & EditorMode) {
+  const { save, error, pending } = useCardSave("tuition", onSaved);
   const {
     register,
     handleSubmit,
@@ -29,8 +31,8 @@ export function TuitionEditor({
   });
   return (
     <EditorCard
+      bare={bare}
       title="수강료·교재비"
-      where="랜딩 ‘수강료’ 섹션에 보여요."
       saveLabel="수강료 저장"
       pending={pending}
       error={error}

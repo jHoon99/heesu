@@ -8,17 +8,19 @@ import {
   legalWriteSchema,
   type EditableSiteContent,
 } from "../../model/siteContentWrite";
-import { EditorCard, useCardSave } from "./EditorCard";
+import { EditorCard, useCardSave, type EditorMode } from "./EditorCard";
 
 type In = z.input<typeof legalWriteSchema>;
 type Out = z.output<typeof legalWriteSchema>;
 
 export function LegalEditor({
   initial,
+  bare,
+  onSaved,
 }: {
   initial: EditableSiteContent["legal"];
-}) {
-  const { save, error, pending } = useCardSave("legal");
+} & EditorMode) {
+  const { save, error, pending } = useCardSave("legal", onSaved);
   const {
     register,
     handleSubmit,
@@ -29,15 +31,15 @@ export function LegalEditor({
   });
   return (
     <EditorCard
+      bare={bare}
       title="법정 표시"
-      where="랜딩 맨 아래 학원 정보(푸터)에 보여요."
       saveLabel="법정 표시 저장"
       pending={pending}
       error={error}
       onSubmit={(e) => void handleSubmit((v) => save(v))(e)}
     >
       <p className="text-body-sm text-text-muted">
-        학원법 제15조에 따라 랜딩 맨 아래에 보여요.
+        학원법 제15조에 따라 홈페이지 맨 아래에 보여요.
       </p>
       <Input
         size="md"

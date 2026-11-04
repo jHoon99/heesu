@@ -8,17 +8,19 @@ import {
   noticeWriteSchema,
   type EditableSiteContent,
 } from "../../model/siteContentWrite";
-import { EditorCard, useCardSave } from "./EditorCard";
+import { EditorCard, useCardSave, type EditorMode } from "./EditorCard";
 
 type In = z.input<typeof noticeWriteSchema>;
 type Out = z.output<typeof noticeWriteSchema>;
 
 export function NoticeEditor({
   initial,
+  bare,
+  onSaved,
 }: {
   initial: EditableSiteContent["notice"];
-}) {
-  const { save, error, pending } = useCardSave("notice");
+} & EditorMode) {
+  const { save, error, pending } = useCardSave("notice", onSaved);
   const {
     register,
     handleSubmit,
@@ -29,8 +31,8 @@ export function NoticeEditor({
   });
   return (
     <EditorCard
+      bare={bare}
       title="공지"
-      where="랜딩 첫 화면 바로 아래 공지 띠에 보여요. 체크를 끄면 숨겨요."
       saveLabel="공지 저장"
       pending={pending}
       error={error}
@@ -49,7 +51,7 @@ export function NoticeEditor({
         error={errors.body?.message}
         {...register("body")}
       />
-      <Checkbox label="랜딩에 공지 띠 보이기" {...register("visible")} />
+      <Checkbox label="홈페이지에 공지 띠 보이기" {...register("visible")} />
     </EditorCard>
   );
 }

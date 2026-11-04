@@ -105,7 +105,9 @@ describe("saving", () => {
     expect(save).toHaveBeenCalledWith("points_goal", 30);
     await waitFor(() => expect(button).toBeDisabled());
     resolve();
-    expect(await screen.findByText("랜딩에 반영했어요.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("홈페이지에 반영했어요."),
+    ).toBeInTheDocument();
   });
 
   it("shows the failure in the card", async () => {
@@ -134,7 +136,7 @@ describe("saving", () => {
     const user = userEvent.setup();
     wrap(<NoticeEditor initial={{ title: "", body: "", visible: false }} />);
     await user.type(screen.getByLabelText("제목"), "설명회");
-    await user.click(screen.getByLabelText("랜딩에 공지 띠 보이기"));
+    await user.click(screen.getByLabelText("홈페이지에 공지 띠 보이기"));
     await user.click(screen.getByRole("button", { name: "공지 저장" }));
     await waitFor(() =>
       expect(save).toHaveBeenCalledWith("notice", {

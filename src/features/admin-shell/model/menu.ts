@@ -61,6 +61,7 @@ export const ADMIN_MENU: MenuEntry[] = [
     href: "/admin/questions",
     icon: MessageCircle,
   },
+  { value: "points", label: "포인트", href: "/admin/points", icon: Trophy },
   { group: "학부모" },
   {
     value: "consultations",
@@ -68,12 +69,11 @@ export const ADMIN_MENU: MenuEntry[] = [
     href: "/admin/consultations",
     icon: Phone,
   },
-  { value: "points", label: "포인트", href: "/admin/points", icon: Trophy },
   { value: "payments", label: "결제", href: "/admin/payments", icon: Receipt },
   { group: "운영" },
   {
     value: "site",
-    label: "랜딩 관리",
+    label: "홈페이지 관리",
     href: "/admin/site",
     icon: PanelsTopLeft,
   },

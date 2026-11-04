@@ -8,17 +8,19 @@ import {
   contactWriteSchema,
   type EditableSiteContent,
 } from "../../model/siteContentWrite";
-import { EditorCard, useCardSave } from "./EditorCard";
+import { EditorCard, useCardSave, type EditorMode } from "./EditorCard";
 
 type In = z.input<typeof contactWriteSchema>;
 type Out = z.output<typeof contactWriteSchema>;
 
 export function ContactEditor({
   initial,
+  bare,
+  onSaved,
 }: {
   initial: EditableSiteContent["contact"];
-}) {
-  const { save, error, pending } = useCardSave("contact");
+} & EditorMode) {
+  const { save, error, pending } = useCardSave("contact", onSaved);
   const {
     register,
     handleSubmit,
@@ -29,8 +31,8 @@ export function ContactEditor({
   });
   return (
     <EditorCard
+      bare={bare}
       title="연락처"
-      where="주소는 ‘소개’·‘오시는 길’과 맨 아래 정보에, 전화번호는 ‘상담’ 섹션·하단 전화 버튼·맨 아래 정보에 보여요."
       saveLabel="연락처 저장"
       pending={pending}
       error={error}

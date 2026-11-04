@@ -8,7 +8,10 @@ import type { SiteContentKey } from "../../model/siteContentWrite";
 import { useSaveSiteContent } from "../../state/useSiteContentEditor";
 
 /** 카드마다 따로 저장해요. 저장 중에는 다시 저장하지 않아요. */
-export function useCardSave(key: SiteContentKey) {
+/** 수정 창 안에서 쓸 때: 카드 테두리·제목 없이 그리고, 저장되면 창을 닫아요. */
+export type EditorMode = { bare?: boolean; onSaved?: () => void };
+
+export function useCardSave(key: SiteContentKey, onSaved?: () => void) {
   const toast = useToast();
   const mutation = useSaveSiteContent();
   const busy = useRef(false);
@@ -20,7 +23,8 @@ export function useCardSave(key: SiteContentKey) {
     setError(null);
     try {
       await mutation.mutateAsync({ key, value });
-      toast.show({ message: "랜딩에 반영했어요." });
+      toast.show({ message: "홈페이지에 반영했어요." });
+      onSaved?.();
     } catch (e) {
       setError(saveErrorMessage(e));
     } finally {
@@ -32,6 +36,7 @@ export function useCardSave(key: SiteContentKey) {
 
 export function EditorCard({
   title,
+  bare = false,
   where,
   saveLabel,
   pending,
@@ -40,6 +45,7 @@ export function EditorCard({
   children,
 }: {
   title: string;
+  bare?: boolean;
   /** 랜딩·학생 화면의 어디에 보이는지 한 줄로 알려요. */
   where?: string;
   saveLabel: string;
@@ -48,39 +54,45 @@ export function EditorCard({
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
   children: ReactNode;
 }) {
-  return (
-    <Card tone="raised" className="min-w-0">
-      <form
-        noValidate
-        onSubmit={onSubmit}
-        className="flex min-w-0 flex-col gap-4"
-      >
+  const form = (
+    <form
+      noValidate
+      onSubmit={onSubmit}
+      className="flex min-w-0 flex-col gap-4"
+    >
+      {bare ? null : (
         <div className="flex flex-col gap-1">
           <h2 className="text-h3">{title}</h2>
           {where ? (
             <p className="text-caption text-text-muted">{where}</p>
           ) : null}
         </div>
-        {children}
-        {error ? (
-          <p
-            role="alert"
-            className="rounded-md bg-danger-50 px-3 py-2 text-body-sm text-danger-700"
-          >
-            {error}
-          </p>
-        ) : null}
-        <div>
-          <Button
-            type="submit"
-            variant="secondary"
-            size="md"
-            disabled={pending}
-          >
-            {saveLabel}
-          </Button>
-        </div>
-      </form>
+      )}
+      {children}
+      {error ? (
+        <p
+          role="alert"
+          className="rounded-md bg-danger-50 px-3 py-2 text-body-sm text-danger-700"
+        >
+          {error}
+        </p>
+      ) : null}
+      <div>
+        <Button
+          type="submit"
+          variant={bare ? "primary" : "secondary"}
+          size="md"
+          disabled={pending}
+        >
+          {saveLabel}
+        </Button>
+      </div>
+    </form>
+  );
+  if (bare) return form;
+  return (
+    <Card tone="raised" className="min-w-0">
+      {form}
     </Card>
   );
 }

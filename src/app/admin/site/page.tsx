@@ -1,5 +1,5 @@
-import { AdminSiteContentScreen } from "@/features/site-content";
+import { AdminLandingScreen } from "@/features/landing";
 
 export default function Page() {
-  return <AdminSiteContentScreen />;
+  return <AdminLandingScreen />;
 }

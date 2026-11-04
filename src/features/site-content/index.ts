@@ -12,5 +12,8 @@ export type {
   Tuition,
 } from "./model/siteContent";
 export { useSiteContent } from "./state/useSiteContent";
-export { AdminSiteContentScreen } from "./screen/AdminSiteContentScreen";
+export {
+  LandingEditModal,
+  type LandingSection,
+} from "./components/admin/LandingEditModal";
 export { PointsGoalSettings } from "./components/admin/PointsGoalSettings";
