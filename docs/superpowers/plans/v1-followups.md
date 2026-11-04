@@ -64,7 +64,7 @@
 - [x] The student homework screen shows the `submit_homework` error text (the three P0001 messages) as is (Task 5).
 
 ## videos-questions
-- Replace the `/s/videos`·`/s/questions` placeholders (ComingSoonTabScreen) and the home '새 영상' card with real screens. Keep sw.js from intercepting cross-origin (Storage signed URL) and Range requests.
+- Replace the `/s/videos`·`/s/questions` placeholders (ComingSoonTabScreen) and the home '새 영상' card with real screens. Keep sw.js from intercepting cross-origin (Storage signed URL) and Range requests. (verified in Task SW + Task 7: cross-origin signed URL)
 - Replace the unanswered-question count `UNANSWERED_QUESTIONS_PLACEHOLDER` (`src/features/today/model/today.ts`) with the real hook.
 
 ## student-app (from class-ops final review)

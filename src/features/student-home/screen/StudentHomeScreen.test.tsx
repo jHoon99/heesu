@@ -17,6 +17,9 @@ vi.mock("@/features/student-shell", () => ({ useMyProfile: vi.fn() }));
 vi.mock("@/features/homework", () => ({
   TodayHomeworkCard: () => <div>오늘 숙제 카드</div>,
 }));
+vi.mock("@/features/videos", () => ({
+  NewVideoCard: () => <div>새 영상 카드</div>,
+}));
 vi.mock("@/features/site-content", async (orig) => ({
   ...(await orig<typeof import("@/features/site-content")>()),
   useSiteContent: vi.fn(),
@@ -69,8 +72,8 @@ describe("StudentHomeScreen", () => {
     expect(await screen.findByText("전체 8명 중 2등")).toBeInTheDocument();
     expect(screen.getByText("보상까지 18점 남았어요")).toBeInTheDocument();
     expect(screen.getByText("오늘 숙제 카드")).toBeInTheDocument();
-    expect(screen.getByText("새 영상")).toBeInTheDocument();
-    expect(screen.getByText("영상 수업은 곧 열려요.")).toBeInTheDocument();
+    expect(screen.getByText("새 영상 카드")).toBeInTheDocument();
+    expect(screen.queryByText("영상 수업은 곧 열려요.")).toBeNull();
   });
 
   it("hides the rank line when the rank query fails", async () => {

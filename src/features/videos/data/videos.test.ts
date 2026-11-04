@@ -2,7 +2,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { supabase } from "@/core/supabase/client";
 import { SaveNotAppliedError } from "@/core/supabase/saveNotApplied";
 import { removeVideoObject } from "./upload";
-import { createVideo, deleteVideo, updateVideo } from "./videos";
+import {
+  createPlaybackUrl,
+  createVideo,
+  deleteVideo,
+  listMyVideos,
+  saveVideoProgress,
+  updateVideo,
+} from "./videos";
 
 vi.mock("@/core/supabase/client", () => ({ supabase: { from: vi.fn() } }));
 vi.mock("./upload", () => ({ removeVideoObject: vi.fn() }));
@@ -143,5 +150,62 @@ describe("updateVideo", () => {
     await expect(
       updateVideo("v1", { title: "a", publishedAt: "x" }),
     ).rejects.toBeInstanceOf(SaveNotAppliedError);
+  });
+});
+
+describe("student video data", () => {
+  it("signs the playback url for 3 hours", async () => {
+    const createSignedUrl = vi.fn().mockResolvedValue({
+      data: { signedUrl: "https://x/y" },
+      error: null,
+    });
+    const storage = vi.fn().mockReturnValue({ createSignedUrl });
+    (supabase as unknown as { storage: unknown }).storage = { from: storage };
+    await expect(createPlaybackUrl("c1/x.mp4")).resolves.toBe("https://x/y");
+    expect(storage).toHaveBeenCalledWith("videos");
+    expect(createSignedUrl).toHaveBeenCalledWith("c1/x.mp4", 10800);
+  });
+
+  it("floors progress and rejects a non-number result", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: 30, error: null });
+    (supabase as unknown as { rpc: unknown }).rpc = rpc;
+    await expect(saveVideoProgress("v1", 12.7, 30.2)).resolves.toBe(30);
+    expect(rpc).toHaveBeenCalledWith("save_video_progress", {
+      p_video_id: "v1",
+      p_position_seconds: 12,
+      p_watched_seconds: 30,
+    });
+    rpc.mockResolvedValue({ data: null, error: null });
+    await expect(saveVideoProgress("v1", 1, 1)).rejects.toBeInstanceOf(
+      SaveNotAppliedError,
+    );
+  });
+
+  it("maps a row without a view record to 0 watched", async () => {
+    const builder: Record<string, unknown> = {};
+    for (const m of ["select", "order"]) builder[m] = () => builder;
+    builder.limit = () =>
+      Promise.resolve({
+        data: [
+          {
+            id: "v1",
+            class_id: "c1",
+            title: "t",
+            storage_path: "c1/x.mp4",
+            duration_seconds: 60,
+            published_at: "2026-11-04T00:00:00+09:00",
+            classes: { name: "A반" },
+            video_views: [],
+          },
+        ],
+        error: null,
+      });
+    from.mockReturnValue(builder as never);
+    const [v] = await listMyVideos();
+    expect(v).toMatchObject({
+      className: "A반",
+      watchedSeconds: 0,
+      positionSeconds: 0,
+    });
   });
 });

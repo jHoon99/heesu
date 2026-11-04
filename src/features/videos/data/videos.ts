@@ -143,3 +143,90 @@ export async function deleteVideo(video: {
     return { fileRemoved: false };
   }
 }
+
+export type MyVideo = {
+  id: string;
+  classId: string;
+  className: string;
+  title: string;
+  storagePath: string;
+  durationSeconds: number;
+  publishedAt: string;
+  watchedSeconds: number;
+  positionSeconds: number;
+};
+
+const MY_COLUMNS =
+  "id, class_id, title, storage_path, duration_seconds, published_at, classes(name), video_views(watched_seconds, position_seconds)";
+
+type MyRow = {
+  id: string;
+  class_id: string;
+  title: string;
+  storage_path: string;
+  duration_seconds: number;
+  published_at: string;
+  classes: { name: string } | null;
+  video_views: { watched_seconds: number; position_seconds: number }[];
+};
+
+function toMyVideo(r: MyRow): MyVideo {
+  const view = r.video_views[0];
+  return {
+    id: r.id,
+    classId: r.class_id,
+    className: r.classes?.name ?? "",
+    title: r.title,
+    storagePath: r.storage_path,
+    durationSeconds: r.duration_seconds,
+    publishedAt: r.published_at,
+    watchedSeconds: view?.watched_seconds ?? 0,
+    positionSeconds: view?.position_seconds ?? 0,
+  };
+}
+
+/** RLS가 내 반에 공개된 영상과 내 기록만 줘요. */
+export async function listMyVideos(): Promise<MyVideo[]> {
+  const { data, error } = await supabase
+    .from("videos")
+    .select(MY_COLUMNS)
+    .order("published_at", { ascending: false })
+    .limit(100);
+  if (error) throw error;
+  return (data as unknown as MyRow[]).map(toMyVideo);
+}
+
+export async function getMyVideo(id: string): Promise<MyVideo | null> {
+  const { data, error } = await supabase
+    .from("videos")
+    .select(MY_COLUMNS)
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? toMyVideo(data as unknown as MyRow) : null;
+}
+
+export const PLAYBACK_URL_TTL_SECONDS = 10800;
+
+export async function createPlaybackUrl(storagePath: string): Promise<string> {
+  const { data, error } = await supabase.storage
+    .from("videos")
+    .createSignedUrl(storagePath, PLAYBACK_URL_TTL_SECONDS);
+  if (error) throw error;
+  return data.signedUrl;
+}
+
+export async function saveVideoProgress(
+  videoId: string,
+  positionSeconds: number,
+  watchedSeconds: number,
+): Promise<number> {
+  const { data, error } = await supabase.rpc("save_video_progress", {
+    p_video_id: videoId,
+    p_position_seconds: Math.floor(positionSeconds),
+    p_watched_seconds: Math.floor(watchedSeconds),
+  });
+  if (error) throw error;
+  if (typeof data !== "number") throw new SaveNotAppliedError();
+  return data;
+}

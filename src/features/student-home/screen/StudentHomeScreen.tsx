@@ -1,8 +1,8 @@
 "use client";
 
 import { useMyStudent } from "@/features/auth";
-import { Card } from "@/design-system";
 import { TodayHomeworkCard } from "@/features/homework";
+import { NewVideoCard } from "@/features/videos";
 import { useMyProfile } from "@/features/student-shell";
 import { PointsCard } from "../components/PointsCard";
 import { formatTodayLabel, greeting } from "../model/greeting";
@@ -26,11 +26,9 @@ export function StudentHomeScreen() {
         <>
           <PointsCard studentId={studentId} />
           <TodayHomeworkCard studentId={studentId} />
+          <NewVideoCard studentId={studentId} />
         </>
       ) : null}
-      <Card title="새 영상">
-        <p className="text-body text-text-muted">영상 수업은 곧 열려요.</p>
-      </Card>
     </div>
   );
 }
