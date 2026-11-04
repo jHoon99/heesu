@@ -45,9 +45,13 @@ export function LocationSection({ content }: { content: SiteContent }) {
           지도 (주소 확정 후)
         </div>
         <div className="flex flex-col gap-3 text-body">
-          <div className="flex gap-3">
+          <div className="flex min-w-0 gap-3">
             <span className="w-18 shrink-0 text-text-muted">주소</span>
-            {address ?? <Blank>주소</Blank>}
+            {address ? (
+              <span className="min-w-0 break-words">{address}</span>
+            ) : (
+              <Blank>주소</Blank>
+            )}
           </div>
           {OTHER_ROWS.map(({ label, blank }) => (
             <div key={label} className="flex gap-3">

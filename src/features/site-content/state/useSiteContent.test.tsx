@@ -47,4 +47,29 @@ describe("useSiteContent", () => {
     expect(result.current.content).toEqual(EMPTY_SITE_CONTENT);
     expect(result.current.isSuccess).toBe(false);
   });
+
+  it("is loading with empty content until the request finishes", async () => {
+    let resolve!: (rows: { key: string; value: unknown }[]) => void;
+    vi.mocked(getSiteContent).mockReturnValue(
+      new Promise((r) => (resolve = r)),
+    );
+    const { result } = renderHook(() => useSiteContent(), {
+      wrapper: createWrapper(),
+    });
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.content).toBe(EMPTY_SITE_CONTENT);
+    resolve([]);
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+  });
+
+  it("falls back to defaults for a malformed row", async () => {
+    vi.mocked(getSiteContent).mockResolvedValue([
+      { key: "tuition", value: "x" },
+    ]);
+    const { result } = renderHook(() => useSiteContent(), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.content.tuition).toEqual(EMPTY_SITE_CONTENT.tuition);
+  });
 });

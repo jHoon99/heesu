@@ -12,9 +12,9 @@ export function NoticeBand({ notice }: { notice: Notice | null }) {
         aria-hidden="true"
         className="mt-0.5 shrink-0 text-text-brand"
       />
-      <div className="flex flex-col gap-1">
-        <p className="text-label">{notice.title}</p>
-        <p className="text-body-sm whitespace-pre-line text-text-muted">
+      <div className="flex min-w-0 flex-col gap-1">
+        <p className="text-label break-words">{notice.title}</p>
+        <p className="text-body-sm break-words whitespace-pre-line text-text-muted">
           {notice.body}
         </p>
       </div>

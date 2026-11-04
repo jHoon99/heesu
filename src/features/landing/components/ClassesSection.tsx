@@ -22,7 +22,7 @@ function Meta({
   children: ReactNode;
 }) {
   return (
-    <span className="inline-flex items-center gap-1.5">
+    <span className="inline-flex min-w-0 items-center gap-1.5 break-words">
       <Icon size={16} strokeWidth={1.75} aria-hidden="true" />
       {children}
     </span>
@@ -38,9 +38,11 @@ export function ClassesSection({ content }: { content: SiteContent }) {
         <SectionHeading eyebrow="CLASSES" title="반과 시간표" />
         <RevealGroup className="flex flex-col gap-3">
           {cards.map((c, i) => (
-            <Card key={i} className="flex h-full flex-col gap-2.5">
-              <h3 className="text-h3">{c.name ?? <Blank>반 이름</Blank>}</h3>
-              <div className="flex flex-wrap gap-2 text-body-sm text-text-muted">
+            <Card key={i} className="flex h-full min-w-0 flex-col gap-2.5">
+              <h3 className="text-h3 break-words">
+                {c.name ?? <Blank>반 이름</Blank>}
+              </h3>
+              <div className="flex min-w-0 flex-wrap gap-2 text-body-sm text-text-muted">
                 <Meta icon={GraduationCap}>
                   {c.grades ?? <Blank>학년</Blank>}
                 </Meta>

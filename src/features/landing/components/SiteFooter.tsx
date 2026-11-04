@@ -30,10 +30,10 @@ export function SiteFooter({ content }: { content: SiteContent }) {
         </div>
         <div className="flex flex-col gap-2 text-body-sm">
           {INFO.map(({ label, value, blank }) => (
-            <span key={label}>
+            <span key={label} className="min-w-0 break-words">
               {label}{" "}
               {value ? (
-                <span>{value}</span>
+                <span className="min-w-0 break-words">{value}</span>
               ) : (
                 <Blank tone="dark">{blank}</Blank>
               )}

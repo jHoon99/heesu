@@ -12,3 +12,4 @@ export type {
   Tuition,
 } from "./model/siteContent";
 export { useSiteContent } from "./state/useSiteContent";
+export { AdminSiteContentScreen } from "./screen/AdminSiteContentScreen";

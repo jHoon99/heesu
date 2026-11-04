@@ -6,9 +6,9 @@ import { SectionHeading } from "./SectionHeading";
 
 function PriceRow({ label, value }: { label: string; value: string | null }) {
   return (
-    <div className="flex min-h-13 items-center justify-between gap-3 border-b border-border last:border-b-0">
+    <div className="flex min-h-13 min-w-0 items-center justify-between gap-3 border-b border-border last:border-b-0">
       <span className="text-body">{label}</span>
-      <span className="text-body tabular-nums">
+      <span className="min-w-0 text-body break-words tabular-nums">
         {value ?? <Blank>금액</Blank>}
       </span>
     </div>
@@ -25,14 +25,14 @@ export function TuitionSection({ content }: { content: SiteContent }) {
           <PriceRow label="수강료 (월)" value={monthly} />
           <PriceRow label="교재비" value={textbook} />
         </div>
-        <p className="flex items-start gap-1.5 text-body-sm text-text-muted">
+        <p className="flex min-w-0 items-start gap-1.5 text-body-sm text-text-muted">
           <Info
             size={16}
             strokeWidth={1.75}
             aria-hidden="true"
             className="mt-[3px] shrink-0"
           />
-          <span>
+          <span className="min-w-0 break-words">
             수강료는 교육청에 신고한 금액이에요.{" "}
             {note ?? <Blank>추가 안내</Blank>}
           </span>

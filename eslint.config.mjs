@@ -44,6 +44,8 @@ const ADMIN_UI_FILES = [
   "src/features/guardian/components/admin/**",
   "src/features/consultations/components/admin/**",
   "src/features/consultations/screen/Admin*",
+  "src/features/site-content/components/admin/**",
+  "src/features/site-content/screen/Admin*",
 ];
 
 const ENTRANCE_MOTION = [
