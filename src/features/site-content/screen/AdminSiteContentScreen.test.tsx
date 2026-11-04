@@ -26,31 +26,44 @@ beforeEach(() => {
 });
 
 describe("AdminSiteContentScreen", () => {
-  it("renders the six cards once loaded", async () => {
+  it("renders the five landing cards, each saying where it shows", async () => {
+    get.mockResolvedValue([]);
+    setup();
+    expect(
+      screen.getByRole("heading", { name: "랜딩 관리" }),
+    ).toBeInTheDocument();
+    for (const [title, where] of [
+      ["공지", "공지 띠"],
+      ["반·시간표", "‘반·시간표’ 섹션"],
+      ["수강료·교재비", "‘수강료’ 섹션"],
+      ["연락처", "‘오시는 길’"],
+      ["법정 표시", "푸터"],
+    ] as const) {
+      const heading = await screen.findByRole("heading", { name: title });
+      expect(heading.parentElement).toHaveTextContent(where);
+    }
+  });
+
+  it("does not show the reward goal here (it lives on the points screen)", async () => {
     get.mockResolvedValue([{ key: "points_goal", value: 40 }]);
     setup();
+    await screen.findByRole("heading", { name: "공지" });
+    expect(screen.queryByRole("heading", { name: "보상 목표" })).toBeNull();
     expect(screen.queryByLabelText("목표 포인트")).toBeNull();
-    expect(
-      await screen.findByRole("heading", { name: "랜딩 관리" }),
-    ).toBeInTheDocument();
-    for (const title of [
-      "공지",
-      "반·시간표",
-      "수강료·교재비",
-      "연락처",
-      "법정 표시",
-      "보상 목표",
-    ])
-      expect(
-        await screen.findByRole("heading", { name: title }),
-      ).toBeInTheDocument();
-    expect(screen.getByLabelText("목표 포인트")).toHaveValue("40");
+  });
+
+  it("shows a phone-width preview of the real landing", () => {
+    get.mockResolvedValue([]);
+    setup();
+    const frame = screen.getByTitle("랜딩 미리보기");
+    expect(frame.tagName).toBe("IFRAME");
+    expect(frame).toHaveAttribute("src", "/");
   });
 
   it("shows the error when there is no data", async () => {
     get.mockRejectedValue(new TypeError("Failed to fetch"));
     setup();
     expect(await screen.findByRole("alert")).toBeInTheDocument();
-    expect(screen.queryByLabelText("목표 포인트")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "공지" })).toBeNull();
   });
 });

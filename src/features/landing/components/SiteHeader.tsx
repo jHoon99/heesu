@@ -8,9 +8,27 @@ import { useActiveSection } from "../state/useActiveSection";
 const IDS = SECTIONS.map((s) => s.id);
 
 export function SiteHeader() {
-  const active = useActiveSection(IDS);
+  const observed = useActiveSection(IDS);
+  // 칩을 누르면 페이지가 내려가는 동안 지나가는 섹션 때문에 칩 줄이 흔들리지 않게,
+  // 스크롤이 멈출 때까지 누른 칩을 고정해요.
+  const [pinned, setPinned] = useState<string | null>(null);
+  const active = pinned ?? observed;
   const [scrolled, setScrolled] = useState(false);
   const navRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (pinned === null) return;
+    let timer = window.setTimeout(() => setPinned(null), 150);
+    const onScroll = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setPinned(null), 150);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [pinned]);
 
   useEffect(() => {
     const update = () => setScrolled(window.scrollY > 8);
@@ -27,10 +45,13 @@ export function SiteHeader() {
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    nav.scrollTo({
-      left: tab.offsetLeft - (nav.clientWidth - tab.offsetWidth) / 2,
-      behavior: reduced ? "auto" : "smooth",
-    });
+    const max = nav.scrollWidth - nav.clientWidth;
+    const left = Math.min(
+      max,
+      Math.max(0, tab.offsetLeft - (nav.clientWidth - tab.offsetWidth) / 2),
+    );
+    if (Math.abs(nav.scrollLeft - left) < 1) return;
+    nav.scrollTo({ left, behavior: reduced ? "auto" : "smooth" });
   }, [active]);
 
   return (
@@ -56,13 +77,14 @@ export function SiteHeader() {
       <nav
         ref={navRef}
         aria-label="섹션 바로가기"
-        className="mx-auto flex max-w-[960px] [scrollbar-width:none] gap-1 overflow-x-auto [mask-image:linear-gradient(to_right,black_85%,transparent)] px-4 pb-2 md:justify-center md:[mask-image:none] [&::-webkit-scrollbar]:hidden"
+        className="relative mx-auto flex max-w-[960px] [scrollbar-width:none] gap-1 overflow-x-auto [mask-image:linear-gradient(to_right,black_85%,transparent)] px-4 pb-2 md:justify-center md:[mask-image:none] [&::-webkit-scrollbar]:hidden"
       >
         {SECTIONS.map(({ id, label }) => (
           <a
             key={id}
             href={`#${id}`}
             aria-current={active === id ? "true" : undefined}
+            onClick={() => setPinned(id)}
             className={cn(
               "inline-flex h-10 shrink-0 items-center rounded-full px-3.5 text-label no-underline transition-colors duration-(--dur-fast) ease-out",
               active === id

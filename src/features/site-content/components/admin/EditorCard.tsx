@@ -32,6 +32,7 @@ export function useCardSave(key: SiteContentKey) {
 
 export function EditorCard({
   title,
+  where,
   saveLabel,
   pending,
   error,
@@ -39,6 +40,8 @@ export function EditorCard({
   children,
 }: {
   title: string;
+  /** 랜딩·학생 화면의 어디에 보이는지 한 줄로 알려요. */
+  where?: string;
   saveLabel: string;
   pending: boolean;
   error: string | null;
@@ -52,7 +55,12 @@ export function EditorCard({
         onSubmit={onSubmit}
         className="flex min-w-0 flex-col gap-4"
       >
-        <h2 className="text-h3">{title}</h2>
+        <div className="flex flex-col gap-1">
+          <h2 className="text-h3">{title}</h2>
+          {where ? (
+            <p className="text-caption text-text-muted">{where}</p>
+          ) : null}
+        </div>
         {children}
         {error ? (
           <p

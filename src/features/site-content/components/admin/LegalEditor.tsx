@@ -30,6 +30,7 @@ export function LegalEditor({
   return (
     <EditorCard
       title="법정 표시"
+      where="랜딩 맨 아래 학원 정보(푸터)에 보여요."
       saveLabel="법정 표시 저장"
       pending={pending}
       error={error}
