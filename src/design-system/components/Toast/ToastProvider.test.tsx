@@ -88,6 +88,22 @@ describe("ToastProvider", () => {
     expect(onAction).toHaveBeenCalledTimes(1);
   });
 
+  it("dismisses a danger toast after its action runs", async () => {
+    const onAction = vi.fn();
+    const user = setup([
+      {
+        tone: "danger",
+        message: "지우지 못했어요.",
+        actionLabel: "다시 시도",
+        onAction,
+      },
+    ]);
+    await user.click(screen.getByRole("button", { name: "띄우기" }));
+    await user.click(screen.getByRole("button", { name: "다시 시도" }));
+    expect(onAction).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+  });
+
   it("throws outside the provider", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     expect(() => render(<Trigger toasts={[]} />)).toThrow(

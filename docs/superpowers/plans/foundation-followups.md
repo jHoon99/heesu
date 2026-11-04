@@ -15,12 +15,13 @@
 (All items above done in the landing plan, Tasks 1-9.)
 
 ## Admin plan must include
-- StatusChip: accessible name = `${ariaLabel} ${status word}`; non-interactive chip needs a role or no aria-label.
-- Lint warning when admin features import `design-system/motion` (spec §11).
-- Danger button hover token; tests for Input hint path, Select, Card/Badge/Toast; QueryClient defaults test.
-- ESLint: `@supabase/supabase-js/*` pattern, assert `ruleId` in boundary tests, positive test for allowed supabase imports; allow `import type` from supabase-js in `core/auth` (or re-export types from `core/supabase`).
-- Meta tests: sequence default-privilege probe; relkind `f` in test 1; security-definer scan beyond public/private.
-- CI: `persist-credentials: false`, `timeout-minutes`, `concurrency`.
+(Closed by the auth-admin-base plan.)
+- [x] StatusChip: accessible name = `${ariaLabel} ${status word}`; non-interactive chip needs a role or no aria-label. (Task 1)
+- [x] Lint warning when admin features import `design-system/motion` (spec §11). (Task 1)
+- [x] Danger button hover token; tests for Input hint path, Select, Card/Badge/Toast; QueryClient defaults test. (Task 1)
+- [x] ESLint: `@supabase/supabase-js/*` pattern, assert `ruleId` in boundary tests, positive test for allowed supabase imports; allow `import type` from supabase-js in `core/auth` (or re-export types from `core/supabase`). (Task 1)
+- [x] Meta tests: sequence default-privilege probe; relkind `f` in test 1; security-definer scan beyond public/private. (Task 1)
+- [x] CI: `persist-credentials: false`, `timeout-minutes`, `concurrency`. (Task 1)
 
 ## Guardian / storage plans
 - Re-check `curl -sI https://<host>/g` returns `Referrer-Policy: no-referrer` and `X-Robots-Tag: noindex` once `/g` exists.
@@ -44,4 +45,10 @@
 - Hosted smoke test: real submit from dev.heesu.pages.dev; `curl` with a foreign Origin must return 403.
 - Check whether the project disabled legacy API keys — if so, `SUPABASE_SERVICE_ROLE_KEY` in functions must come from a custom secret holding the new `sb_secret_…` key.
 - Test Turnstile keys let bots pass until the real keys are in on 12/1.
+- Dashboard Auth Redirect URLs = exactly 3 addresses: `http://localhost:3000`, `https://dev.heesu.pages.dev`, `https://heesu.pages.dev`.
+- Deploy `create-student` and `reset-student-password` with `--no-verify-jwt` (same as config.toml; the functions check the admin session themselves).
+- After creating the admin account, insert it into `private.admins`; enroll TOTP at the first login.
+- Never run `supabase db push --include-seed` or `supabase db reset --linked` against cloud (seed.sql has a public admin password). After deploy, verify no `*@example.test` admin exists.
+- Auth settings: Email provider ON, "Allow new users to sign up" OFF, "Confirm email" ON, minimum password length 8.
+- Verify an old refresh token fails after an admin password reset (passed locally). Note: with asymmetric JWT keys a signed-out admin's access token stays valid until expiry (up to 1h).
 - Local build needs `.env.local` (copy values from `supabase status`).

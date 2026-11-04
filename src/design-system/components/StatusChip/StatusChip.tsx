@@ -83,28 +83,27 @@ export function StatusChip({
   const meta = META[status];
   const Icon = meta.icon;
   const className = cn(chip({ size }), meta.tone);
-  const content = (
-    <>
-      <Icon size={12} strokeWidth={2.25} aria-hidden="true" />
-      <span>{label ?? meta.text}</span>
-    </>
-  );
+  const text = label ?? meta.text;
+  const icon = <Icon size={12} strokeWidth={2.25} aria-hidden="true" />;
 
   if (onClick) {
     return (
       <button
         type="button"
         onClick={onClick}
-        aria-label={ariaLabel}
+        aria-label={ariaLabel ? `${ariaLabel} ${text}` : undefined}
         className={cn(className, "cursor-pointer")}
       >
-        {content}
+        {icon}
+        <span>{text}</span>
       </button>
     );
   }
   return (
-    <span className={className} aria-label={ariaLabel}>
-      {content}
+    <span className={className}>
+      {icon}
+      {ariaLabel ? <span className="sr-only">{ariaLabel} </span> : null}
+      <span>{text}</span>
     </span>
   );
 }

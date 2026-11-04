@@ -6,7 +6,7 @@ select plan(11);
 
 -- postgres로 가짜 사용자를 만든다 (admins FK 때문에 auth.users에 먼저 넣는다).
 insert into auth.users (id, email) values
-  ('00000000-0000-4000-8000-00000000a001', 'admin@example.test'),
+  ('00000000-0000-4000-8000-00000000a001', 'admin1@example.test'),
   ('00000000-0000-4000-8000-00000000b001', 'nobody@example.test');
 insert into private.admins (user_id) values ('00000000-0000-4000-8000-00000000a001');
 

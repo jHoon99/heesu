@@ -10,3 +10,51 @@ insert into public.site_content (key, value) values
   ('tuition', '{"monthly": "(예시) 월 00만 원", "textbook": "(예시) 교재비 별도", "note": "(예시) 수강료 안내 문구예요."}'),
   ('contact', '{"phone": "063-000-0000", "address": "전북 전주시 (예시 주소)"}'),
   ('legal', '{"academy_name": "(예시) 희수영어", "registration_no": "(예시) 제0000-00호", "subjects": "(예시) 영어", "tuition_notice": "(예시) 교습비 게시 문구예요."}');
+
+-- ─── 로컬 로그인 계정 (가짜, 로컬 전용) ───────────────────────────────
+-- 아래 비밀번호는 로컬 확인용으로 공개된 값이에요. 클라우드에는 시드를 넣지 않아요(계획 7).
+--   원장 admin@example.test / local-admin-pass-1234 (첫 로그인 때 TOTP를 등록해요)
+--   학생 haneul / student-pass-1, minjun / student-pass-1 (로그인하면 새 비밀번호를 정해요)
+-- 토큰 컬럼이 NULL이면 GoTrue 로그인이 깨져서 ''로 넣어요.
+insert into auth.users (
+  instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  confirmation_token, recovery_token, email_change_token_new, email_change
+)
+select
+  '00000000-0000-0000-0000-000000000000', u.id, 'authenticated', 'authenticated', u.email,
+  extensions.crypt(u.pw, extensions.gen_salt('bf')), now(),
+  '{"provider":"email","providers":["email"]}', '{}', now(), now(),
+  '', '', '', ''
+from (values
+  ('00000000-0000-4000-8000-5ee0000000a1'::uuid, 'admin@example.test', 'local-admin-pass-1234'),
+  ('00000000-0000-4000-8000-5ee0000000c1'::uuid, 'haneul@student.heesu.internal', 'student-pass-1'),
+  ('00000000-0000-4000-8000-5ee0000000d1'::uuid, 'minjun@student.heesu.internal', 'student-pass-1')
+) as u(id, email, pw);
+
+insert into auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+select u.id::text, u.id, jsonb_build_object('sub', u.id::text, 'email', u.email), 'email', now(), now(), now()
+from auth.users u
+where u.id in ('00000000-0000-4000-8000-5ee0000000a1', '00000000-0000-4000-8000-5ee0000000c1',
+               '00000000-0000-4000-8000-5ee0000000d1');
+
+insert into private.admins (user_id) values ('00000000-0000-4000-8000-5ee0000000a1');
+
+-- ─── 학생·반 (가짜) ──────────────────────────────────────────────────
+insert into public.students (id, user_id, login_id, name, grade, must_change_password) values
+  ('10000000-0000-4000-8000-5ee0000000c1', '00000000-0000-4000-8000-5ee0000000c1', 'haneul', '김하늘', '중2', true),
+  ('10000000-0000-4000-8000-5ee0000000d1', '00000000-0000-4000-8000-5ee0000000d1', 'minjun', '이민준', '고1', true);
+
+insert into public.student_private (student_id, school, guardian_name, guardian_phone, memo) values
+  ('10000000-0000-4000-8000-5ee0000000c1', '(예시) 가짜중학교', '(예시) 보호자', '010-0000-0000', '(예시) 메모예요.');
+
+-- day는 ISO 요일(1=월 … 7=일).
+insert into public.classes (id, name, level, schedule, capacity) values
+  ('20000000-0000-4000-8000-5ee0000000a1', '중등 기초반', 'middle',
+   '[{"day":1,"start":"17:00","end":"19:00"},{"day":3,"start":"17:00","end":"19:00"}]', 8),
+  ('20000000-0000-4000-8000-5ee0000000b1', '고등 독해반', 'high',
+   '[{"day":2,"start":"19:00","end":"21:00"},{"day":4,"start":"19:00","end":"21:00"}]', null);
+
+insert into public.class_members (class_id, student_id) values
+  ('20000000-0000-4000-8000-5ee0000000a1', '10000000-0000-4000-8000-5ee0000000c1'),
+  ('20000000-0000-4000-8000-5ee0000000b1', '10000000-0000-4000-8000-5ee0000000d1');

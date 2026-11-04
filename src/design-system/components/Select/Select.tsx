@@ -39,6 +39,8 @@ export function Select({
   className,
   value,
   defaultValue,
+  "aria-describedby": describedByProp,
+  "aria-invalid": ariaInvalidProp,
   ...rest
 }: SelectProps) {
   const autoId = useId();
@@ -67,8 +69,12 @@ export function Select({
         <select
           id={selectId}
           required={required}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={hasMessage ? messageId : undefined}
+          aria-invalid={error ? true : ariaInvalidProp}
+          aria-describedby={
+            [describedByProp, hasMessage ? messageId : null]
+              .filter(Boolean)
+              .join(" ") || undefined
+          }
           className={cn(select({ size, invalid: Boolean(error) }), className)}
           {...valueProps}
           {...rest}

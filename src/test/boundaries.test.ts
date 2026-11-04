@@ -9,6 +9,11 @@ async function lint(filePath: string, code: string) {
   return result?.messages.filter((m) => m.severity === 2) ?? [];
 }
 
+async function lintAll(filePath: string, code: string) {
+  const [result] = await eslint.lintText(code, { filePath });
+  return result?.messages ?? [];
+}
+
 // The boundaries plugin only classifies imports that resolve to real files,
 // so the tests create throwaway fixture modules next to the real source dirs.
 const FIXTURE_CORE = "src/core/zz-fixture.ts";
@@ -33,6 +38,7 @@ describe("architecture boundaries", { timeout: 20_000 }, () => {
       'import "@/core/zz-fixture";\n',
     );
     expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0]?.ruleId).toBe("boundaries/dependencies");
   });
 
   it("forbids reaching into another feature's internals", async () => {
@@ -41,6 +47,7 @@ describe("architecture boundaries", { timeout: 20_000 }, () => {
       'import "@/features/zz-fixture/data/y";\n',
     );
     expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0]?.ruleId).toBe("boundaries/dependencies");
   });
 
   it("allows importing another feature's public entry", async () => {
@@ -65,6 +72,51 @@ describe("architecture boundaries", { timeout: 20_000 }, () => {
       'import { createClient } from "@supabase/supabase-js";\nexport const c = createClient;\n',
     );
     expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0]?.ruleId).toBe("no-restricted-imports");
+  });
+
+  it("forbids supabase-js subpaths outside data", async () => {
+    const errors = await lint(
+      "src/app/x.tsx",
+      'import "@supabase/supabase-js/dist/module/index.js";\n',
+    );
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0]?.ruleId).toBe("no-restricted-imports");
+  });
+
+  it("allows supabase-js in feature data and core/supabase", async () => {
+    const code =
+      'import { createClient } from "@supabase/supabase-js";\nexport const c = createClient;\n';
+    expect(await lint("src/features/zz-fixture/data/x.ts", code)).toHaveLength(
+      0,
+    );
+    expect(await lint("src/core/supabase/x.ts", code)).toHaveLength(0);
+  });
+
+  it("warns when admin UI imports entrance motion", async () => {
+    const reveal =
+      'import { Reveal } from "@/design-system";\nexport const r = Reveal;\n';
+    const warnings = (
+      await lintAll("src/features/students/screen/x.tsx", reveal)
+    ).filter((m) => m.severity === 1);
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]?.ruleId).toBe(
+      "@typescript-eslint/no-restricted-imports",
+    );
+
+    const button =
+      'import { Button } from "@/design-system";\nexport const b = Button;\n';
+    expect(
+      (await lintAll("src/features/students/screen/x.tsx", button)).filter(
+        (m) => m.severity === 1,
+      ),
+    ).toHaveLength(0);
+
+    expect(
+      (await lintAll("src/features/landing/screen/x.tsx", reveal)).filter(
+        (m) => m.severity === 1,
+      ),
+    ).toHaveLength(0);
   });
 
   it("forbids design-system from importing non-allowlisted packages", async () => {

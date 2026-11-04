@@ -7,3 +7,5 @@ export const supabase: SupabaseClient<Database> = createClient<Database>(
   env.supabasePublishableKey,
   { auth: { flowType: "pkce", persistSession: true, autoRefreshToken: true } },
 );
+
+export type { Session, User, AuthError } from "@supabase/supabase-js";

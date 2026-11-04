@@ -5,7 +5,67 @@ export type Database = {
   
   "public": {
           Tables: {
-            "consultations": {
+            "class_members": {
+                  Row: {
+                    "class_id": string,"created_at": string,"student_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "class_id": string,"created_at"?: string,"student_id": string
+                  }
+                  Update: {
+                    "class_id"?: string,"created_at"?: string,"student_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "class_members_class_id_fkey"
+      columns: ["class_id"]
+isOneToOne: false
+      referencedRelation: "classes"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "class_members_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"classes": {
+                  Row: {
+                    "capacity": number | null,"created_at": string,"id": string,"level": Database["public"]['Enums']["class_level"],"name": string,"schedule": NonNullable<Json>
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "capacity"?: number | null,"created_at"?: string,"id"?: string,"level": Database["public"]['Enums']["class_level"],"name": string,"schedule"?: NonNullable<Json>
+                  }
+                  Update: {
+                    "capacity"?: number | null,"created_at"?: string,"id"?: string,"level"?: Database["public"]['Enums']["class_level"],"name"?: string,"schedule"?: NonNullable<Json>
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"consents": {
+                  Row: {
+                    "consented_at": string,"created_at": string,"guardian_name": string,"id": string,"method": Database["public"]['Enums']["consent_method"],"student_id": string,"version": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "consented_at": string,"created_at"?: string,"guardian_name": string,"id"?: string,"method": Database["public"]['Enums']["consent_method"],"student_id": string,"version": string
+                  }
+                  Update: {
+                    "consented_at"?: string,"created_at"?: string,"guardian_name"?: string,"id"?: string,"method"?: Database["public"]['Enums']["consent_method"],"student_id"?: string,"version"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "consents_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"consultations": {
                   Row: {
                     "consent_version": string,"consented_at": string,"created_at": string,"grade": Database["public"]['Enums']["school_grade"],"id": string,"memo": string | null,"message": string | null,"parent_name": string,"phone": string,"status": Database["public"]['Enums']["consultation_status"]
                   }
@@ -33,18 +93,61 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"student_private": {
+                  Row: {
+                    "guardian_name": string | null,"guardian_phone": string | null,"memo": string | null,"school": string | null,"student_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "guardian_name"?: string | null,"guardian_phone"?: string | null,"memo"?: string | null,"school"?: string | null,"student_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "guardian_name"?: string | null,"guardian_phone"?: string | null,"memo"?: string | null,"school"?: string | null,"student_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "student_private_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: true
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"students": {
+                  Row: {
+                    "created_at": string,"grade": Database["public"]['Enums']["school_grade"],"id": string,"joined_at": string,"login_id": string,"must_change_password": boolean,"name": string,"status": Database["public"]['Enums']["student_status"],"user_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"grade": Database["public"]['Enums']["school_grade"],"id"?: string,"joined_at"?: string,"login_id": string,"must_change_password"?: boolean,"name": string,"status"?: Database["public"]['Enums']["student_status"],"user_id"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"grade"?: Database["public"]['Enums']["school_grade"],"id"?: string,"joined_at"?: string,"login_id"?: string,"must_change_password"?: boolean,"name"?: string,"status"?: Database["public"]['Enums']["student_status"],"user_id"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
                 }
           }
           Views: {
             [_ in never]: never
           }
           Functions: {
-            "submit_consultation":
+            "admin_user_exists":
+{ Args: { "p_user_id": string }; Returns: boolean
+                           },
+"my_role":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
+"password_changed":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"submit_consultation":
 { Args: { "p_consent_version": string,"p_grade": Database["public"]['Enums']["school_grade"],"p_message": string,"p_parent_name": string,"p_phone": string }; Returns: string
                            }
           }
           Enums: {
-            "consultation_status": "new"|"contacted"|"enrolled"|"on_hold","school_grade": "중1"|"중2"|"중3"|"고1"|"고2"|"고3"
+            "class_level": "middle"|"high","consent_method": "written"|"phone"|"kakao","consultation_status": "new"|"contacted"|"enrolled"|"on_hold","school_grade": "중1"|"중2"|"중3"|"고1"|"고2"|"고3","student_status": "active"|"paused"|"left"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -160,7 +263,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "consultation_status": ["new", "contacted", "enrolled", "on_hold"],"school_grade": ["중1", "중2", "중3", "고1", "고2", "고3"]
+            "class_level": ["middle", "high"],"consent_method": ["written", "phone", "kakao"],"consultation_status": ["new", "contacted", "enrolled", "on_hold"],"school_grade": ["중1", "중2", "중3", "고1", "고2", "고3"],"student_status": ["active", "paused", "left"]
           }
         }
 } as const

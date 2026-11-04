@@ -161,7 +161,11 @@ site_url = "http://localhost:3000"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["http://localhost:3000"]
+additional_redirect_urls = [
+  "http://localhost:3000",
+  "https://dev.heesu.pages.dev",
+  "https://heesu.pages.dev",
+]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to auth.external_url.
@@ -219,7 +223,9 @@ web3 = 30
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
-enable_signup = false
+# CLI는 이 값으로 이메일 로그인 자체(GOTRUE_EXTERNAL_EMAIL_ENABLED)를 켜고 끈다. false면 원장·학생 로그인이 막힌다.
+# 가입은 위 [auth] enable_signup = false(GOTRUE_DISABLE_SIGNUP)가 모든 경로에서 막는다.
+enable_signup = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
@@ -389,6 +395,15 @@ deno_version = 2
 # 공개 상담 신청. publishable 키는 JWT가 아니라서 게이트웨이 JWT 검증을 끄고,
 # 함수가 Origin 허용 목록과 Turnstile로 막는다(설계 13장 S4·S6).
 [functions.submit-consultation]
+verify_jwt = false
+
+# 원장 전용 함수. 게이트웨이 JWT 검증을 끄는 이유: CORS 프리플라이트(OPTIONS)는 Authorization 없이
+# 오므로 게이트웨이에서 막히면 브라우저가 호출하지 못한다. 대신 함수가 Origin 허용 목록을 먼저 보고,
+# getClaims(서명 검증)로 JWT를 확인한 뒤 aal2와 private.admins를 확인한다(설계 13장 S4·S5, v1 스펙 §11).
+[functions.create-student]
+verify_jwt = false
+
+[functions.reset-student-password]
 verify_jwt = false
 
 [analytics]

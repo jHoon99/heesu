@@ -9,7 +9,9 @@ describe("design tokens", () => {
     "--brown-700: #7A4E2E;",
     "--bg-page: var(--beige);",
     "--color-*: initial;",
+    "--danger-hover:",
     "--spacing: 4px;",
+    "--color-danger-hover: var(--danger-hover);",
   ])("contains %s", (token) => {
     expect(css.toLowerCase()).toContain(token.toLowerCase());
   });

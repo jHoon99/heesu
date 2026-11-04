@@ -22,6 +22,13 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Every RLS policy that calls `private.*` (e.g. `private.is_admin()`) must be declared `to authenticated` — otherwise anon reads on the same table fail with "permission denied for function is_admin". Anon-readable tables need a pgTAP test that anon select succeeds.
 - Guardian token travels only in the URL fragment (`/g#t=…`), never query string or path.
 - Do not add a table without RLS policies and a pgTAP test. All DB changes go through `supabase/migrations`; regenerate types with `npm run db:types`.
+- Client updates/deletes chain `.select(...)` and treat 0 rows as `SaveNotAppliedError` (`src/core/supabase/saveNotApplied.ts`).
+- Edit screens load fresh data (`refetchOnMount: "always"`, render after `isFetchedAfterMount`). Full-page error only when `isError && data === undefined`; a failed background refetch keeps the content.
+- Mutations carrying secrets (passwords) use `gcTime: 0` and `reset()` after settling; never keep plaintext in refs/state beyond the form.
+- User-visible `raise exception` (P0001) texts are Korean "-해요" (shown verbatim).
+- Class-scoped student lists must exclude `status = 'left'` (filter in RLS/view, not per screen).
+- New RLS policies wrap helpers as `(select private.is_admin())`.
+- Local dev must run on :3000 (Edge Function origin allowlist).
 - If you cannot explain an auth, permission, or DB-write change in one line, do not merge it.
 - UI copy is Korean "-해요" style; error messages say how to fix it.
 - Verify: `npm run typecheck && npm run lint && npm test && npm run db:test && npm run build`

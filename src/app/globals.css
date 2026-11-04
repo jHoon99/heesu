@@ -36,6 +36,7 @@
   --danger-50: #fbe7e4;
   --danger-500: #d2402f;
   --danger-700: #b42318;
+  --danger-hover: color-mix(in srgb, var(--danger-700) 85%, var(--brown-900));
   --info-50: #e4eef7;
   --info-500: #3d7ab3;
   --info-700: #2b5c88;
@@ -156,6 +157,7 @@
   --color-danger-50: var(--danger-50);
   --color-danger-500: var(--danger-500);
   --color-danger-700: var(--danger-700);
+  --color-danger-hover: var(--danger-hover);
   --color-info-50: var(--info-50);
   --color-info-500: var(--info-500);
   --color-info-700: var(--info-700);

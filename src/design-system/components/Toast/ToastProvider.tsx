@@ -70,7 +70,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               <Toast
                 tone={toast.tone}
                 actionLabel={needsClose ? "닫기" : toast.actionLabel}
-                onAction={needsClose ? dismiss : toast.onAction}
+                onAction={
+                  needsClose
+                    ? dismiss
+                    : () => {
+                        toast.onAction?.();
+                        if (toast.tone === "danger") dismiss();
+                      }
+                }
               >
                 {toast.message}
               </Toast>

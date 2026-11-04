@@ -14,15 +14,35 @@ const DS_EXTERNAL_ALLOWLIST = [
   "tailwind-merge",
 ];
 
+const SUPABASE_MESSAGE =
+  "supabase-js는 src/core/supabase 와 src/features/*/data 에서만 import 해요.";
+
 const SUPABASE_RESTRICTION = {
-  paths: [
-    {
-      name: "@supabase/supabase-js",
-      message:
-        "supabase-js는 src/core/supabase 와 src/features/*/data 에서만 import 해요.",
-    },
-  ],
+  paths: [{ name: "@supabase/supabase-js", message: SUPABASE_MESSAGE }],
+  patterns: [{ group: ["@supabase/supabase-js/*"], message: SUPABASE_MESSAGE }],
 };
+
+// Admin (원장) screens. Add new admin feature folders here.
+const ADMIN_UI_FILES = [
+  "src/app/admin/**",
+  "src/features/admin-shell/**",
+  "src/features/students/**",
+  "src/features/classes/**",
+];
+
+const ENTRANCE_MOTION = [
+  "Reveal",
+  "RevealGroup",
+  "TextRise",
+  "LeafDraw",
+  "CountUp",
+  "PointsBurst",
+  "ProgressFill",
+  "celebrate",
+];
+
+const NO_ENTRANCE_MOTION_MESSAGE =
+  "원장 화면에는 등장 모션을 쓰지 않아요(디자인 시스템 README 모션).";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -37,6 +57,30 @@ const eslintConfig = defineConfig([
   {
     files: ["src/core/supabase/**", "src/features/*/data/**"],
     rules: { "no-restricted-imports": "off" },
+  },
+  {
+    files: ADMIN_UI_FILES,
+    ignores: ["**/*.test.ts", "**/*.test.tsx"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "warn",
+        {
+          paths: [
+            {
+              name: "@/design-system",
+              importNames: ENTRANCE_MOTION,
+              message: NO_ENTRANCE_MOTION_MESSAGE,
+            },
+          ],
+          patterns: [
+            {
+              group: ["@/design-system/motion", "@/design-system/motion/*"],
+              message: NO_ENTRANCE_MOTION_MESSAGE,
+            },
+          ],
+        },
+      ],
+    },
   },
   {
     files: ["src/**/*.{ts,tsx}"],
