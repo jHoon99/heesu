@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ArrowRight, Calendar, Clock, MapPin, Users } from "lucide-react";
+import { ArrowRight, Clock, MapPin, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn, Reveal } from "@/design-system";
 import type { AboutLink, SiteContent } from "@/features/site-content";
@@ -156,9 +156,6 @@ export function AboutSection({ content }: { content: SiteContent }) {
         <div className="flex flex-col rounded-lg border border-border bg-bg-surface px-4 py-1">
           <InfoRow icon={Users} label="대상">
             중·고등학생
-          </InfoRow>
-          <InfoRow icon={Calendar} label="개원">
-            <span className="tabular-nums">2027년 1월</span>
           </InfoRow>
           <InfoRow icon={Clock} label="운영 시간">
             <Blank>운영 시간</Blank>

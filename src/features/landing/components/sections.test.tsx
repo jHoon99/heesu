@@ -277,7 +277,7 @@ describe("about section", () => {
       "/about/sample-3.svg",
       "/about/sample-1.svg",
     ]);
-    // 이야기 카드는 소개 글 뒤, 대상·개원 정보 앞에 와요.
+    // 이야기 카드는 소개 글 뒤, 대상·운영 시간 정보 앞에 와요.
     const order = Array.from(section.querySelectorAll("p, ul, a, span")).map(
       (el) => el.textContent ?? "",
     );

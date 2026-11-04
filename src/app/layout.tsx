@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: "희수영어 | 전주 중·고등 영어", template: "%s | 희수영어" },
   description:
-    "전주의 중·고등학생을 위한 영어 학원 희수영어예요. 2027년 1월에 문을 열고, 지금 상담 신청을 받고 있어요.",
+    "전주의 중·고등학생을 위한 영어 학원 희수영어예요. 기본부터 깊이 있게, 실력으로 증명합니다. 지금 상담 신청을 받고 있어요.",
   openGraph: {
     type: "website",
     locale: "ko_KR",
