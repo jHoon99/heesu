@@ -16,6 +16,20 @@ export function newStoragePath(classId: string): string {
   return `${classId}/${crypto.randomUUID()}.mp4`;
 }
 
+/** `abort()`로 멈춘 업로드의 `done`이 이 오류로 끝나요. 화면에는 보이지 않아요. */
+export class UploadCancelledError extends Error {
+  constructor() {
+    super("업로드를 취소했어요.");
+    this.name = "UploadCancelledError";
+  }
+}
+
+const UUID_MP4 = "[0-9a-f-]{36}\\.mp4";
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export type VideoUploadHandle = {
   /** 다 올라가면 storage 경로로 resolve, tus 오류면 그 오류로 reject. */
   done: Promise<string>;
@@ -41,6 +55,8 @@ export function startVideoUpload(
     resolveDone = resolve;
     rejectDone = reject;
   });
+  // 아무도 기다리지 않는 취소가 처리 안 된 rejection으로 남지 않게 해요.
+  done.catch(() => {});
 
   const metadata: Record<string, string> = {
     bucketName: VIDEO_BUCKET,
@@ -71,9 +87,9 @@ export function startVideoUpload(
   const ready = upload
     .findPreviousUploads()
     .then((previous) => {
-      const prefix = `${classId}/`;
+      const ours = new RegExp(`^${escapeRegExp(classId)}/${UUID_MP4}$`);
       const same = previous.find((p) =>
-        p.metadata?.objectName?.startsWith(prefix),
+        ours.test(p.metadata?.objectName ?? ""),
       );
       if (same) {
         path = same.metadata.objectName as string;
@@ -88,13 +104,24 @@ export function startVideoUpload(
     done,
     abort: async () => {
       aborted = true;
+      // 아직 시작 전이어도 done이 끝나게 해요(onSuccess·onError는 abort 뒤 오지 않아요).
+      rejectDone(new UploadCancelledError());
       await ready;
       await upload.abort(true);
     },
   };
 }
 
+/**
+ * 올린 영상 파일을 지워요. storage `remove()`는 파일이 없거나 RLS가 막아도
+ * `{ data: [], error: null }`을 돌려주니, 지운 행이 정확히 1개가 아니면 실패로 봐요.
+ */
 export async function removeVideoObject(path: string): Promise<void> {
-  const { error } = await supabase.storage.from(VIDEO_BUCKET).remove([path]);
+  const { data, error } = await supabase.storage
+    .from(VIDEO_BUCKET)
+    .remove([path]);
   if (error) throw error;
+  if (data?.length !== 1) {
+    throw new Error("영상 파일을 지우지 못했어요.");
+  }
 }

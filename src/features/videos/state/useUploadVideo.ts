@@ -6,6 +6,7 @@ import { useToast } from "@/design-system";
 import { classifyError } from "@/core/supabase/error";
 import {
   removeVideoObject,
+  UploadCancelledError,
   startVideoUpload,
   type VideoUploadHandle,
 } from "../data/upload";
@@ -66,7 +67,7 @@ export function useUploadVideo(): {
         handle.current = h;
         path = await h.done;
       } catch (e) {
-        if (!current()) return;
+        if (!current() || e instanceof UploadCancelledError) return;
         handle.current = null;
         busy.current = false;
         setState((s) => ({

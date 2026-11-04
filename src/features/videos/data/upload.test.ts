@@ -6,6 +6,7 @@ import {
   removeVideoObject,
   resumableEndpoint,
   startVideoUpload,
+  UploadCancelledError,
   VIDEO_BUCKET,
 } from "./upload";
 
@@ -112,7 +113,8 @@ describe("startVideoUpload", () => {
   });
 
   it("resumes a previous upload of the same class and resolves its path", async () => {
-    const prev = { metadata: { objectName: "c1/old.mp4" } };
+    const old = "c1/0b0b0b0b-1111-4222-8333-444444444444.mp4";
+    const prev = { metadata: { objectName: old } };
     tus.find.mockResolvedValue([
       { metadata: { objectName: "c2/other.mp4" } },
       prev,
@@ -121,9 +123,9 @@ describe("startVideoUpload", () => {
     await flush();
     expect(tus.resume).toHaveBeenCalledTimes(1);
     expect(tus.resume).toHaveBeenCalledWith(prev);
-    expect(lastOptions().metadata?.objectName).toBe("c1/old.mp4");
+    expect(lastOptions().metadata?.objectName).toBe(old);
     lastOptions().onSuccess?.({} as never);
-    await expect(done).resolves.toBe("c1/old.mp4");
+    await expect(done).resolves.toBe(old);
   });
 
   it("uses a new path when only another class has a previous upload", async () => {
@@ -135,6 +137,39 @@ describe("startVideoUpload", () => {
     expect(path).toMatch(PATH_RE);
     lastOptions().onSuccess?.({} as never);
     await expect(done).resolves.toBe(path);
+  });
+
+  it("does not resume a stored entry that is not a class uuid path", async () => {
+    tus.find.mockResolvedValue([
+      { metadata: { objectName: "c1/old.mp4" } },
+      {
+        metadata: {
+          objectName: "c10/0b0b0b0b-1111-4222-8333-444444444444.mp4",
+        },
+      },
+      {
+        metadata: {
+          objectName: "c1/0b0b0b0b-1111-4222-8333-444444444444.mp4/x",
+        },
+      },
+    ]);
+    startVideoUpload(file(), "c1", vi.fn());
+    await flush();
+    expect(tus.resume).not.toHaveBeenCalled();
+    expect(lastOptions().metadata?.objectName).toMatch(PATH_RE);
+  });
+
+  it("settles done when aborted before the upload starts", async () => {
+    let release: (v: unknown[]) => void = () => {};
+    tus.find.mockReturnValue(new Promise((r) => (release = r)));
+    const { done, abort } = startVideoUpload(file(), "c1", vi.fn());
+    const settled = expect(done).rejects.toBeInstanceOf(UploadCancelledError);
+    const aborting = abort();
+    release([]);
+    await aborting;
+    await settled;
+    expect(tus.start).not.toHaveBeenCalled();
+    expect(tus.abort).toHaveBeenCalledWith(true);
   });
 
   it("rejects done with the tus error", async () => {
@@ -184,6 +219,13 @@ describe("removeVideoObject", () => {
     await removeVideoObject("c1/x.mp4");
     expect(supabase.storage.from).toHaveBeenCalledWith("videos");
     expect(remove).toHaveBeenCalledWith(["c1/x.mp4"]);
+  });
+
+  it("throws when nothing was removed (missing object or RLS)", async () => {
+    remove.mockResolvedValue({ data: [], error: null });
+    await expect(removeVideoObject("c1/x.mp4")).rejects.toThrow(
+      "영상 파일을 지우지 못했어요.",
+    );
   });
 
   it("throws the storage error", async () => {

@@ -8,10 +8,26 @@ import { createVideo } from "../data/videos";
 import { videoKeys } from "./keys";
 import { useUploadVideo } from "./useUploadVideo";
 
-vi.mock("../data/upload");
+vi.mock("../data/upload", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../data/upload")>();
+  return {
+    ...actual,
+    startVideoUpload: vi.fn(),
+    removeVideoObject: vi.fn(),
+    actualRemoveVideoObject: actual.removeVideoObject,
+  };
+});
+const storageRemove = vi.fn();
+vi.mock("@/core/supabase/client", () => ({
+  supabase: { storage: { from: () => ({ remove: storageRemove }) } },
+}));
 vi.mock("../data/videos");
 const startUpload = vi.mocked(startVideoUpload);
 const remove = vi.mocked(removeVideoObject);
+const { actualRemoveVideoObject } =
+  (await import("../data/upload")) as unknown as {
+    actualRemoveVideoObject: typeof removeVideoObject;
+  };
 const create = vi.mocked(createVideo);
 
 const file = new File(["0123456789"], "a.mp4", { type: "video/mp4" });
@@ -65,6 +81,7 @@ describe("useUploadVideo", () => {
     startUpload.mockReset();
     remove.mockReset();
     create.mockReset();
+    storageRemove.mockReset();
   });
 
   it("uploads, saves the row and invalidates videos", async () => {
@@ -122,6 +139,36 @@ describe("useUploadVideo", () => {
     expect(
       await screen.findByText(/올린 파일을 지우지 못했어요/),
     ).toBeInTheDocument();
+  });
+
+  it("does not claim cleanup when storage removed nothing (RLS or missing)", async () => {
+    const up = mockUpload();
+    create.mockRejectedValue({ code: "42501" });
+    remove.mockImplementation(actualRemoveVideoObject);
+    storageRemove.mockResolvedValue({ data: [], error: null });
+    const { hook } = setup();
+    up.d.resolve("c1/x.mp4");
+    await act(() => hook.result.current.start(input));
+    expect(storageRemove).toHaveBeenCalledWith(["c1/x.mp4"]);
+    expect(hook.result.current.state.phase).toBe("error");
+    expect(hook.result.current.state.error).not.toContain("지웠어요");
+    expect(
+      await screen.findByText(/올린 파일을 지우지 못했어요/),
+    ).toBeInTheDocument();
+  });
+
+  it("ignores a cancelled upload rejection", async () => {
+    const { UploadCancelledError } = await import("../data/upload");
+    const up = mockUpload();
+    const { hook } = setup();
+    let started: Promise<void> = Promise.resolve();
+    act(() => {
+      started = hook.result.current.start(input);
+    });
+    up.d.reject(new UploadCancelledError());
+    await act(() => started);
+    expect(hook.result.current.state.error).toBeNull();
+    expect(hook.result.current.state.phase).not.toBe("error");
   });
 
   it("shows the upload error and does not insert", async () => {
