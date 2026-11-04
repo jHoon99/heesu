@@ -1,5 +1,5 @@
-import { ComingSoonScreen } from "@/features/admin-shell";
+import { PaymentsScreen } from "@/features/payments";
 
 export default function Page() {
-  return <ComingSoonScreen title="결제" />;
+  return <PaymentsScreen />;
 }

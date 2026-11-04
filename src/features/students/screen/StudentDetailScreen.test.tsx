@@ -32,6 +32,13 @@ vi.mock("@/features/guardian", () => ({
     </section>
   ),
 }));
+vi.mock("@/features/payments", () => ({
+  PaymentHistoryCard: () => (
+    <section>
+      <h2>결제 기록</h2>
+    </section>
+  ),
+}));
 let recordsResult: { isPending: boolean; isError: boolean; data?: unknown[] } =
   {
     isPending: false,
@@ -137,6 +144,7 @@ describe("StudentDetailScreen", () => {
       "보호자 동의",
       "비밀번호 초기화",
       "학부모 링크",
+      "결제 기록",
     ]) {
       expect(screen.getByRole("heading", { name: t })).toBeInTheDocument();
     }
