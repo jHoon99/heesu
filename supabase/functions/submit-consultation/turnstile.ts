@@ -1,0 +1,28 @@
+// Cloudflare Turnstile 서버 검증. 네트워크 오류는 그대로 던져서 handler가 500으로 바꾼다.
+// 시간 초과·HTTP 오류·JSON 아님은 던져서 실패로 닫힌다.
+export const SITEVERIFY_TIMEOUT_MS = 5000;
+const SITEVERIFY_URL =
+  "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+
+export async function verifyTurnstile(
+  secret: string,
+  token: string,
+  remoteIp: string | null,
+  fetchFn: typeof fetch = fetch,
+): Promise<boolean> {
+  const body = new URLSearchParams({ secret, response: token });
+  if (remoteIp) body.set("remoteip", remoteIp);
+
+  const res = await fetchFn(SITEVERIFY_URL, {
+    method: "POST",
+    body,
+    signal: AbortSignal.timeout(SITEVERIFY_TIMEOUT_MS),
+  });
+  if (!res.ok) throw new Error(`turnstile siteverify HTTP ${res.status}`);
+  const data: unknown = await res.json();
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    (data as { success?: unknown }).success === true
+  );
+}

@@ -1,0 +1,18 @@
+<!-- @dsCard group="Motion" height=200 -->
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>TextRise</title>
+<style>body{padding:20px;} .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center} .col{display:flex;flex-direction:column;gap:16px} .cap{font:500 12px/16px var(--font-sans);color:var(--text-muted);margin:0 0 8px}</style></head>
+<body>
+<div id="root"></div>
+<script>
+var H = window.Heesu, h = React.createElement;
+
+function Replay(p){ var k=React.useState(0); return h('div',null,
+  h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}},h('p',{className:'cap',style:{margin:0}},p.cap),h(H.Button,{size:'sm',variant:'ghost',icon:'repeat',onClick:function(){k[1](k[0]+1);}},'다시 보기')),
+  h('div',{key:k[0]},p.children)); }
+ReactDOM.createRoot(document.getElementById('root')).render(h(Replay,{cap:'랜딩 헤드라인 — 줄마다 아래에서 올라옴, 720ms, 80ms 간격'},
+ h('h1',{className:'hs-serif',style:{margin:0,font:'700 34px/44px var(--font-serif)'}},h(H.TextRise,{lines:['한 문장씩,','깊이 있게.'],immediate:true}))));
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!-- @dsCard group="Screens" height=2420 width=390 subtitle="랜딩 첫 화면 + 상담 신청 폼 · 모바일 390" -->
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>LandingScreen</title>
+<style>body{padding:20px;padding:0;background:var(--bg-page);} .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center} .col{display:flex;flex-direction:column;gap:16px} .cap{font:500 12px/16px var(--font-sans);color:var(--text-muted);margin:0 0 8px}</style></head>
+<body>
+<div id="root"></div>
+<script>
+var H = window.Heesu, h = React.createElement;
+
+var Hd=function(t,s){return h('div',{style:{marginBottom:20}},h('h2',{className:'hs-serif',style:{margin:0,font:'700 24px/34px var(--font-serif)',color:'var(--text)'}},t),s?h('p',{style:{margin:'6px 0 0',font:'400 15px/24px var(--font-sans)',color:'var(--text-muted)'}},s):null);};
+var Point=function(n,t,d,i){return h(H.Reveal,{delay:i*80,style:{display:'flex',gap:14,padding:'16px 0',borderTop:'1px solid var(--brown-200)'}},
+  h('span',{className:'hs-serif',style:{font:'700 20px/26px var(--font-serif)',color:'var(--brown-400)',width:28,flex:'none'}},n),
+  h('div',null,h('div',{style:{font:'600 16px/24px var(--font-sans)'}},t),h('div',{style:{font:'400 14px/22px var(--font-sans)',color:'var(--text-muted)',marginTop:2}},d)));};
+ReactDOM.createRoot(document.getElementById('root')).render(h('div',{className:'hs',style:{width:390,background:'var(--bg-page)'}},
+ h('header',{style:{position:'sticky',top:0,zIndex:5,display:'flex',alignItems:'center',justifyContent:'space-between',height:56,padding:'0 16px',background:'var(--bg-page)',borderBottom:'1px solid var(--brown-100)'}},
+  h('div',{style:{display:'flex',alignItems:'center',gap:8}},h('img',{src:'/_blob/75dd6d90c33fa10138897b3ff081b07f',alt:'',style:{width:28}}),h('span',{className:'hs-serif',style:{font:'700 17px/1 var(--font-serif)',color:'var(--text-brand)'}},'희수영어')),
+  h(H.Button,{variant:'primary',size:'sm'},'상담 신청')),
+ h('section',{style:{padding:'40px 20px 32px',position:'relative',overflow:'hidden'}},
+  h(H.LeafDraw,{size:110,delay:200,style:{position:'absolute',right:18,top:22}}),
+  h(H.Reveal,{immediate:true},h(H.Badge,{tone:'brand',icon:'pin'},'전주 · 2027년 1월 개원')),
+  h('h1',{className:'hs-serif',style:{position:'relative',margin:'16px 0 0',font:'700 34px/44px var(--font-serif)',letterSpacing:'-0.01em',color:'var(--text)'}},h(H.TextRise,{lines:['한 문장씩,','깊이 있게.'],delay:120,immediate:true})),
+  h(H.Reveal,{immediate:true,delay:420},h('p',{style:{position:'relative',margin:'14px 0 0',font:'400 17px/28px var(--font-sans)',color:'var(--gray-700)'}},'중·고등 내신과 수능 영어를 소수정예로 가르칩니다. 매 수업 출결과 숙제를 학부모님께 알려드려요.')),
+  h(H.Reveal,{immediate:true,delay:560},h('div',{style:{display:'flex',flexDirection:'column',gap:10,marginTop:24}},h(H.Button,{variant:'primary',size:'lg',block:true},'무료 상담 신청하기'),h(H.Button,{variant:'secondary',size:'lg',block:true,icon:'phone'},'전화로 문의하기')))),
+ h('section',{style:{padding:'8px 20px 40px'}},
+  h(H.Reveal,null,Hd('희수영어가 약속하는 것')),
+  Point('01',h('span',null,'반 정원 ',h(H.CountUp,{value:8,from:1}),'명'),'한 명 한 명 문장을 읽고 고쳐 줄 수 있는 인원만 받습니다.',0),
+  Point('02','원장 직강','상담한 원장이 그대로 수업합니다.',1),
+  Point('03','매 수업 리포트','출결·숙제·단어 시험 결과를 수업이 끝나면 바로 보내드려요.',2),
+  Point('04','복습 영상','수업 내용을 학생 앱에서 다시 볼 수 있어요.',3)),
+ h('section',{style:{padding:'40px 20px',background:'var(--bg-surface)',borderTop:'1px solid var(--brown-100)',borderBottom:'1px solid var(--brown-100)'}},
+  h(H.Reveal,null,Hd('반 안내','2027년 1월 첫 학기 모집')),
+  h(H.Reveal,{delay:80},h('div',{style:{display:'flex',flexDirection:'column',gap:12}},
+   h(H.Card,{tone:'raised',title:'중등부',subtitle:'중1–중3 · 주 3회 · 90분',actions:h(H.Badge,{tone:'brand'},'모집 중')},h('p',{style:{margin:0,font:'400 15px/24px var(--font-sans)',color:'var(--gray-700)'}},'교과서 본문 정독, 문법, 서술형 대비.')),
+   h(H.Card,{tone:'raised',title:'고등부',subtitle:'고1–고3 · 주 3회 · 120분',actions:h(H.Badge,{tone:'brand'},'모집 중')},h('p',{style:{margin:0,font:'400 15px/24px var(--font-sans)',color:'var(--gray-700)'}},'내신 대비와 수능 독해를 학기별로 나눠 진행.'))))),
+ h('section',{style:{padding:'48px 20px 56px'}},
+  h(H.Reveal,null,Hd('상담 신청','아이 상황을 듣고 맞는 반과 수업 방식을 안내해 드려요.')),
+  h(H.Reveal,{delay:80},h(H.Card,{size:'lg',tone:'raised'},h(H.ConsultForm)))),
+ h('footer',{style:{padding:'32px 20px 40px',background:'var(--brown-900)',color:'var(--brown-100)',font:'400 13px/20px var(--font-sans)'}},
+  h('div',{className:'hs-serif',style:{font:'700 18px/24px var(--font-serif)',color:'var(--gray-0)'}},'희수영어'),
+  h('div',{style:{marginTop:8}},'전북 전주시 ○○구 ○○로 00, 0층'),h('div',null,'063-000-0000 · 평일 14:00–22:00'))
+));
+</script>
+</body>
+</html>

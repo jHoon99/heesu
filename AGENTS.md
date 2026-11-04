@@ -7,3 +7,29 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## heesu project rules
+
+- Design spec: `docs/superpowers/specs/2026-11-03-heesu-architecture-design.md` (read §4 folders, §13 security first).
+- `src/app` routing only; each page renders one feature screen. `src/core` infra (supabase, auth, query, env). `src/design-system` UI parts and motion. `src/features/<name>` data / model / state / components / screen. `supabase/` migrations, pgTAP tests, functions, seed.
+- Dependencies: `app -> features -> core, design-system`. `design-system` never imports `features` or `core`, and only `react, motion, canvas-confetti, lucide-react, class-variance-authority, clsx, tailwind-merge`.
+- `@supabase/supabase-js` only in `src/core/supabase/**` and `src/features/*/data/**`.
+- Static export (`output: "export"`): no Route Handlers, Server Actions, middleware, or `next/image` optimization.
+- Tokens only: no hex or raw color values in screen code (Tailwind default palette is off).
+- No `any`, no `dangerouslySetInnerHTML`. Never commit secrets; only `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` reach the browser. `service_role` / secret keys never in browser code or git; only in Edge Function secrets.
+- Cross-feature imports: `features/A` may import `features/B` only via `features/B/index.ts`.
+- Roles come only from `private.admins` / `students.user_id`; never from JWT `user_metadata`.
+- Every RLS policy that calls `private.*` (e.g. `private.is_admin()`) must be declared `to authenticated` — otherwise anon reads on the same table fail with "permission denied for function is_admin". Anon-readable tables need a pgTAP test that anon select succeeds.
+- Guardian token travels only in the URL fragment (`/g#t=…`), never query string or path.
+- Do not add a table without RLS policies and a pgTAP test. All DB changes go through `supabase/migrations`; regenerate types with `npm run db:types`.
+- Client updates/deletes chain `.select(...)` and treat 0 rows as `SaveNotAppliedError` (`src/core/supabase/saveNotApplied.ts`).
+- Edit screens load fresh data (`refetchOnMount: "always"`, render after `isFetchedAfterMount`). Full-page error only when `isError && data === undefined`; a failed background refetch keeps the content.
+- Mutations carrying secrets (passwords) use `gcTime: 0` and `reset()` after settling; never keep plaintext in refs/state beyond the form.
+- Client-facing `raise exception` (P0001) text must be Korean "-해요" with how to fix it — `classifyError` shows it verbatim.
+- Names shown in admin views reject control characters in both the DB (check constraint) and the zod schema (`hasControlChars` in `src/core/text.ts`).
+- Class-scoped student lists must exclude `status = 'left'` (filter in RLS/view, not per screen).
+- New RLS policies wrap helpers as `(select private.is_admin())`.
+- Local dev must run on :3000 (Edge Function origin allowlist).
+- If you cannot explain an auth, permission, or DB-write change in one line, do not merge it.
+- UI copy is Korean "-해요" style; error messages say how to fix it.
+- Verify: `npm run typecheck && npm run lint && npm test && npm run db:test && npm run build`
