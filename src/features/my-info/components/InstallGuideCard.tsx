@@ -1,17 +1,17 @@
 "use client";
 
 import { Share } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Card } from "@/design-system";
 import { isStandalone } from "@/core/pwa";
 
 export function InstallGuideCard() {
-  // 정적 내보내기 프리렌더에는 window가 없어서 마운트 뒤에만 판단해요.
-  const [show, setShow] = useState(false);
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setShow(!isStandalone());
-  }, []);
+  // 서버·프리렌더에는 window가 없어서 서버 값은 false, 브라우저에서만 판단해요.
+  const show = useSyncExternalStore(
+    () => () => {},
+    () => !isStandalone(),
+    () => false,
+  );
   if (!show) return null;
   return (
     <Card title="홈 화면에 추가하기">
