@@ -8,7 +8,7 @@
 begin;
 set local client_min_messages = warning;
 create extension if not exists pgtap with schema extensions;
-select plan(20);
+select plan(21);
 
 -- S2: public의 모든 테이블은 RLS가 켜져 있고, RLS를 걸 수 없는 foreign table은 없다.
 select is(
@@ -191,6 +191,26 @@ select is(
       and not t.tgisinternal),
   '{consents,consultations,guardian_tokens,student_private,students}'::text[],
   'S12: 감사 트리거가 달린 public 테이블 = 허용 목록'
+);
+
+-- S12: 감사 트리거는 모두 AFTER … FOR EACH ROW, INSERT·UPDATE·DELETE 전부, 컬럼 목록(update of)·WHEN 조건 없음.
+-- tgtype 비트: ROW 1, BEFORE 2, INSERT 4, DELETE 8, UPDATE 16, TRUNCATE 32, INSTEAD 64 → 기대값 1+4+8+16 = 29.
+select is(
+  (select coalesce(array_agg(c.relname || ':' || t.tgname order by 1), '{}')
+     from pg_catalog.pg_trigger t
+     join pg_catalog.pg_class c on c.oid = t.tgrelid
+     join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+     join pg_catalog.pg_proc p on p.oid = t.tgfoid
+     join pg_catalog.pg_namespace pn on pn.oid = p.pronamespace
+    where n.nspname = 'public'
+      and pn.nspname = 'private'
+      and p.proname = 'audit'
+      and not t.tgisinternal
+      and ((t.tgtype::int & 127) <> 29
+           or t.tgqual is not null
+           or coalesce(cardinality(t.tgattr::int2[]), 0) > 0)),
+  '{}'::text[],
+  'S12: 감사 트리거는 모두 AFTER·FOR EACH ROW·INSERT|UPDATE|DELETE (컬럼 목록·WHEN 없음)'
 );
 
 -- S2: 쓰지 않는 pg_graphql은 꺼져 있다.

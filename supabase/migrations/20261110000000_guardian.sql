@@ -79,7 +79,9 @@ revoke all on function public.issue_guardian_token(uuid) from public, anon, auth
 grant execute on function public.issue_guardian_token(uuid) to authenticated;
 
 -- ─── 학부모 조회 RPC (토큰만으로) ────────────────────────────────────
--- volatile: PostgREST는 volatile 함수를 GET으로 부르지 못한다(토큰이 쿼리스트링에 실리지 않게 POST만).
+-- POST만: PostgREST는 volatile 함수도 GET(읽기 전용 트랜잭션)으로 부른다. GET이면 토큰이 쿼리스트링에 실려
+-- 서버·프록시 로그에 남으므로, PostgREST가 넣는 request.method가 'POST'가 아니면 같은 실패 문구로 거부한다.
+-- (psql처럼 PostgREST를 거치지 않는 호출도 request.method가 없어 거부된다.)
 -- 기간(서울 날짜): records = 오늘 포함 28일 내림차순, week = 이번 주 월요일 ~ 오늘 오름차순. 미래 수업은 없다.
 -- 대상 수업 = (지금 소속 반의 수업 중 배정한 서울 날짜 이후) ∪ (그 학생의 출결·숙제 행이 있는 수업).
 create function public.guardian_view(p_token text)
@@ -98,6 +100,11 @@ declare
   v_records jsonb;
   v_week jsonb;
 begin
+  if coalesce(current_setting('request.method', true), '') <> 'POST' then
+    raise exception using errcode = 'P0001',
+      message = '링크가 만료되었거나 올바르지 않아요. 학원에 새 링크를 요청해 주세요.';
+  end if;
+
   if p_token is null or p_token !~ '^[A-Za-z0-9_-]{43}$' then
     raise exception '링크가 만료되었거나 올바르지 않아요. 학원에 새 링크를 요청해 주세요.';
   end if;
