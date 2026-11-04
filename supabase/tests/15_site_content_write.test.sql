@@ -3,7 +3,7 @@
 begin;
 set local client_min_messages = warning;
 create extension if not exists pgtap with schema extensions;
-select plan(34);
+select plan(35);
 
 insert into auth.users (id, email) values
   ('00000000-0000-4000-8000-00000000a015', 'admin15@example.test'),
@@ -62,6 +62,10 @@ select throws_ok(format('update public.site_content set value = %L where key = %
 
 select throws_ok($$insert into public.site_content (key, value) values ('banner', '{}')$$,
   '23514', null, '모르는 키 banner는 check 위반');
+
+select is((select count(*)::int from pg_catalog.pg_policies
+  where schemaname = 'public' and tablename = 'site_content' and cmd = 'DELETE'), 0,
+  'site_content: delete 정책이 없다');
 
 -- ─── 원장 aal2: delete·updated_at 직접 쓰기 막힘 ─────────────────────
 select throws_ok($$delete from public.site_content$$, '42501', null, '원장 aal2: delete는 권한 에러');

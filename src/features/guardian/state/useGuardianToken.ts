@@ -38,20 +38,29 @@ export function useGuardianToken(): {
   });
 
   useEffect(() => {
-    let token: string | null;
-    if (location.hash !== "") {
-      token = readTokenFromHash(location.hash);
+    // fragment를 읽어 저장하고 주소창에서 지운다. fragment가 없으면 null(변화 없음).
+    const takeFragment = (): { token: string | null } | null => {
+      if (location.hash === "") return null;
+      const token = readTokenFromHash(location.hash);
       writeStored(token);
       history.replaceState(
         history.state,
         "",
         location.pathname + location.search,
       );
-    } else {
-      token = readStored();
-    }
+      return { token };
+    };
+    const first = takeFragment();
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reads the URL fragment and storage once after mount (SSR-safe)
-    setState({ token, ready: true });
+    setState({ token: first ? first.token : readStored(), ready: true });
+
+    // 열려 있는 탭에 새 링크를 붙여 넣은 경우.
+    const onHashChange = () => {
+      const taken = takeFragment();
+      if (taken) setState({ token: taken.token, ready: true });
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
   const forget = useCallback(() => {

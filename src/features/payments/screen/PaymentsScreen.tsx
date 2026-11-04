@@ -54,7 +54,7 @@ export function PaymentsScreen() {
         불러오는 중이에요.
       </p>
     );
-  } else if ((students.data ?? []).length === 0) {
+  } else if (rows.length === 0) {
     body = (
       <Card tone="raised">
         <p className="text-body text-text-muted">

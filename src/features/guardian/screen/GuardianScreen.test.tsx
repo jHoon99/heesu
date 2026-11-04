@@ -122,4 +122,22 @@ describe("GuardianScreen", () => {
     );
     expect(screen.getByText("마감 11/6(금)")).toBeVisible();
   });
+
+  it("refetches for a new token instead of showing the previous student", async () => {
+    get.mockImplementation(async (t) =>
+      view({ name: t === "tok" ? "김하늘" : "이바다" }),
+    );
+    const client = new QueryClient();
+    const ui = () => (
+      <QueryClientProvider client={client}>
+        <GuardianScreen />
+      </QueryClientProvider>
+    );
+    const { rerender } = render(ui());
+    expect(await screen.findByText("김하늘 학생의 학습 기록")).toBeVisible();
+    useToken.mockReturnValue({ token: "tok2", ready: true, forget });
+    rerender(ui());
+    expect(await screen.findByText("이바다 학생의 학습 기록")).toBeVisible();
+    expect(get).toHaveBeenLastCalledWith("tok2");
+  });
 });

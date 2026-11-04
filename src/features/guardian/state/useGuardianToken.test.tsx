@@ -51,4 +51,55 @@ describe("useGuardianToken", () => {
     const { result } = renderHook(() => useGuardianToken());
     expect(result.current.token).toBeNull();
   });
+
+  describe("hashchange in an open tab", () => {
+    const tok2 = "C".repeat(10) + "d-_".repeat(11);
+    const fire = (hash: string) =>
+      act(() => {
+        history.replaceState(null, "", `/g${hash}`);
+        window.dispatchEvent(new HashChangeEvent("hashchange"));
+      });
+
+    it("replaces the token with a new valid one and clears the hash", () => {
+      history.replaceState(null, "", `/g#t=${tok}`);
+      const { result } = renderHook(() => useGuardianToken());
+      fire(`#t=${tok2}`);
+      expect(result.current.token).toBe(tok2);
+      expect(location.hash).toBe("");
+      expect(sessionStorage.getItem(KEY)).toBe(tok2);
+    });
+
+    it("a fragment without t clears storage and the token", () => {
+      sessionStorage.setItem(KEY, tok);
+      const { result } = renderHook(() => useGuardianToken());
+      fire("#foo");
+      expect(result.current.token).toBeNull();
+      expect(location.hash).toBe("");
+      expect(sessionStorage.getItem(KEY)).toBeNull();
+    });
+
+    it("an emptied hash leaves the token alone", () => {
+      sessionStorage.setItem(KEY, tok);
+      const { result } = renderHook(() => useGuardianToken());
+      fire("");
+      expect(result.current.token).toBe(tok);
+      expect(sessionStorage.getItem(KEY)).toBe(tok);
+    });
+
+    it("stops listening after unmount", () => {
+      const { result, unmount } = renderHook(() => useGuardianToken());
+      unmount();
+      fire(`#t=${tok2}`);
+      expect(result.current.token).toBeNull();
+    });
+  });
+
+  it("a valid fragment overwrites a different stored token", () => {
+    const other = "E".repeat(43);
+    sessionStorage.setItem(KEY, other);
+    history.replaceState(null, "", `/g#t=${tok}`);
+    const { result } = renderHook(() => useGuardianToken());
+    expect(result.current.token).toBe(tok);
+    expect(sessionStorage.getItem(KEY)).toBe(tok);
+  });
 });

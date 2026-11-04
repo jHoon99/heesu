@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getGuardianLinkStatus,
@@ -16,8 +17,13 @@ export const guardianKeys = {
 };
 
 export function useGuardianView(token: string | null) {
+  // 토큰이 바뀌면 세대 번호만 올려 새 캐시 항목을 쓴다(토큰은 키에 넣지 않는다).
+  const [seen, setSeen] = useState({ token, generation: 0 });
+  const generation =
+    seen.token === token ? seen.generation : seen.generation + 1;
+  if (seen.token !== token) setSeen({ token, generation });
   return useQuery({
-    queryKey: guardianKeys.view,
+    queryKey: [...guardianKeys.view, generation],
     queryFn: () => getGuardianView(token as string),
     enabled: token !== null,
     retry: (n, e) => !isGuardianLinkError(e) && n < 2,

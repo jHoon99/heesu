@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Input } from "@/design-system";
+import { DEFAULT_POINTS_GOAL } from "../../model/siteContent";
 import { pointsGoalWriteSchema } from "../../model/siteContentWrite";
 import { EditorCard, useCardSave } from "./EditorCard";
 
@@ -33,6 +34,7 @@ export function PointsGoalEditor({ initial }: { initial: string }) {
         size="md"
         label="목표 포인트"
         inputMode="numeric"
+        placeholder={String(DEFAULT_POINTS_GOAL)}
         hint="학생 홈 포인트 카드의 목표예요. 바꾸면 학생이 새 목표에 닿을 때 한 번 더 축하해요."
         error={errors.goal?.message}
         {...register("goal")}

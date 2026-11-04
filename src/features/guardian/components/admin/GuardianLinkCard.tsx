@@ -81,8 +81,8 @@ function ActiveLinkCard({ studentId }: { studentId: string }) {
 
   const active = status.data ?? null;
   // 캐시에 남은 옛 null로 확인 없이 발급하면 다른 곳에서 만든 살아 있는 링크를 없앨 수 있다.
-  const loaded = status.isFetchedAfterMount && !status.isPending;
-  const failed = status.isError && status.data === undefined;
+  const loaded = status.isFetchedAfterMount && status.isSuccess;
+  const failed = status.isError;
   let line: string | null = null;
   if (failed) {
     line = classifyError(status.error).message;

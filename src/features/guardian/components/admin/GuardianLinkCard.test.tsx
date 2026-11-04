@@ -136,6 +136,37 @@ describe("GuardianLinkCard", () => {
     expect(screen.queryByRole("button", { name: "새 링크 만들기" })).toBeNull();
   });
 
+  it("shows the error, not issuing, when a refetch over a cached null fails", async () => {
+    status.mockRejectedValue({
+      code: "P0001",
+      message: "읽지 못했어요. 다시 시도해 주세요.",
+    });
+    setup(false, () => client.setQueryData(["guardian", "status", "s1"], null));
+    expect(
+      await screen.findByText("읽지 못했어요. 다시 시도해 주세요."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "다시 시도" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "링크 만들기" })).toBeNull();
+  });
+
+  it("keeps the issued link visible after the invalidated status refetch settles", async () => {
+    const user = setup();
+    const create = await screen.findByRole("button", { name: "링크 만들기" });
+    status.mockResolvedValue({
+      createdAt: "2026-11-04T01:00:00Z",
+      expiresAt: "2027-02-02T01:00:00Z",
+    } as never);
+    await user.click(create);
+    await screen.findByLabelText("학부모 링크");
+    await waitFor(() => expect(status).toHaveBeenCalledTimes(2));
+    expect(
+      await screen.findByRole("button", { name: "새 링크 만들기" }),
+    ).toBeVisible();
+    expect(screen.getByLabelText("학부모 링크")).toHaveValue(
+      `${window.location.origin}/g#t=${TOKEN}`,
+    );
+  });
+
   it("does not resurrect an issued link after left then active", async () => {
     const user = setup();
     await user.click(

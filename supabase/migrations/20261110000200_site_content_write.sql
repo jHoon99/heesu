@@ -104,6 +104,9 @@ create trigger site_content_check
   before insert or update on public.site_content
   for each row execute function private.check_site_content();
 
+-- delete 권한이 없으니 쓸 수 없는 delete 정책은 없앤다.
+drop policy if exists site_content_admin_delete on public.site_content;
+
 -- upsert는 key·value를 set에 넣는다. updated_at은 서버 트리거가 갱신한다.
 revoke insert, update, delete on public.site_content from authenticated;
 grant insert (key, value), update (key, value) on public.site_content to authenticated;

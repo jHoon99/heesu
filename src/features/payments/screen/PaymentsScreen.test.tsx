@@ -125,4 +125,15 @@ describe("PaymentsScreen", () => {
       ),
     ).toBeVisible();
   });
+
+  it("shows the empty text when only left students without payments remain", async () => {
+    students.mockResolvedValue([{ id: "b", name: "다라", status: "left" }]);
+    setup();
+    expect(
+      await screen.findByText(
+        "학생이 없어요. 학생 화면에서 먼저 추가해 주세요.",
+      ),
+    ).toBeVisible();
+    expect(screen.queryByRole("table")).toBeNull();
+  });
 });

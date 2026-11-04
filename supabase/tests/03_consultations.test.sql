@@ -7,6 +7,7 @@ select plan(32);
 
 -- 시드는 테스트 파일 사이에 남아 있다. 세는 테이블은 비우고 시작한다(rollback으로 되돌린다).
 delete from public.consultations;
+delete from private.audit_log;
 
 insert into public.consultations (parent_name, phone, grade, consent_version, consented_at)
 values ('가짜보호자', '010-0000-0009', '중1', '2026-11-05', now());

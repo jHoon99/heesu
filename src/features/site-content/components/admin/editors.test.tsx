@@ -8,6 +8,7 @@ import type { EditableClass } from "../../model/siteContentWrite";
 import { ClassesEditor } from "./ClassesEditor";
 import { ContactEditor } from "./ContactEditor";
 import { NoticeEditor } from "./NoticeEditor";
+import { DEFAULT_POINTS_GOAL } from "../../model/siteContent";
 import { PointsGoalEditor } from "./PointsGoalEditor";
 
 vi.mock("../../data/saveSiteContent");
@@ -84,6 +85,14 @@ describe("ClassesEditor", () => {
 });
 
 describe("saving", () => {
+  it("shows the default goal as the placeholder", () => {
+    wrap(<PointsGoalEditor initial="" />);
+    expect(screen.getByLabelText("목표 포인트")).toHaveAttribute(
+      "placeholder",
+      String(DEFAULT_POINTS_GOAL),
+    );
+  });
+
   it("saves once while pending and toasts on success", async () => {
     let resolve!: () => void;
     save.mockImplementation(() => new Promise<void>((r) => (resolve = r)));

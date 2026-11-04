@@ -14,6 +14,7 @@ insert into private.admins (user_id) values ('00000000-0000-4000-8000-00000000a0
 
 insert into public.consultations (parent_name, phone, grade, status, consent_version, consented_at, created_at) values
   ('가짜 새신청', '010-0000-0141', '중1', 'new', 'v', now(), now() - interval '7 months'),
+  ('가짜 6개월 하루 넘음', '010-0000-0147', '중1', 'new', 'v', now(), now() - interval '6 months' - interval '1 day'),
   ('가짜 연락함', '010-0000-0142', '중1', 'contacted', 'v', now(), now() - interval '7 months'),
   ('가짜 보류', '010-0000-0143', '중1', 'on_hold', 'v', now(), now() - interval '7 months'),
   ('가짜 등록', '010-0000-0144', '중1', 'enrolled', 'v', now(), now() - interval '2 years'),
@@ -21,7 +22,7 @@ insert into public.consultations (parent_name, phone, grade, status, consent_ver
   ('가짜 오늘', '010-0000-0146', '중1', 'new', 'v', now(), now());
 
 -- ─── 삭제 함수 ───────────────────────────────────────────────────────
-select is(private.purge_stale_consultations(), 3, '삭제: 6개월 넘은 미등록 3건을 지운다');
+select is(private.purge_stale_consultations(), 4, '삭제: 6개월 넘은 미등록 4건을 지운다');
 select results_eq(
   $$select parent_name from public.consultations order by parent_name$$,
   $$values ('가짜 거의 6개월'), ('가짜 등록'), ('가짜 오늘')$$,
@@ -30,7 +31,7 @@ select is(private.purge_stale_consultations(), 0, '삭제: 다시 부르면 0건
 select is(
   (select count(*)::int from private.audit_log
     where table_name = 'public.consultations' and op = 'DELETE' and actor is null),
-  3, '감사: DELETE 3행이 actor null로 남는다');
+  4, '감사: DELETE 4행이 actor null로 남는다');
 
 -- ─── cron 작업 ───────────────────────────────────────────────────────
 select is((select count(*)::int from cron.job where jobname = 'purge-stale-consultations'), 1,
