@@ -16,7 +16,16 @@ import {
 } from "motion/react";
 
 /* ---------- tokens (keep in sync with tokens.json) ---------- */
-export const dur = { instant: 0.1, fast: 0.16, base: 0.24, slow: 0.48, slower: 0.72, count: 0.9, draw: 1.6, stagger: 0.08 } as const;
+export const dur = {
+  instant: 0.1,
+  fast: 0.16,
+  base: 0.24,
+  slow: 0.48,
+  slower: 0.72,
+  count: 0.9,
+  draw: 1.6,
+  stagger: 0.08,
+} as const;
 export const ease = {
   out: [0.22, 1, 0.36, 1],
   inOut: [0.65, 0, 0.35, 1],
@@ -49,13 +58,25 @@ export function Reveal({
   delay = 0,
   distance = "md",
   className,
-}: { children: ReactNode; delay?: number; distance?: "sm" | "md"; className?: string }) {
+  immediate = false,
+}: {
+  children: ReactNode;
+  delay?: number;
+  distance?: "sm" | "md";
+  className?: string;
+  immediate?: boolean;
+}) {
+  const trigger = immediate
+    ? { animate: { opacity: 1, y: 0 } }
+    : {
+        whileInView: { opacity: 1, y: 0 },
+        viewport: { once: true, amount: 0.2, margin: "0px 0px -8% 0px" },
+      };
   return (
     <motion.div
       className={className}
       initial={{ opacity: 0, y: rise[distance] }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2, margin: "0px 0px -8% 0px" }}
+      {...trigger}
       transition={{ ...t.reveal, delay: delay / 1000 }}
     >
       {children}
@@ -64,11 +85,21 @@ export function Reveal({
 }
 
 /* ---------- RevealGroup: 항목 차례로 (최대 6개, 그 뒤는 함께) ---------- */
-export function RevealGroup({ children, className }: { children: ReactNode[]; className?: string }) {
+export function RevealGroup({
+  children,
+  className,
+}: {
+  children: ReactNode[];
+  className?: string;
+}) {
   return (
     <div className={className}>
       {children.map((c, i) => (
-        <Reveal key={i} delay={Math.min(i, 5) * dur.stagger * 1000} distance="sm">
+        <Reveal
+          key={i}
+          delay={Math.min(i, 5) * dur.stagger * 1000}
+          distance="sm"
+        >
           {c}
         </Reveal>
       ))}
@@ -77,16 +108,41 @@ export function RevealGroup({ children, className }: { children: ReactNode[]; cl
 }
 
 /* ---------- TextRise: 헤드라인 줄마다 ---------- */
-export function TextRise({ lines, delay = 120, className }: { lines: string[]; delay?: number; className?: string }) {
+export function TextRise({
+  lines,
+  delay = 120,
+  className,
+}: {
+  lines: string[];
+  delay?: number;
+  className?: string;
+}) {
   return (
-    <span className={className} aria-label={lines.join(" ")} style={{ display: "block" }}>
+    <span
+      className={className}
+      aria-label={lines.join(" ")}
+      style={{ display: "block" }}
+    >
       {lines.map((ln, i) => (
-        <span key={i} aria-hidden style={{ display: "block", overflow: "hidden", paddingBottom: "0.08em", marginBottom: "-0.08em" }}>
+        <span
+          key={i}
+          aria-hidden
+          style={{
+            display: "block",
+            overflow: "hidden",
+            paddingBottom: "0.08em",
+            marginBottom: "-0.08em",
+          }}
+        >
           <motion.span
             style={{ display: "block" }}
             initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: dur.slower, ease: ease.out, delay: delay / 1000 + i * dur.stagger }}
+            transition={{
+              duration: dur.slower,
+              ease: ease.out,
+              delay: delay / 1000 + i * dur.stagger,
+            }}
           >
             {ln}
           </motion.span>
@@ -104,10 +160,27 @@ const LEAF = [
   "M60 98 C76 88 92 88 106 96 C92 108 76 108 60 98 Z",
   "M40 128 C30 114 30 100 38 88 C48 100 48 116 40 128 Z",
 ];
-export function LeafDraw({ size = 120, color = "var(--brown-400)", delay = 200, className }: { size?: number; color?: string; delay?: number; className?: string }) {
+export function LeafDraw({
+  size = 120,
+  color = "var(--brown-400)",
+  delay = 200,
+  className,
+}: {
+  size?: number;
+  color?: string;
+  delay?: number;
+  className?: string;
+}) {
   const reduced = useReducedMotion();
   return (
-    <svg className={className} viewBox="0 -20 130 180" width={size} height={(size * 180) / 130} aria-hidden style={{ overflow: "visible" }}>
+    <svg
+      className={className}
+      viewBox="0 -20 130 180"
+      width={size}
+      height={(size * 180) / 130}
+      aria-hidden
+      style={{ overflow: "visible" }}
+    >
       {LEAF.map((d, i) => (
         <motion.path
           key={i}
@@ -119,7 +192,12 @@ export function LeafDraw({ size = 120, color = "var(--brown-400)", delay = 200, 
           strokeLinejoin="round"
           initial={reduced ? false : { pathLength: 0 }}
           animate={{ pathLength: 1 }}
-          transition={{ duration: dur.draw, ease: ease.inOut, delay: delay / 1000 + (i === 0 ? 0 : 0.3 + (i - 1) * dur.stagger * 3) }}
+          transition={{
+            duration: dur.draw,
+            ease: ease.inOut,
+            delay:
+              delay / 1000 + (i === 0 ? 0 : 0.3 + (i - 1) * dur.stagger * 3),
+          }}
         />
       ))}
     </svg>
@@ -128,7 +206,15 @@ export function LeafDraw({ size = 120, color = "var(--brown-400)", delay = 200, 
 
 /* ---------- CountUp: 숫자 (포인트, "반 정원 8명") ---------- */
 const nf = new Intl.NumberFormat("ko-KR");
-export function CountUp({ value, from = 0, className }: { value: number; from?: number; className?: string }) {
+export function CountUp({
+  value,
+  from = 0,
+  className,
+}: {
+  value: number;
+  from?: number;
+  className?: string;
+}) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.3 });
   const reduced = useReducedMotion();
@@ -138,35 +224,58 @@ export function CountUp({ value, from = 0, className }: { value: number; from?: 
     if (!inView) return;
     if (reduced) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- reduced motion: jump to the final value
-      setShown(value); last.current = value; return;
+      setShown(value);
+      last.current = value;
+      return;
     }
     const c = animate(last.current, value, {
       duration: dur.count,
       ease: ease.out,
       onUpdate: (v) => setShown(Math.round(v)),
-      onComplete: () => { last.current = value; },
+      onComplete: () => {
+        last.current = value;
+      },
     });
     return () => c.stop();
   }, [inView, value, reduced]);
   return (
-    <span ref={ref} className={className} style={{ fontVariantNumeric: "tabular-nums" }} aria-label={nf.format(value)}>
+    <span
+      ref={ref}
+      className={className}
+      style={{ fontVariantNumeric: "tabular-nums" }}
+      aria-label={nf.format(value)}
+    >
       <span aria-hidden>{nf.format(shown)}</span>
     </span>
   );
 }
 
 /* ---------- PointsBurst: 숙제 체크 → "+30P" 떠오르며 사라짐 ---------- */
-export function PointsBurst({ amount, trigger, children }: { amount: number; trigger: unknown; children: ReactNode }) {
+export function PointsBurst({
+  amount,
+  trigger,
+  children,
+}: {
+  amount: number;
+  trigger: unknown;
+  children: ReactNode;
+}) {
   const reduced = useReducedMotion();
   const [bursts, setBursts] = useState<number[]>([]);
   const first = useRef(true);
   useEffect(() => {
-    if (first.current) { first.current = false; return; }
+    if (first.current) {
+      first.current = false;
+      return;
+    }
     if (!trigger || reduced) return;
     const id = Date.now();
     // eslint-disable-next-line react-hooks/set-state-in-effect -- burst is triggered by an external prop change
     setBursts((b) => [...b, id]);
-    const timer = setTimeout(() => setBursts((b) => b.filter((x) => x !== id)), dur.slower * 1000 + 60);
+    const timer = setTimeout(
+      () => setBursts((b) => b.filter((x) => x !== id)),
+      dur.slower * 1000 + 60,
+    );
     return () => clearTimeout(timer);
   }, [trigger, reduced]);
   return (
@@ -177,16 +286,28 @@ export function PointsBurst({ amount, trigger, children }: { amount: number; tri
           <motion.span
             key={id}
             aria-hidden
-            className="absolute left-1/2 -top-1 whitespace-nowrap rounded-full bg-points-soft px-2 text-caption font-semibold text-points-ink"
+            className="absolute -top-1 left-1/2 rounded-full bg-points-soft px-2 text-caption font-semibold whitespace-nowrap text-points-ink"
             initial={{ opacity: 0, x: "-50%", y: 0, scale: 0.9 }}
-            animate={{ opacity: [0, 1, 0], y: [0, -6, -rise.lg], scale: [0.9, 1, 1] }}
-            transition={{ duration: dur.slower, ease: ease.out, times: [0, 0.2, 1] }}
+            animate={{
+              opacity: [0, 1, 0],
+              y: [0, -6, -rise.lg],
+              scale: [0.9, 1, 1],
+            }}
+            transition={{
+              duration: dur.slower,
+              ease: ease.out,
+              times: [0, 0.2, 1],
+            }}
           >
             +{amount}P
           </motion.span>
         ))}
       </AnimatePresence>
-      {bursts.length > 0 && <span role="status" className="sr-only">{amount}포인트 받았어요</span>}
+      {bursts.length > 0 && (
+        <span role="status" className="sr-only">
+          {amount}포인트 받았어요
+        </span>
+      )}
     </span>
   );
 }
@@ -197,7 +318,13 @@ export async function celebrate(origin: { x?: number; y?: number } = {}) {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const confetti = (await import("canvas-confetti")).default;
   const cs = getComputedStyle(document.documentElement);
-  const colors = ["honey-500", "honey-300", "brown-400", "brown-200", "brown-700"].map((n) => cs.getPropertyValue(`--${n}`).trim());
+  const colors = [
+    "honey-500",
+    "honey-300",
+    "brown-400",
+    "brown-200",
+    "brown-700",
+  ].map((n) => cs.getPropertyValue(`--${n}`).trim());
   confetti({
     particleCount: 60,
     spread: 70,
@@ -212,7 +339,13 @@ export async function celebrate(origin: { x?: number; y?: number } = {}) {
 }
 
 /* ---------- ProgressFill: 진행 바 (포인트, 영상) ---------- */
-export function ProgressFill({ value, className }: { value: number; className?: string }) {
+export function ProgressFill({
+  value,
+  className,
+}: {
+  value: number;
+  className?: string;
+}) {
   return (
     <motion.div
       className={className}
@@ -225,10 +358,25 @@ export function ProgressFill({ value, className }: { value: number; className?: 
 
 /* ---------- Overlays: 토스트·모달 공통 ---------- */
 export const overlay = {
-  toast: { initial: { opacity: 0, y: rise.sm }, animate: { opacity: 1, y: 0, transition: t.enter }, exit: { opacity: 0, y: rise.sm / 2, transition: t.exit } },
-  scrim: { initial: { opacity: 0 }, animate: { opacity: 1, transition: t.enter }, exit: { opacity: 0, transition: t.exit } },
-  modal: { initial: { opacity: 0, y: rise.sm, scale: 0.98 }, animate: { opacity: 1, y: 0, scale: 1, transition: t.enter }, exit: { opacity: 0, scale: 0.98, transition: t.exit } },
+  toast: {
+    initial: { opacity: 0, y: rise.sm },
+    animate: { opacity: 1, y: 0, transition: t.enter },
+    exit: { opacity: 0, y: rise.sm / 2, transition: t.exit },
+  },
+  scrim: {
+    initial: { opacity: 0 },
+    animate: { opacity: 1, transition: t.enter },
+    exit: { opacity: 0, transition: t.exit },
+  },
+  modal: {
+    initial: { opacity: 0, y: rise.sm, scale: 0.98 },
+    animate: { opacity: 1, y: 0, scale: 1, transition: t.enter },
+    exit: { opacity: 0, scale: 0.98, transition: t.exit },
+  },
 } as const;
 
 /* ---------- Press: 버튼·카드 누름 ---------- */
-export const press = { whileTap: { scale: 0.98 }, transition: { duration: dur.fast, ease: ease.out } } as const;
+export const press = {
+  whileTap: { scale: 0.98 },
+  transition: { duration: dur.fast, ease: ease.out },
+} as const;

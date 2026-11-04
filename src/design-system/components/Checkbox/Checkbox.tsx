@@ -6,11 +6,13 @@ import { cn } from "../../cn";
 export interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
   label: ReactNode;
   description?: ReactNode;
+  error?: ReactNode;
 }
 
 export function Checkbox({
   label,
   description,
+  error,
   id,
   className,
   ...rest
@@ -18,6 +20,11 @@ export function Checkbox({
   const autoId = useId();
   const inputId = id ?? autoId;
   const descId = `${inputId}-desc`;
+  const errId = `${inputId}-err`;
+  const describedBy =
+    [description ? descId : null, error ? errId : null]
+      .filter(Boolean)
+      .join(" ") || undefined;
 
   return (
     <div className="flex items-start gap-3">
@@ -25,7 +32,8 @@ export function Checkbox({
         {...rest}
         id={inputId}
         type="checkbox"
-        aria-describedby={description ? descId : undefined}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy}
         className={cn(
           "mt-0.5 size-5 shrink-0 cursor-pointer rounded-sm accent-primary disabled:cursor-not-allowed",
           className,
@@ -42,6 +50,11 @@ export function Checkbox({
           <span id={descId} className="text-caption text-text-muted">
             {description}
           </span>
+        ) : null}
+        {error ? (
+          <p id={errId} className="text-caption text-danger-700">
+            {error}
+          </p>
         ) : null}
       </div>
     </div>

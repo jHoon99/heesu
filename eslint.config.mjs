@@ -134,8 +134,16 @@ const eslintConfig = defineConfig([
       ],
     },
   },
-  // Reference copies of the design system are not project code.
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "docs/**"]),
+  // Reference copies of the design system are not project code. Edge Functions
+  // are Deno code, checked by `npm run fn:check` (deno check/lint/test).
+  globalIgnores([
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+    "docs/**",
+    "supabase/functions/**",
+  ]),
 ]);
 
 export default eslintConfig;

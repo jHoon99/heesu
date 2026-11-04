@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { buttonVariants } from "@/design-system";
 import { Button } from "./Button";
 
 describe("Button", () => {
@@ -27,5 +28,9 @@ describe("Button", () => {
     const btn = screen.getByRole("button");
     expect(btn).toHaveClass("bg-primary");
     expect(btn).toHaveAttribute("type", "button");
+  });
+
+  it("exports buttonVariants from the design system", () => {
+    expect(buttonVariants({ variant: "primary" })).toContain("bg-primary");
   });
 });

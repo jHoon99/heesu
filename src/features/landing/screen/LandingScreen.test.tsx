@@ -1,0 +1,114 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  act,
+  render as rtlRender,
+  screen,
+  within,
+} from "@testing-library/react";
+import type { ReactElement } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { ToastProvider } from "@/design-system";
+import { LandingScreen } from "../index";
+import { SECTIONS } from "../model/sections";
+
+vi.mock("@/features/consultations", () => ({
+  ConsultForm: () => <div>폼 자리</div>,
+}));
+
+function render(ui: ReactElement) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return rtlRender(
+    <QueryClientProvider client={client}>
+      <ToastProvider>{ui}</ToastProvider>
+    </QueryClientProvider>,
+  );
+}
+
+afterEach(() => vi.unstubAllGlobals());
+
+describe("LandingScreen", () => {
+  it("renders the hero headline", () => {
+    render(<LandingScreen />);
+    expect(
+      screen.getByRole("heading", { level: 1, name: "한 문장씩, 깊이 있게." }),
+    ).toBeInTheDocument();
+  });
+
+  it("has a section nav whose links point at real sections", () => {
+    const { container } = render(<LandingScreen />);
+    const nav = screen.getByRole("navigation", { name: "섹션 바로가기" });
+    const links = within(nav).getAllByRole("link");
+    expect(links).toHaveLength(7);
+    links.forEach((link, i) => {
+      const id = SECTIONS[i]?.id;
+      expect(link).toHaveAttribute("href", `#${id}`);
+      expect(container.querySelector(`section#${id}`)).not.toBeNull();
+    });
+  });
+
+  it("links the hero button to the consult section", () => {
+    render(<LandingScreen />);
+    const links = screen.getAllByRole("link", { name: /상담 신청하기/ });
+    expect(links[0]).toHaveAttribute("href", "#consult");
+  });
+
+  it("shows placeholders for content not decided yet", () => {
+    const { container } = render(<LandingScreen />);
+    expect(screen.getByText("학원 소개 글 2~3문장")).toBeInTheDocument();
+    const director = container.querySelector("section#director") as HTMLElement;
+    expect(within(director).getByText("원장 이름")).toBeInTheDocument();
+  });
+
+  it("has a footer with privacy link and copyright", () => {
+    render(<LandingScreen />);
+    const footer = screen.getByRole("contentinfo");
+    expect(
+      within(footer).getByRole("link", { name: "개인정보처리방침" }),
+    ).toHaveAttribute("href", "/privacy");
+    expect(within(footer).getByText("© 2027 희수영어")).toBeInTheDocument();
+  });
+
+  it("puts the #top target on the outermost wrapper, not main", () => {
+    const { container } = render(<LandingScreen />);
+    const top = container.querySelector("#top");
+    expect(top).toBe(container.firstElementChild);
+    expect(top?.tagName).not.toBe("MAIN");
+  });
+
+  it("lets the 상담 tab become active when the consult section is in view", () => {
+    let callback: IntersectionObserverCallback = () => {};
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(cb: IntersectionObserverCallback) {
+          callback = cb;
+        }
+        observe() {}
+        disconnect() {}
+        unobserve() {}
+      },
+    );
+    vi.stubGlobal("matchMedia", () => ({ matches: true }));
+    Element.prototype.scrollTo = vi.fn();
+    const { container } = render(<LandingScreen />);
+    const consult = container.querySelector("section#consult") as HTMLElement;
+    act(() => {
+      callback(
+        [
+          {
+            isIntersecting: true,
+            target: consult,
+          } as unknown as IntersectionObserverEntry,
+        ],
+        {} as IntersectionObserver,
+      );
+    });
+    const nav = screen.getByRole("navigation", { name: "섹션 바로가기" });
+    expect(within(nav).getByRole("link", { name: "상담" })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+  });
+});

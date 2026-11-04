@@ -22,12 +22,18 @@ const badge = cva(
 export interface BadgeProps {
   tone?: "neutral" | "brand" | "solid" | "points" | "new" | "count";
   icon?: LucideIcon;
+  className?: string;
   children: ReactNode;
 }
 
-export function Badge({ tone = "neutral", icon: Icon, children }: BadgeProps) {
+export function Badge({
+  tone = "neutral",
+  icon: Icon,
+  className,
+  children,
+}: BadgeProps) {
   return (
-    <span className={cn(badge({ tone }))}>
+    <span className={cn(badge({ tone }), className)}>
       {Icon ? <Icon size={12} aria-hidden="true" /> : null}
       {children}
     </span>

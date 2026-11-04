@@ -11,10 +11,15 @@ describe("design tokens", () => {
     "--color-*: initial;",
     "--spacing: 4px;",
   ])("contains %s", (token) => {
-    expect(css).toContain(token);
+    expect(css.toLowerCase()).toContain(token.toLowerCase());
   });
 
   it("has no external font CSS import (CSP)", () => {
     expect(css).not.toContain("fonts.googleapis.com");
+  });
+
+  it("uses the dynamic-subset Pretendard family, not a next/font variable", () => {
+    expect(css).toMatch(/--font-sans:\s*"Pretendard Variable",/);
+    expect(css).not.toContain("--font-pretendard");
   });
 });

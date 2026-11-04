@@ -1,16 +1,18 @@
 # Foundation follow-ups (carry into later plans)
 
 ## Landing plan (by Dec 1) must include
-- Pretendard 2 MB woff2 is preloaded on every page: subset the font or set `preload: false` in `src/app/layout.tsx`.
-- Exclude `supabase/functions/**` from `tsconfig.json` include and ESLint; give Edge Functions their own Deno check (`deno check`/`deno lint`) in CI. CI's `supabase start -x` list excludes `edge-runtime`; change it when function tests exist.
-- Add a toast provider/queue to root Providers (spec §4) for consultation form feedback.
-- Add placeholder env (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`) to `vitest.config.mts` `test.env` before any test imports `core/supabase/client`.
-- `site_content` / consultations: admin policies `to authenticated`; pgTAP "anon select on site_content succeeds", "anon select on consultations → 0 rows".
-- `private.audit()`: guard against BEFORE/statement triggers (`tg_when <> 'AFTER' or tg_level <> 'ROW'` → raise); run the audit test as `authenticated`. First audited table is `consultations`.
-- `classifyError`: map 23502/23503/22xxx → invalid; P0001 (RPC raise) → its own message; auth 400 `invalid_credentials`.
-- Design-system Input: spread `{...rest}` before the aria wiring so callers can't override `aria-describedby`/`id`; give Card/Badge a `className` prop.
-- Add `zz-fixture` paths to `.gitignore`; add `docs/` to `.prettierignore` and run `npm run format` once.
-- CSP (`public/_headers`): decide map embed for "오시는 길" (static image/link vs iframe → frame-src/img-src).
+- [x] Pretendard 2 MB woff2 is preloaded on every page: subset the font or set `preload: false` in `src/app/layout.tsx`.
+- [x] Exclude `supabase/functions/**` from `tsconfig.json` include and ESLint; give Edge Functions their own Deno check (`deno check`/`deno lint`) in CI. CI's `supabase start -x` list excludes `edge-runtime`; change it when function tests exist.
+- [x] Add a toast provider/queue to root Providers (spec §4) for consultation form feedback.
+- [x] Add placeholder env (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`) to `vitest.config.mts` `test.env` before any test imports `core/supabase/client`.
+- [x] `site_content` / consultations: admin policies `to authenticated`; pgTAP "anon select on site_content succeeds", "anon select on consultations → 0 rows".
+- [x] `private.audit()`: guard against BEFORE/statement triggers (`tg_when <> 'AFTER' or tg_level <> 'ROW'` → raise); run the audit test as `authenticated`. First audited table is `consultations`.
+- [x] `classifyError`: map 23502/23503/22xxx → invalid; P0001 (RPC raise) → its own message; auth 400 `invalid_credentials`.
+- [x] Design-system Input: spread `{...rest}` before the aria wiring so callers can't override `aria-describedby`/`id`; give Card/Badge a `className` prop.
+- [x] Add `zz-fixture` paths to `.gitignore`; add `docs/` to `.prettierignore` and run `npm run format` once.
+- [x] CSP (`public/_headers`): decide map embed for "오시는 길" — no iframe; `frame-src` stays Turnstile only, pinned in `headers.test.ts` (landing Task 9).
+
+(All items above done in the landing plan, Tasks 1-9.)
 
 ## Admin plan must include
 - StatusChip: accessible name = `${ariaLabel} ${status word}`; non-interactive chip needs a role or no aria-label.
@@ -32,3 +34,14 @@
 - Cloudflare Pages env vars set for both Production and Preview.
 - 2FA on Supabase, GitHub, Cloudflare (and Solapi later).
 - No schema edits from the dashboard (spec §7) — local meta tests can't see them.
+- `supabase secrets set TURNSTILE_SECRET_KEY=...` (test secret during the demo; before 12/1 swap in the real secret and the site-key constant).
+- `supabase functions deploy submit-consultation` (verify_jwt=false comes from config.toml).
+- Turnstile widget allowed hostnames: `heesu.pages.dev`, `dev.heesu.pages.dev`.
+- pg_cron deletion of unregistered consultations (plan 6) must ship before the page goes public (`/privacy` promises deletion after 6 months).
+- Re-enable /privacy indexing (remove `robots: { index: false }` from the page metadata) + add it back to `public/sitemap.xml` after legal review and the Blank values are filled.
+- `supabase link` + `supabase db push` for all migrations.
+- Deploy functions and set secrets (`TURNSTILE_SECRET_KEY` test key for the demo).
+- Hosted smoke test: real submit from dev.heesu.pages.dev; `curl` with a foreign Origin must return 403.
+- Check whether the project disabled legacy API keys — if so, `SUPABASE_SERVICE_ROLE_KEY` in functions must come from a custom secret holding the new `sb_secret_…` key.
+- Test Turnstile keys let bots pass until the real keys are in on 12/1.
+- Local build needs `.env.local` (copy values from `supabase status`).

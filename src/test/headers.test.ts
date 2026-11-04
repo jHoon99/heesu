@@ -39,6 +39,14 @@ describe("public/_headers /*", () => {
     expect(csp).toContain(directive);
   });
 
+  it("frame-src allows only Turnstile (no map iframe)", () => {
+    const frameSrc = csp
+      .split(";")
+      .map((d) => d.trim())
+      .find((d) => d.startsWith("frame-src"));
+    expect(frameSrc).toBe("frame-src https://challenges.cloudflare.com");
+  });
+
   it.each([
     "X-Content-Type-Options: nosniff",
     "Referrer-Policy: strict-origin-when-cross-origin",
@@ -47,7 +55,9 @@ describe("public/_headers /*", () => {
   });
 
   it("has HSTS and a Permissions-Policy that turns off camera, mic, geolocation", () => {
-    expect(all.some((l) => l.startsWith("Strict-Transport-Security:"))).toBe(true);
+    expect(all.some((l) => l.startsWith("Strict-Transport-Security:"))).toBe(
+      true,
+    );
     const pp = all.find((l) => l.startsWith("Permissions-Policy:")) ?? "";
     for (const f of ["camera=()", "microphone=()", "geolocation=()"]) {
       expect(pp).toContain(f);

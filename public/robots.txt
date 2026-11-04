@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /s$
+Disallow: /s/
+Disallow: /g$
+Disallow: /g/
+
+Sitemap: https://heesu.pages.dev/sitemap.xml

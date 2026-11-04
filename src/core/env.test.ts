@@ -22,18 +22,20 @@ describe("parseEnv", () => {
   });
 
   it("URL이 없으면 변수 이름을 넣어 throw해요", () => {
-    expect(() => parseEnv({ ...valid, NEXT_PUBLIC_SUPABASE_URL: undefined })).toThrow(
-      "NEXT_PUBLIC_SUPABASE_URL",
-    );
+    expect(() =>
+      parseEnv({ ...valid, NEXT_PUBLIC_SUPABASE_URL: undefined }),
+    ).toThrow("NEXT_PUBLIC_SUPABASE_URL");
   });
 
   it("키가 비어 있으면 변수 이름을 넣어 throw해요", () => {
-    expect(() => parseEnv({ ...valid, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "" })).toThrow(
-      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-    );
+    expect(() =>
+      parseEnv({ ...valid, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "" }),
+    ).toThrow("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
   });
 
   it("URL이 http(s) 형식이 아니면 throw해요", () => {
-    expect(() => parseEnv({ ...valid, NEXT_PUBLIC_SUPABASE_URL: "not-a-url" })).toThrow();
+    expect(() =>
+      parseEnv({ ...valid, NEXT_PUBLIC_SUPABASE_URL: "not-a-url" }),
+    ).toThrow();
   });
 });

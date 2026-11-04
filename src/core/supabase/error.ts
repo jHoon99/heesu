@@ -5,6 +5,7 @@ export type ApiErrorKind =
   | "server"
   | "conflict"
   | "invalid"
+  | "credentials"
   | "unknown";
 
 const MESSAGES: Record<ApiErrorKind, string> = {
@@ -14,6 +15,7 @@ const MESSAGES: Record<ApiErrorKind, string> = {
   server: "잠시 후 다시 시도해 주세요.",
   conflict: "이미 처리된 요청이에요.",
   invalid: "입력한 내용을 다시 확인해 주세요.",
+  credentials: "아이디 또는 비밀번호가 맞지 않아요. 다시 입력해 주세요.",
   unknown: "문제가 생겼어요. 잠시 후 다시 시도해 주세요.",
 };
 
@@ -27,13 +29,17 @@ function kindFromCode(code: string): ApiErrorKind | null {
   if (code === "PGRST116") return "notFound";
   if (code === "42501") return "forbidden";
   if (code === "23505") return "conflict";
-  if (code === "23514" || code === "22001") return "invalid";
+  if (code === "23502" || code === "23503" || code === "23514")
+    return "invalid";
+  if (/^22[0-9A-Z]{3}$/.test(code)) return "invalid";
+  if (code === "invalid_credentials") return "credentials";
   return null;
 }
 
 function toStatus(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && /^\d{1,3}$/.test(value)) return Number(value);
+  if (typeof value === "string" && /^\d{1,3}$/.test(value))
+    return Number(value);
   return null;
 }
 
@@ -45,7 +51,8 @@ function kindFromStatus(status: number): ApiErrorKind | null {
   return null;
 }
 
-const NETWORK_MESSAGE = /failed to fetch|load failed|networkerror|network request failed/i;
+const NETWORK_MESSAGE =
+  /failed to fetch|load failed|networkerror|network request failed/i;
 
 function isNetworkError(error: unknown): boolean {
   if (error instanceof TypeError) return NETWORK_MESSAGE.test(error.message);
@@ -56,13 +63,25 @@ function isNetworkError(error: unknown): boolean {
 function isNetworkLikeRecord(error: Record<string, unknown>): boolean {
   if (error.name === "AuthRetryableFetchError") return true;
   if (toStatus(error.status) === 0) return true;
-  return typeof error.message === "string" && NETWORK_MESSAGE.test(error.message);
+  return (
+    typeof error.message === "string" && NETWORK_MESSAGE.test(error.message)
+  );
 }
 
-export function classifyError(error: unknown): { kind: ApiErrorKind; message: string } {
+export function classifyError(error: unknown): {
+  kind: ApiErrorKind;
+  message: string;
+} {
   try {
     if (isNetworkError(error)) return result("network");
     if (!isRecord(error)) return result("unknown");
+
+    if (error.code === "P0001") {
+      if (typeof error.message === "string" && error.message !== "") {
+        return { kind: "invalid", message: error.message };
+      }
+      return result("invalid");
+    }
 
     if (typeof error.code === "string") {
       const kind = kindFromCode(error.code);

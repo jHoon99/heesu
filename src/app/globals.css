@@ -1,52 +1,52 @@
 /* app/globals.css — 희수영어 tokens (Tailwind CSS v4 + Next.js) */
 @import "tailwindcss";
-/* Pretendard는 next/font/local 로 불러오는 것을 권장 (layout.tsx 예시는 개발 연결 섹션) */
+/* Pretendard는 layout.tsx에서 동적 서브셋 CSS(fonts/pretendard)로 불러와요 */
 
 :root {
   /* color */
-  --brown-50: #FAF5EF;
-  --brown-100: #F2E7DA;
-  --brown-200: #E3CDB5;
-  --brown-300: #CFAE8C;
-  --brown-400: #B58A64;
-  --brown-500: #9A6B45;
-  --brown-600: #865A38;
-  --brown-700: #7A4E2E;
-  --brown-800: #5F3C23;
-  --brown-900: #45291A;
-  --beige: #F2EADC;
-  --cream: #FEFDF8;
-  --gray-0: #FFFFFF;
-  --gray-50: #FAF8F4;
-  --gray-100: #F3F0EA;
-  --gray-200: #E6E1D8;
-  --gray-300: #D3CCC0;
-  --gray-400: #ADA496;
-  --gray-500: #857C70;
-  --gray-600: #665E54;
-  --gray-700: #4A443D;
-  --gray-800: #322D28;
-  --gray-900: #211D19;
-  --success-50: #E4F2E8;
-  --success-500: #3E9A62;
-  --success-700: #256B3E;
-  --warning-50: #FDEBD6;
-  --warning-500: #CC6A14;
-  --warning-700: #9A4A06;
-  --danger-50: #FBE7E4;
-  --danger-500: #D2402F;
-  --danger-700: #B42318;
-  --info-50: #E4EEF7;
-  --info-500: #3D7AB3;
-  --info-700: #2B5C88;
-  --incomplete-50: #EDE9F6;
-  --incomplete-500: #7C68B5;
-  --incomplete-700: #5B4691;
-  --honey-50: #FDF8EA;
-  --honey-100: #FBF0D6;
-  --honey-300: #F0CC7A;
-  --honey-500: #D9A23A;
-  --honey-700: #8A5E0E;
+  --brown-50: #faf5ef;
+  --brown-100: #f2e7da;
+  --brown-200: #e3cdb5;
+  --brown-300: #cfae8c;
+  --brown-400: #b58a64;
+  --brown-500: #9a6b45;
+  --brown-600: #865a38;
+  --brown-700: #7a4e2e;
+  --brown-800: #5f3c23;
+  --brown-900: #45291a;
+  --beige: #f2eadc;
+  --cream: #fefdf8;
+  --gray-0: #ffffff;
+  --gray-50: #faf8f4;
+  --gray-100: #f3f0ea;
+  --gray-200: #e6e1d8;
+  --gray-300: #d3ccc0;
+  --gray-400: #ada496;
+  --gray-500: #857c70;
+  --gray-600: #665e54;
+  --gray-700: #4a443d;
+  --gray-800: #322d28;
+  --gray-900: #211d19;
+  --success-50: #e4f2e8;
+  --success-500: #3e9a62;
+  --success-700: #256b3e;
+  --warning-50: #fdebd6;
+  --warning-500: #cc6a14;
+  --warning-700: #9a4a06;
+  --danger-50: #fbe7e4;
+  --danger-500: #d2402f;
+  --danger-700: #b42318;
+  --info-50: #e4eef7;
+  --info-500: #3d7ab3;
+  --info-700: #2b5c88;
+  --incomplete-50: #ede9f6;
+  --incomplete-500: #7c68b5;
+  --incomplete-700: #5b4691;
+  --honey-50: #fdf8ea;
+  --honey-100: #fbf0d6;
+  --honey-300: #f0cc7a;
+  --honey-500: #d9a23a;
+  --honey-700: #8a5e0e;
   --bg-page: var(--beige);
   --bg-admin: var(--gray-50);
   --bg-surface: var(--cream);
@@ -67,8 +67,11 @@
   --points-ink: var(--honey-700);
   --points-soft: var(--honey-100);
   /* font */
-  --font-sans: var(--font-pretendard), "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-  --font-serif: var(--font-gowun), "Gowun Batang", "Nanum Myeongjo", AppleMyungjo, serif;
+  --font-sans:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  --font-serif:
+    var(--font-gowun), "Gowun Batang", "Nanum Myeongjo", AppleMyungjo, serif;
   /* spacing (4px) */
   --space-0_5: 2px;
   --space-1: 4px;
@@ -88,7 +91,7 @@
   --radius-full: 9999px;
   /* shadow */
   --shadow-sm: 0 1px 2px rgba(69, 41, 26, 0.06);
-  --shadow-md: 0 4px 16px rgba(69, 41, 26, 0.10);
+  --shadow-md: 0 4px 16px rgba(69, 41, 26, 0.1);
   --shadow-lg: 0 12px 32px rgba(69, 41, 26, 0.16);
   /* size */
   --control-sm: 32px;
@@ -117,8 +120,8 @@
 }
 
 @theme inline {
-  --color-*: initial;  /* 기본 팔레트 끄기: 브랜드 색만 쓰게 */
-  --color-white: #FFFFFF;
+  --color-*: initial; /* 기본 팔레트 끄기: 브랜드 색만 쓰게 */
+  --color-white: #ffffff;
   --color-transparent: transparent;
   --color-current: currentColor;
   --color-brown-50: var(--brown-50);
@@ -185,7 +188,7 @@
   --color-points-soft: var(--points-soft);
   --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
-  --spacing: 4px;  /* p-4 = 16px, gap-3 = 12px … 4px 단위 */
+  --spacing: 4px; /* p-4 = 16px, gap-3 = 12px … 4px 단위 */
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
@@ -244,17 +247,58 @@
   --ease-in: var(--ease-in);
   --animate-rise: hs-rise var(--dur-slow) var(--ease-out) both;
   --animate-fade: hs-fade var(--dur-base) var(--ease-out) both;
-  @keyframes hs-rise { from { opacity: 0; transform: translateY(var(--rise-md)); } to { opacity: 1; transform: none; } }
-  @keyframes hs-fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes hs-rise {
+    from {
+      opacity: 0;
+      transform: translateY(var(--rise-md));
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes hs-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 }
 
 @layer base {
-  html { font-family: var(--font-sans); color: var(--text); word-break: keep-all; -webkit-font-smoothing: antialiased; }
-  body { background: var(--bg-page); }
-  :focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+  html {
+    font-family: var(--font-sans);
+    color: var(--text);
+    word-break: keep-all;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    background: var(--bg-page);
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* 부드러운 스크롤은 동작 줄이기를 켜지 않았을 때만 */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 /* 동작 줄이기: 모든 CSS 모션 끔 (Motion 컴포넌트는 <HeesuMotion>이 처리) */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; scroll-behavior: auto !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -11,6 +11,7 @@
     "test": "vitest run",
     "format": "prettier --write .",
     "db:test": "supabase test db",
+    "fn:check": "cd supabase/functions/submit-consultation && deno check --frozen *.ts && deno lint && deno test --frozen",
     "db:types": "supabase gen types typescript --local --schema public > src/core/supabase/database.types.ts"
   },
   "dependencies": {
