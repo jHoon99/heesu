@@ -15,7 +15,7 @@ const REFRESH_MIN_INTERVAL_MS = 60_000;
 export function useMyVideos(studentId: string | null) {
   return useQuery({
     queryKey: videoKeys.mine(studentId ?? ""),
-    queryFn: listMyVideos,
+    queryFn: () => listMyVideos(studentId as string),
     enabled: studentId !== null,
     refetchOnMount: "always",
   });
@@ -24,7 +24,7 @@ export function useMyVideos(studentId: string | null) {
 export function useMyVideo(id: string, studentId: string | null) {
   return useQuery({
     queryKey: [...videoKeys.mine(studentId ?? ""), id] as const,
-    queryFn: () => getMyVideo(id),
+    queryFn: () => getMyVideo(id, studentId as string),
     enabled: studentId !== null && id !== "",
     refetchOnMount: "always",
     // 재생 중 다시 불러오면 이어 보기 위치가 흔들려요.

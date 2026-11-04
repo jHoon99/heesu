@@ -3,6 +3,7 @@ export const videoKeys = {
   adminList: (classId: string) => ["videos", "admin", classId] as const,
   detail: (id: string) => ["videos", "detail", id] as const,
   views: (id: string) => ["videos", "views", id] as const,
+  allMine: ["videos", "mine"] as const,
   mine: (studentId: string) => ["videos", "mine", studentId] as const,
   playback: (id: string) => ["videos", "playback", id] as const,
 };

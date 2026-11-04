@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
@@ -17,15 +17,19 @@ export function VideoPlayerScreen() {
   const student = useMyStudent();
   const studentId = student.data?.id ?? null;
   const query = useMyVideo(id, studentId);
-  const video = query.data ?? null;
+  // 수정 화면처럼 새로 받은 데이터가 올 때까지 재생을 붙이지 않아요.
+  const fresh = query.isFetchedAfterMount;
+  const video = fresh ? (query.data ?? null) : null;
   const playback = usePlaybackUrl(video);
   const [el, setEl] = useState<HTMLVideoElement | null>(null);
-  const [errors, setErrors] = useState(0);
+  const [failedOnce, setFailedOnce] = useState(false);
+  const errorCount = useRef(0);
   useWatchProgress(el, video);
 
   const onVideoError = () => {
-    setErrors((n) => n + 1);
-    if (errors === 0) playback.refresh();
+    errorCount.current += 1;
+    if (errorCount.current === 1) playback.refresh();
+    else setFailedOnce(true);
   };
 
   const back = (
@@ -59,7 +63,7 @@ export function VideoPlayerScreen() {
       </div>
     );
   }
-  if (query.data === undefined) {
+  if (query.data === undefined || !fresh) {
     return (
       <div className="flex min-w-0 flex-col gap-4">
         {back}
@@ -80,7 +84,7 @@ export function VideoPlayerScreen() {
     );
   }
 
-  const failed = errors >= 2 || (playback.isError && playback.url === null);
+  const failed = failedOnce || (playback.isError && playback.url === null);
   return (
     <div className="flex min-w-0 flex-col gap-4">
       {back}

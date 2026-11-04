@@ -186,21 +186,26 @@ function toMyVideo(r: MyRow): MyVideo {
 }
 
 /** RLS가 내 반에 공개된 영상과 내 기록만 줘요. */
-export async function listMyVideos(): Promise<MyVideo[]> {
+export async function listMyVideos(studentId: string): Promise<MyVideo[]> {
   const { data, error } = await supabase
     .from("videos")
     .select(MY_COLUMNS)
+    .eq("video_views.student_id", studentId)
     .order("published_at", { ascending: false })
     .limit(100);
   if (error) throw error;
   return (data as unknown as MyRow[]).map(toMyVideo);
 }
 
-export async function getMyVideo(id: string): Promise<MyVideo | null> {
+export async function getMyVideo(
+  id: string,
+  studentId: string,
+): Promise<MyVideo | null> {
   const { data, error } = await supabase
     .from("videos")
     .select(MY_COLUMNS)
     .eq("id", id)
+    .eq("video_views.student_id", studentId)
     .maybeSingle();
   if (error) throw error;
   return data ? toMyVideo(data as unknown as MyRow) : null;

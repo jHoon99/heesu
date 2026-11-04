@@ -28,9 +28,10 @@ const video = {
   positionSeconds: 60,
 };
 
-function setVideo(data: unknown) {
+function setVideo(data: unknown, isFetchedAfterMount = true) {
   myVideo.mockReturnValue({
     data,
+    isFetchedAfterMount,
     isError: false,
     error: null,
   } as unknown as ReturnType<typeof useMyVideo>);
@@ -77,5 +78,21 @@ describe("VideoPlayerScreen", () => {
     expect(
       screen.getByText("영상을 찾을 수 없어요. 목록에서 다시 골라 주세요."),
     ).toBeInTheDocument();
+  });
+
+  it("does not render the player from stale cache before the fresh fetch", () => {
+    setVideo(video, false);
+    const { container } = render(<VideoPlayerScreen />);
+    expect(container.querySelector("video")).toBeNull();
+    expect(playback).toHaveBeenLastCalledWith(null);
+  });
+
+  it("counts two error events fired before a re-render", () => {
+    const { container } = render(<VideoPlayerScreen />);
+    const el = container.querySelector("video") as HTMLVideoElement;
+    fireEvent.error(el);
+    fireEvent.error(el);
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(screen.getByText(/영상을 열 수 없어요/)).toBeInTheDocument();
   });
 });

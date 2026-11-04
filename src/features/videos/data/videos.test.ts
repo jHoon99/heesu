@@ -183,6 +183,11 @@ describe("student video data", () => {
 
   it("maps a row without a view record to 0 watched", async () => {
     const builder: Record<string, unknown> = {};
+    const eqs: unknown[][] = [];
+    builder.eq = (...a: unknown[]) => {
+      eqs.push(a);
+      return builder;
+    };
     for (const m of ["select", "order"]) builder[m] = () => builder;
     builder.limit = () =>
       Promise.resolve({
@@ -201,7 +206,8 @@ describe("student video data", () => {
         error: null,
       });
     from.mockReturnValue(builder as never);
-    const [v] = await listMyVideos();
+    const [v] = await listMyVideos("st1");
+    expect(eqs).toContainEqual(["video_views.student_id", "st1"]);
     expect(v).toMatchObject({
       className: "A반",
       watchedSeconds: 0,

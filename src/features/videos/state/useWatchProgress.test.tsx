@@ -3,6 +3,7 @@ import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { saveVideoProgress, type MyVideo } from "../data/videos";
+import { videoKeys } from "./keys";
 import { useWatchProgress } from "./useWatchProgress";
 
 const show = vi.fn();
@@ -12,6 +13,7 @@ const save = vi.mocked(saveVideoProgress);
 
 class FakeVideo extends EventTarget {
   currentTime = 0;
+  readyState = 0;
 }
 
 const video: MyVideo = {
@@ -26,19 +28,26 @@ const video: MyVideo = {
   positionSeconds: 120,
 };
 
-function setup() {
+function setup(opts: { readyState?: number; video?: MyVideo } = {}) {
   const el = new FakeVideo();
+  el.readyState = opts.readyState ?? 0;
   const client = new QueryClient();
+  const invalidate = vi.spyOn(client, "invalidateQueries");
   const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={client}>{children}</QueryClientProvider>
   );
   const view = renderHook(
-    () => useWatchProgress(el as unknown as HTMLVideoElement, video),
+    () =>
+      useWatchProgress(el as unknown as HTMLVideoElement, opts.video ?? video),
     { wrapper },
   );
-  const fire = (t: string) => act(() => void el.dispatchEvent(new Event(t)));
+  const fire = (t: string) =>
+    act(() => {
+      if (t === "loadedmetadata") el.readyState = 4;
+      el.dispatchEvent(new Event(t));
+    });
   const tick = (ms: number) => act(() => void vi.advanceTimersByTime(ms));
-  return { el, view, fire, tick };
+  return { el, view, fire, tick, invalidate };
 }
 
 describe("useWatchProgress", () => {
@@ -89,6 +98,7 @@ describe("useWatchProgress", () => {
     fire("timeupdate");
     fire("pause");
     expect(save).toHaveBeenCalledTimes(1);
+    expect(save).toHaveBeenLastCalledWith("v1", 121, 121);
     el.currentTime = 122;
     fire("timeupdate");
     Object.defineProperty(document, "visibilityState", {
@@ -121,6 +131,74 @@ describe("useWatchProgress", () => {
       tone: "danger",
       message:
         "시청 위치를 저장하지 못하고 있어요. 인터넷 연결을 확인해 주세요.",
+    });
+  });
+
+  it("keeps the session position when the url is refreshed", () => {
+    const { el, fire } = setup();
+    fire("loadedmetadata");
+    fire("play");
+    for (let t = 121; t <= 125; t += 1) {
+      el.currentTime = t;
+      fire("timeupdate");
+    }
+    // src changes: element resets before metadata loads
+    el.readyState = 0;
+    el.currentTime = 0;
+    fire("timeupdate");
+    fire("pause");
+    expect(save).not.toHaveBeenCalled();
+    fire("loadedmetadata");
+    expect(el.currentTime).toBe(125);
+    fire("pause");
+    expect(save).toHaveBeenLastCalledWith("v1", 125, 125);
+  });
+
+  it("seeks immediately when metadata is already loaded on attach", () => {
+    const { el } = setup({ readyState: 1 });
+    expect(el.currentTime).toBe(120);
+  });
+
+  it("resumes from the watched frontier after a forward skip", () => {
+    const { el, fire } = setup({
+      video: { ...video, positionSeconds: 590, watchedSeconds: 100 },
+    });
+    fire("loadedmetadata");
+    expect(el.currentTime).toBe(100);
+  });
+
+  it("stops the interval on pause and ignores events after unmount", () => {
+    const { el, fire, tick, view } = setup();
+    fire("loadedmetadata");
+    fire("play");
+    el.currentTime = 121;
+    fire("timeupdate");
+    fire("pause");
+    expect(save).toHaveBeenCalledTimes(1);
+    el.currentTime = 122;
+    fire("timeupdate");
+    tick(30_000);
+    expect(save).toHaveBeenCalledTimes(1);
+    view.unmount();
+    expect(save).toHaveBeenCalledTimes(2);
+    el.currentTime = 150;
+    fire("pause");
+    fire("ended");
+    act(() => void document.dispatchEvent(new Event("visibilitychange")));
+    expect(save).toHaveBeenCalledTimes(2);
+  });
+
+  it("invalidates the my-videos list on unmount", async () => {
+    const { view, invalidate, fire, el } = setup();
+    fire("loadedmetadata");
+    el.currentTime = 121;
+    fire("timeupdate");
+    view.unmount();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(invalidate).toHaveBeenCalledWith({
+      queryKey: videoKeys.allMine,
     });
   });
 });
