@@ -16,7 +16,7 @@
 - [x] StatusChip `ariaLabel` JSDoc: prefix, don't repeat the status word (cb9a362).
 - [x] Import `SaveNotAppliedError` from core directly (no classes model shim); paused vs left status tone (cb9a362).
 - [x] Attendance board and progress exclude `status = 'left'` students via the `class_roster` view (defe7d1).
-- [ ] `class_members` counts on the class list still read `class_members` directly, so they include `left` students — switch to `class_roster`.
+- [x] `class_members` counts on the class list now read the `class_roster` view, so `left` students are excluded (`src/features/classes/data/classes.ts`).
 - [x] Points history: client-side sort by shown date, "최근 50건만 보여요" note at the cap, and the student detail shows recent records + points.
 
 ## guardian-records
@@ -32,32 +32,33 @@
 - Optional: pass admin id as audit hint for service_role writes. (left → v2 in foundation-followups)
 
 ## demo-deploy-qa
-- QA: iPhone Safari add to home screen (standalone, bottom safe-area, icon) and Android Chrome install; on the deploy preview confirm SW registration and the offline message under the CSP (worker-src, manifest-src).
-- QA: student password change does not ask for the current password (assumes a signed-in device) — confirm with the director.
-- SW: prune `/_next/static` cache growth (old build entries accumulate in hs-shell-v1). (done in Task SW)
-- Headers test: pin exact `worker-src 'self'` / `manifest-src 'self'` values.
-- Offline before the first controlled visit: the SW only controls the page after the first reload (`clients.claim` narrows this window but does not remove it); cover that case. Also an offline reload of a cached /s page shows a blank screen for ~3s (role query retries) and then the generic role-error message — add an offline-aware message.
-- PWA leak test should grep all of src/app except `s/` for the manifest/SW wiring.
-- InstallGuideCard: use `useSyncExternalStore` instead of mount-time state.
-- ChangePasswordCard: ref-based in-flight guard against double submit.
-- Modal: render via a top-level host or move Modals out of Card (PasswordResetCard, StudentEditScreen); add focus-trap first→last wrap and unmount-while-open scroll-restore tests. (Deferred from class-ops.)
-- Sign-out fallback duplicated in core/auth session.tsx and features/auth data — single helper. (Deferred from class-ops.)
-- `create-student` Edge Function should reject control characters in names (the DB check is the only guard today and returns a generic error).
-- Turnstile siteverify fetch timeout (`AbortSignal.timeout(5000)`) + tests for non-2xx / non-JSON fail-closed.
-- Type the Edge Function's supabase client with `Database` so `deno check` catches RPC param drift; hosted smoke test.
-- Turnstile hostname check — ship together with real keys before 12/1 (test keys report a dummy hostname).
-- A11y pass: role=alert on missing-token and Turnstile failure text; clear Turnstile `failed` after recovery; focus the success card; phone caret jump.
-- Visual pass: section tab row scroll back to left when none active; icon differences vs mock (Quote glyph, single-person icon), footer privacy link underline; `text-h2` + `text-[20px]` conflict without cn in SiteHeader and PrivacyScreen.
-- StrictMode Turnstile re-render check in a browser (QA item).
-- README: local build needs `.env.local`.
-- Hard gate before public launch: /privacy Blank values filled, claims about unbuilt features removed or built, legal review, then re-enable indexing.
-- Re-verify on cloud that an old refresh token fails after reset; code comment: access token valid ≤1h.
-- `getUser` network failure maps to 401 not 500 on the HS256 fallback path.
-- QA notes: signed-out aal2 token valid until exp; create-student orphan auth user can wedge a login id (dashboard cleanup step); local Kong answers OPTIONS with ACAO * (verify CORS on cloud gateway).
-- Verify TOTP QR renders under the real CSP on the deployed preview.
-- CI: `cancel-in-progress: ${{ github.event_name == 'pull_request' }}`.
-- QA step: second save of 학교·보호자 against the real DB.
-- `seed-demo.sql` must reuse the auth.users shape from seed.sql (empty token columns + identities).
+- [x] QA: iPhone Safari add to home screen and Android Chrome install; SW registration and the offline message under the CSP. → QA §5·§6, 런북 §5
+- [x] QA: student password change does not ask for the current password — confirm with the director. → QA §3·§8
+- [x] SW: prune `/_next/static` cache growth (`public/sw.js`, hs-shell cache).
+- [x] Headers test: pin exact `worker-src 'self'` / `manifest-src 'self'` values. (`src/test/headers.test.ts`, Task 3)
+- Offline before the first controlled visit, and an offline reload of a cached /s page shows a blank screen then the generic role-error message — add an offline-aware message. → QA §6 알려진 한계, 시연 뒤(12/1 전)
+- [x] PWA leak test greps all of src/app except `s/` for the manifest/SW wiring. (`src/test/pwa.test.ts`, Task 3)
+- [x] InstallGuideCard: `useSyncExternalStore` (`src/features/my-info/components/InstallGuideCard.tsx`).
+- ChangePasswordCard: ref-based in-flight guard against double submit. → 시연 뒤(12/1 전)
+- Modal: render via a top-level host or move Modals out of Card; focus-trap wrap and scroll-restore tests. → 시연 뒤(12/1 전)
+- Sign-out fallback duplicated in core/auth session.tsx and features/auth data — single helper. → 시연 뒤(12/1 전)
+- [x] `create-student` Edge Function rejects control characters in names (`CONTROL_CHARS` in `supabase/functions/create-student/handler.ts`).
+- [x] Turnstile siteverify fetch timeout (5s) + tests for non-2xx / non-JSON fail-closed. (`supabase/functions/submit-consultation/turnstile.ts`, `turnstile_test.ts`, Task 2)
+- Type the Edge Function's supabase client with `Database` so `deno check` catches RPC param drift. → 시연 뒤(12/1 전). (hosted smoke: [x] → 런북 §5·§6)
+- Turnstile hostname check — ship together with real keys before 12/1. → 런북 §9
+- A11y pass: role=alert on missing-token and Turnstile failure text; clear Turnstile `failed` after recovery; focus the success card; phone caret jump. → 시연 뒤(12/1 전)
+- Visual pass: section tab row scroll back to left when none active; icon differences vs mock; footer privacy link underline; `text-h2` + `text-[20px]` conflict without cn in SiteHeader and PrivacyScreen. → 시연 뒤(12/1 전)
+- [x] StrictMode Turnstile re-render check in a browser. → QA §1
+- [x] README: local build needs `.env.local` (`README.md`, Task 4).
+- SiteFooter hard-codes 대표 and 사업자등록번호 as null (`src/features/landing/components/SiteFooter.tsx`; not editable from 랜딩 관리): fill via a code change or the legal site_content before public launch. → 시연 뒤(12/1 전)
+- Hard gate before public launch: /privacy Blank values filled, claims about unbuilt features removed or built, legal review, then re-enable indexing. → 런북 §9, QA §9
+- [x] Re-verify on cloud that an old refresh token fails after reset; access token valid ≤1h. → QA §7·§11
+- `getUser` network failure maps to 401 not 500 on the HS256 fallback path. → 시연 뒤(12/1 전)
+- [x] QA notes: signed-out aal2 token valid until exp; create-student orphan auth user; cloud CORS on OPTIONS. → QA §11, 런북 §10·§5
+- [x] Verify TOTP QR renders under the real CSP on the deployed preview. → 런북 §6
+- [x] CI: `cancel-in-progress: ${{ github.event_name == 'pull_request' }}` (`.github/workflows`, Task 3).
+- [x] QA step: second save of 학교·보호자 against the real DB. → QA §2
+- [x] `seed-demo.sql` auth.users shape: not applicable — the seed does not insert into `auth.users` (accounts come from `create-student`).
 
 ## student-app
 - [x] `my_rank()` follows the same rule as `student_point_totals` (active only, ties share a rank) (Task 1).
@@ -73,18 +74,18 @@
 - [x] Decide `submit_homework` rules for due dates and paused students. Decision: submit_homework: paused students may submit; late submissions allowed (admin judges).
 
 ## demo-deploy-qa (from class-ops final review)
-- `today` keys computed at render (AttendanceScreen, TodayScreen) — a tab open past midnight keeps yesterday until re-render.
-- Attendance board "recent 8" includes future-dated sessions — consider `.lte("date", today)`.
-- Membership trigger blocks admin edits on past cells for removed students (board hides them).
-- `classes` INSERT column-level grant.
-- AttendanceTable: `th` scope=col/colgroup; roving tab stops; showHomework=false header + controlled double-click tests.
-- Attendance undo on a stale toast overwrites a newer value (per-cell sequence number would fix ABA too).
-- 오늘 card shows 수업 시작 briefly while progress loads; screen test for starting a pre-existing session.
-- `aria-selected` on `tr`; points history row / negative styling / failure / invalidation tests.
+- `today` keys computed at render (AttendanceScreen, TodayScreen) — a tab open past midnight keeps yesterday until re-render. → QA §2 알려진 동작, 시연 뒤(12/1 전)
+- Attendance board "recent 8" includes future-dated sessions — consider `.lte("date", today)`. → QA §2, 시연 뒤(12/1 전)
+- [x] Membership trigger blocks admin edits on past cells for removed students (board hides them). → QA §2
+- [x] `classes` INSERT column-level grant. (`supabase/migrations/20261110000100_consultations_retention.sql`: `grant insert (name, level, schedule, capacity)`)
+- AttendanceTable: `th` scope=col/colgroup; roving tab stops; showHomework=false header + controlled double-click tests. → 시연 뒤(12/1 전)
+- Attendance undo on a stale toast overwrites a newer value (per-cell sequence number would fix ABA too). → 시연 뒤(12/1 전)
+- 오늘 card shows 수업 시작 briefly while progress loads; screen test for starting a pre-existing session. → 시연 뒤(12/1 전)
+- `aria-selected` on `tr`; points history row / negative styling / failure / invalidation tests. → 시연 뒤(12/1 전)
 
 ## videos-questions (from student-app final review)
-- SW navigation cache keyed by full URL — normalise (ignoreSearch / pathname key) before adding `/s/videos/watch?id=…`; prune `/_next/static` entries on activate. (done in Task SW)
-- Admin web push needs a separate registration scoped `/admin` (or scope `/` with path guards); keep `push`/`notificationclick` handlers outside fetch path guards.
+- [x] SW navigation cache keyed by full URL — normalised to origin+pathname (`public/sw.js` `url.origin + url.pathname`); `/_next/static` pruned on activate (`public/sw.js`).
+- Admin web push needs a separate registration scoped `/admin`. → v1에 없음 (웹푸시 전부)
 
 ## guardian-records (from student-app final review)
 - [x] Students who join a class later see all its past homework as submittable — filter by `class_members.created_at`. (Task 6 screen filter; `guardian_view` uses the same rule, Task 1)
@@ -93,20 +94,44 @@
 - [x] site_content migration header comment: document `points_goal`. (Task 7 new migration header; applied files are not edited)
 
 ## demo-deploy-qa (from student-app final review)
-- iOS standalone storage is separate from Safari: install guide should say "추가한 뒤 앱에서 다시 로그인해요"; celebration may fire once per context.
-- Confirm `/s` is not redirected on Cloudflare Pages (precache of redirected response).
+- [x] iOS standalone storage is separate from Safari: install guide wording; celebration may fire once per context. → Task 3, QA §5
+- [x] Confirm `/s` is not redirected on Cloudflare Pages (precache of redirected response). → 런북 §5
 
 ## demo-deploy-qa (from videos-questions)
-- 클라우드 Free는 파일당 50MB가 전역 한도다(버킷 1GiB 설정보다 우선) — 시연 영상은 짧은 클립, Pro 전환 때 전역 한도를 1GiB로.
-- 대시보드 Realtime "Allow public access" 끈 상태에서 private 채널 참여·질문 실시간 갱신을 배포 미리보기에서 확인.
-- db push 뒤 storage.buckets videos(public false, video/mp4) 확인.
-- QA: 아이폰 Safari에서 영상 재생(playsinline)·이어 보기·홈 화면 앱에서 재생.
-- 업로드 성공 뒤 행 저장 전에 탭이 닫히면 Storage에 고아 영상 파일이 남는다 — 원장용 정리(행 없는 videos 객체 삭제) 추가.
-- Pro 전환 때 영상 최대 크기(src/features/videos/model/videos.ts)를 1GiB로 되돌리고 Storage 전역 한도도 올린다.
-- 서비스워커는 production 빌드에서만 등록된다 — 배포 미리보기에서 /s 오프라인 셸, ?id= 영상 화면 캐시 1개, Storage 영상 재생(Range 통과) 확인.
+- [x] 클라우드 Free는 파일당 50MB가 전역 한도다 — 시연 영상은 짧은 클립, Pro 전환 때 전역 한도를 1GiB로. → 런북 §3·§6, QA §2
+- [x] 대시보드 Realtime "Allow public access" 끈 상태에서 private 채널 참여·질문 실시간 갱신 확인. → QA §0·§7
+- [x] db push 뒤 storage.buckets videos(public false, video/mp4) 확인. → 런북 §1
+- [x] QA: 아이폰 Safari에서 영상 재생(playsinline)·이어 보기·홈 화면 앱에서 재생. → QA §5
+- 업로드 성공 뒤 행 저장 전에 탭이 닫히면 Storage에 고아 영상 파일이 남는다 — 원장용 정리 화면. → QA §11 알려진 한계, v1에 없음
+- [x] Pro 전환 때 영상 최대 크기(src/features/videos/model/videos.ts)를 1GiB로 되돌리고 Storage 전역 한도도 올린다. → QA §10
+- [x] 서비스워커는 production 빌드에서만 등록된다 — 미리보기 오프라인 셸, ?id= 화면 캐시, Range 통과 확인. → QA §6
 
 ## guardian-records (from videos-questions)
 - [x] 퇴원 처리 때 Storage 파일 정리(S12)는 영상이 반 단위라 해당 없음 — 학생별 파일이 생기면 다시 본다. (기록만, Task 11)
 - [x] S9: 등록 서류에 수업 녹화·공개 동의 항목 추가(정보 동의 화면·문서). (Task 6 ConsentCard 안내; 동의서 실물 확인은 demo-deploy-qa '누나 확인' 항목)
 - [x] `video_views.watched_seconds`는 클라이언트가 보고한 값이다 — 시청 활동 기록일 뿐 증빙이 아니다(원장 화면 문구·학부모 안내에서 단정하지 않기). (Task 6 원장 문구; `/g`는 영상 기록을 보여 주지 않는다, Task 1)
 - answers UPDATE(body) 권한·정책은 '답변 고치기' 화면용으로 남겨 둠(현재 UI 없음). (그대로 — 고치기 화면이 생길 때 쓴다)
+
+## 시연 뒤 · 12/1 전
+- SiteFooter hard-codes 대표/사업자등록번호 as null — needs a code change (or legal site_content) before go-live.
+- Contact phone rule rejects 1588/070 forms — loosen the DB check and zod rule if the academy uses one.
+- [x] `supabase/seed-demo-clear.sql` lacks the single-transaction probe the seed has. → 해당 없음(컨트롤러 판단: 필요 없음)
+- Guardian status card uses the browser clock for expiry labels (`/g`) — use a server-side value.
+- Payments table: name column is not sticky when scrolling horizontally.
+- site_content pgTAP coverage gaps: nested control char, tuition/legal bad values, 8192 boundary, contact phone null.
+- Consultations query invalidation test.
+- Offline first visit / offline reload shows a blank screen then a generic role error — offline-aware message.
+- ChangePasswordCard double-submit guard; Modal host and focus-trap tests; sign-out fallback single helper.
+- Edge Function client typed with `Database`; `getUser` network failure mapped to 401 instead of 500.
+- A11y bundle (Turnstile alerts, focus on success card, phone caret) and visual bundle (tab row scroll, icons, footer link underline, `text-h2` conflict).
+- Class-ops: `today` past midnight, attendance recent-8 includes future sessions, AttendanceTable a11y, undo ABA, 오늘 card flash, `aria-selected` and points-history tests.
+
+## v1에 없는 것
+- 웹푸시 전부: 원장 설정 "웹푸시 알림 켜기", `push_subscriptions` 테이블, `notify-admin` 함수, `/admin` 범위 SW 등록 (spec §4·§7, 계획 5 Task 11 미구현).
+- Sentry (S11; `/privacy` 처리위탁의 "나중" 항목, CSP `connect-src`에도 없음).
+- 알림톡·솔라피·`send-alimtalk` (spec §1 비목표).
+- 실제 도메인, 리포트 자동 발송·성적 그래프·수납 연동, 다중 학원 (spec §1 비목표).
+- staging 프로젝트·환경별 CSP (S13 — 개원 후), CSP `'unsafe-inline'` 제거 (S10 — 개원 전), Leaked password protection·세션 비활동 타임아웃 (S5 — Pro), 일일 백업·월 1회 덤프 (S12 — Pro).
+- 퇴원생 Auth 삭제·개인정보 파기 자동화 (spec §11 — v1은 상태만, Pro 전환 체크리스트).
+- 답변 고치기 화면(권한만 있음), 고아 영상 파일 정리 화면, 지도 embed.
+- service_role 쓰기의 감사 actor (v2), goal 선택 `PointsProgress` (v2).

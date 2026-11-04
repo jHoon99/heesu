@@ -29,6 +29,16 @@ describe("InstallGuideCard", () => {
     ).toBeInTheDocument();
   });
 
+  it("tells iPhone users to sign in again inside the home-screen app", () => {
+    mockMatchMedia(false);
+    render(<InstallGuideCard />);
+    expect(
+      screen.getByText("추가한 뒤에는 홈 화면 앱에서 다시 로그인해요.", {
+        exact: false,
+      }),
+    ).toBeInTheDocument();
+  });
+
   it("hides the guide when running standalone", () => {
     mockMatchMedia(true);
     render(<InstallGuideCard />);
