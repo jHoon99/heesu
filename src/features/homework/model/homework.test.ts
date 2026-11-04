@@ -11,6 +11,7 @@ import {
 } from "./homework";
 
 const TODAY = "2026-11-05";
+const NO_JOIN: ReadonlyMap<string, string> = new Map();
 
 const session = (
   id: string,
@@ -54,6 +55,7 @@ describe("buildHomeworkItems", () => {
       ],
       [],
       TODAY,
+      NO_JOIN,
     );
     expect(out.map((i) => i.sessionId)).toEqual(["ok"]);
   });
@@ -63,6 +65,7 @@ describe("buildHomeworkItems", () => {
       [session("s1", "2026-11-04")],
       [{ session_id: "gone", status: "missing", submitted_at: null }],
       TODAY,
+      NO_JOIN,
     );
     expect(out.map((i) => i.sessionId)).toEqual(["s1"]);
   });
@@ -78,6 +81,7 @@ describe("buildHomeworkItems", () => {
         },
       ],
       TODAY,
+      NO_JOIN,
     );
     expect(out[0]).toMatchObject({ status: "none", submittedAt: null });
     expect(out[1]).toMatchObject({
@@ -86,11 +90,61 @@ describe("buildHomeworkItems", () => {
     });
   });
 
+  describe("join date", () => {
+    const joined = new Map([["cA", "2026-11-04"]]);
+    const missing = (id: string) => ({
+      session_id: id,
+      status: "missing" as const,
+      submitted_at: null,
+    });
+
+    it("drops a session before the join date with no check", () => {
+      const out = buildHomeworkItems(
+        [session("before", "2026-11-03")],
+        [],
+        TODAY,
+        joined,
+      );
+      expect(out).toEqual([]);
+    });
+
+    it("keeps a session before the join date that has a check", () => {
+      const out = buildHomeworkItems(
+        [session("before", "2026-11-03")],
+        [missing("before")],
+        TODAY,
+        joined,
+      );
+      expect(out.map((i) => i.sessionId)).toEqual(["before"]);
+    });
+
+    it("keeps a session on the join date", () => {
+      const out = buildHomeworkItems(
+        [session("on", "2026-11-04")],
+        [],
+        TODAY,
+        joined,
+      );
+      expect(out.map((i) => i.sessionId)).toEqual(["on"]);
+    });
+
+    it("keeps sessions of a class with no join info", () => {
+      const out = buildHomeworkItems(
+        [session("x", "2026-11-03", { class_id: "cB" })],
+        [],
+        TODAY,
+        joined,
+      );
+      expect(out.map((i) => i.sessionId)).toEqual(["x"]);
+    });
+  });
+
   it("keeps each session once", () => {
     const out = buildHomeworkItems(
       [session("s1", "2026-11-04"), session("s1", "2026-11-04")],
       [],
       TODAY,
+      NO_JOIN,
     );
     expect(out).toHaveLength(1);
   });

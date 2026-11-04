@@ -1,5 +1,8 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  CONSENT_VERSION,
   consultFormSchema,
   formatPhoneInput,
   SubmitConsultationError,
@@ -106,5 +109,20 @@ describe("submitErrorMessage", () => {
     expect(submitErrorMessage(new TypeError("Failed to fetch"))).toBe(
       "네트워크 상태를 확인해 주세요.",
     );
+  });
+});
+
+describe("CONSENT_VERSION", () => {
+  it("is accepted by the submit-consultation Edge Function", () => {
+    const src = readFileSync(
+      join(process.cwd(), "supabase/functions/submit-consultation/handler.ts"),
+      "utf8",
+    );
+    const list = /ACCEPTED_CONSENT_VERSIONS[^=]*=\s*\[([^\]]*)\]/.exec(src);
+    expect(list).not.toBeNull();
+    const versions = [...(list?.[1] ?? "").matchAll(/"([^"]+)"/g)].map(
+      (m) => m[1],
+    );
+    expect(versions).toContain(CONSENT_VERSION);
   });
 });

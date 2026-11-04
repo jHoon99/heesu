@@ -46,6 +46,7 @@ export function buildHomeworkItems(
   sessions: HomeworkSessionRow[],
   checks: HomeworkCheckRow[],
   today: string,
+  joinedOn: ReadonlyMap<string, string>,
 ): HomeworkItem[] {
   const checkBySession = new Map(checks.map((c) => [c.session_id, c]));
   const seen = new Set<string>();
@@ -54,8 +55,11 @@ export function buildHomeworkItems(
     const homework = s.homework?.trim();
     if (!homework || s.date > today || s.classes === null) continue;
     if (seen.has(s.id)) continue;
-    seen.add(s.id);
     const check = checkBySession.get(s.id);
+    // 반에 배정되기 전 수업의 숙제는 기록이 없으면 보이지 않아요.
+    const joined = joinedOn.get(s.class_id);
+    if (joined !== undefined && s.date < joined && !check) continue;
+    seen.add(s.id);
     items.push({
       sessionId: s.id,
       classId: s.class_id,

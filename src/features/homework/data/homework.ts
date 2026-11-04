@@ -1,4 +1,5 @@
 import { supabase } from "@/core/supabase/client";
+import { toLocalDateKey } from "@/features/sessions";
 import { SaveNotAppliedError } from "@/core/supabase/saveNotApplied";
 import {
   buildHomeworkItems,
@@ -45,7 +46,17 @@ export async function listMyHomework(
     if (extraRes.error) throw extraRes.error;
     sessions.push(...(extraRes.data ?? []));
   }
-  return buildHomeworkItems(sessions, checks, today);
+
+  const membersRes = await supabase
+    .from("class_members")
+    .select("class_id, created_at")
+    .eq("student_id", studentId);
+  if (membersRes.error) throw membersRes.error;
+  const joinedOn = new Map<string, string>();
+  for (const m of membersRes.data ?? []) {
+    joinedOn.set(m.class_id, toLocalDateKey(new Date(m.created_at)));
+  }
+  return buildHomeworkItems(sessions, checks, today, joinedOn);
 }
 
 export async function submitHomework(sessionId: string): Promise<string> {

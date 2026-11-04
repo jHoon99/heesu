@@ -307,6 +307,15 @@ describe("StudentDetailScreen", () => {
     ).toBeInTheDocument();
   });
 
+  it("reminds to check the recording consent item before recording", async () => {
+    setup();
+    expect(
+      await screen.findByText(
+        "등록 동의서에 수업 녹화·영상 게시 동의 항목이 들어 있는지 확인한 뒤 기록해 주세요.",
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("rejects a future consent date", async () => {
     const user = setup();
     await screen.findByText(/아직 동의 기록이 없어요/);

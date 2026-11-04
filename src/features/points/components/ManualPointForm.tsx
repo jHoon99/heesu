@@ -83,6 +83,7 @@ export function ManualPointForm({
       <Input
         size="md"
         label="사유"
+        hint="학생 화면에도 보여요. 학생이 봐도 괜찮은 말로 적어 주세요."
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         error={errors.reason}

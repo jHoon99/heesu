@@ -97,6 +97,13 @@ describe("AdminVideoDetailScreen", () => {
     expect(screen.getByText("100%")).toBeInTheDocument();
   });
 
+  it("notes that watch records are reference only", () => {
+    render(ui());
+    expect(
+      screen.getByText("시청 기록은 학생 기기가 보낸 값이라 참고용이에요."),
+    ).toBeInTheDocument();
+  });
+
   it("rejects a 101 character title without saving", async () => {
     render(ui());
     fireEvent.change(screen.getByLabelText(/제목/), {

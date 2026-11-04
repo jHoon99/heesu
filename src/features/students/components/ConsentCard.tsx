@@ -109,6 +109,10 @@ function ConsentForm({ studentId }: { studentId: string }) {
         {...register("consentedAt")}
       />
       <p className="text-caption text-text-muted">
+        등록 동의서에 수업 녹화·영상 게시 동의 항목이 들어 있는지 확인한 뒤
+        기록해 주세요.
+      </p>
+      <p className="text-caption text-text-muted">
         동의 기록은 고치거나 지울 수 없어요. 잘못 적었다면 새 기록을 추가해
         주세요.
       </p>
