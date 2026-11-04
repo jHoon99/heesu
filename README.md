@@ -16,6 +16,7 @@ cp .env.example .env.local
 Edge Function 비밀은 `supabase/functions/.env`(git 제외, 예시는 `supabase/functions/.env.example`)에 둬요.
 
 ```bash
+npm ci
 npm run dev
 ```
 
