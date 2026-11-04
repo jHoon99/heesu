@@ -61,7 +61,7 @@ export function DirectorSection() {
               </span>
             </div>
           </div>
-          <RevealGroup className="grid grid-cols-1 divide-y divide-border border-y border-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          <RevealGroup className="grid grid-cols-1 divide-y divide-border border-y border-border sm:grid-cols-[minmax(0,0.85fr)_minmax(0,0.85fr)_minmax(0,1.3fr)] sm:divide-x sm:divide-y-0">
             {PROFILE.map(({ icon: Icon, label, lines, list }) => (
               <div
                 key={label}
@@ -70,17 +70,17 @@ export function DirectorSection() {
                 <span className="row-span-2 flex size-12 items-center justify-center rounded-full bg-primary-soft text-text-brand">
                   <Icon size={22} strokeWidth={1.75} aria-hidden="true" />
                 </span>
-                <h3 className="self-end font-serif text-caption font-semibold tracking-[0.12em] text-text-brand">
+                <h3 className="self-end font-serif text-caption font-semibold tracking-[0.12em] text-text-brand sm:self-center">
                   {label}
                 </h3>
                 {list ? (
-                  <ul className="flex flex-col gap-1 text-body-sm">
+                  <ul className="flex flex-col gap-1 text-body-sm sm:self-center sm:text-left">
                     {lines.map((line) => (
-                      <li key={line}>
+                      <li key={line} className="flex gap-1.5">
                         <span aria-hidden="true" className="text-brown-400">
-                          ·{" "}
+                          •
                         </span>
-                        {line}
+                        <span className="min-w-0">{line}</span>
                       </li>
                     ))}
                   </ul>

@@ -110,7 +110,7 @@ function StoryCard({ link, index }: { link: AboutLink; index: number }) {
         image={link.image}
       />
       <span className="inline-flex items-center gap-1 text-body-sm font-semibold text-text-brand">
-        이야기 읽기
+        이야기 읽어보기
         <ArrowRight size={16} strokeWidth={1.75} aria-hidden="true" />
       </span>
     </a>
@@ -126,7 +126,7 @@ function PlaceholderCard({ index }: { index: number }) {
         teaser={<Blank>짧은 소개 2~3줄</Blank>}
       />
       <span className="inline-flex items-center gap-1 text-body-sm font-semibold text-text-muted">
-        이야기 읽기
+        이야기 읽어보기
         <ArrowRight size={16} strokeWidth={1.75} aria-hidden="true" />
       </span>
     </div>

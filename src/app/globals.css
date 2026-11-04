@@ -323,7 +323,8 @@
    관리자·학생 화면은 읽기 편한 고딕체 그대로예요. 글자색은 베이지 바탕에서 4.5:1 이상이에요. */
 .site-tone {
   --text: var(--brown-900);
-  --text-muted: var(--brown-700);
-  --text-subtle: var(--brown-600);
-  font-family: var(--font-serif);
+  --text-muted: var(--brown-800);
+  --text-subtle: var(--brown-700);
+  /* 본문은 또렷한 Noto Serif KR, 제목(font-serif)은 고운바탕 그대로예요. */
+  font-family: var(--font-noto-serif), var(--font-serif);
 }

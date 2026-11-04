@@ -290,7 +290,7 @@ describe("about section", () => {
     for (const a of links) {
       expect(a).toHaveAttribute("target", "_blank");
       expect(a).toHaveAttribute("rel", "noopener noreferrer");
-      expect(within(a).getByText("이야기 읽기")).toBeInTheDocument();
+      expect(within(a).getByText("이야기 읽어보기")).toBeInTheDocument();
     }
     const first = links[0] as HTMLElement;
     expect(within(first).getByRole("heading").textContent).toBe(

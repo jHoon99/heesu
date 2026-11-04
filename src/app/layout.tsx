@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Gowun_Batang } from "next/font/google";
+import { Gowun_Batang, Noto_Serif_KR } from "next/font/google";
 import "./fonts/pretendard/pretendardvariable-dynamic-subset.css";
 import "./globals.css";
 import { SITE_URL } from "@/core/site";
@@ -9,6 +9,12 @@ const gowun = Gowun_Batang({
   weight: ["400", "700"],
   variable: "--font-gowun",
   display: "swap",
+});
+// 홈페이지 본문용 명조: 고운바탕 보통 굵기는 작은 글씨에서 흐려 보여요.
+const notoSerif = Noto_Serif_KR({
+  variable: "--font-noto-serif",
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -34,7 +40,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ko" className={`${gowun.variable}`}>
+    <html lang="ko" className={`${gowun.variable} ${notoSerif.variable}`}>
       <body>
         <Providers>{children}</Providers>
       </body>
