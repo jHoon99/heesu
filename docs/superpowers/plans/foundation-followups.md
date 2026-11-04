@@ -31,6 +31,7 @@
 ## Cloud checklist (before first `supabase db push` / opening)
 - Dashboard: Auth "Allow new users to sign up" off; Anonymous sign-ins off; Realtime "Allow public access" off.
 - Admin password ≥ 12 characters (config minimum 8 is for students); admin TOTP enrolled.
+- Dashboard: enable the `pg_cron` extension (Database > Extensions) if `db push` of `20261110000100_consultations_retention.sql` cannot create it; afterwards confirm `select jobname, schedule from cron.job` shows `purge-stale-consultations` at `0 18 * * *`.
 - First `db push`: confirm `drop extension if exists pg_graphql` succeeds on cloud (if it fails, the whole baseline migration fails).
 - Cloudflare Pages env vars set for both Production and Preview.
 - 2FA on Supabase, GitHub, Cloudflare (and Solapi later).

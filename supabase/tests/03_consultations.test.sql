@@ -3,7 +3,10 @@
 begin;
 set local client_min_messages = warning;
 create extension if not exists pgtap with schema extensions;
-select plan(29);
+select plan(32);
+
+-- 시드는 테스트 파일 사이에 남아 있다. 세는 테이블은 비우고 시작한다(rollback으로 되돌린다).
+delete from public.consultations;
 
 insert into public.consultations (parent_name, phone, grade, consent_version, consented_at)
 values ('가짜보호자', '010-0000-0009', '중1', '2026-11-05', now());
@@ -15,6 +18,12 @@ insert into private.admins (user_id) values ('00000000-0000-4000-8000-00000000a0
 
 select table_privs_are('public', 'consultations', 'service_role', ARRAY['INSERT', 'SELECT'],
   'service_role: consultations 권한은 SELECT·INSERT뿐');
+select column_privs_are('public', 'consultations', 'status', 'authenticated', ARRAY['SELECT', 'UPDATE'],
+  'authenticated: consultations.status는 SELECT·UPDATE');
+select column_privs_are('public', 'consultations', 'memo', 'authenticated', ARRAY['SELECT', 'UPDATE'],
+  'authenticated: consultations.memo는 SELECT·UPDATE');
+select column_privs_are('public', 'consultations', 'phone', 'authenticated', ARRAY['SELECT'],
+  'authenticated: consultations.phone은 update 불가');
 
 -- ─── anon: 테이블·RPC 모두 권한 에러 (0행이 아니라 42501) ────────────
 set local role anon;

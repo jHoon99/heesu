@@ -120,3 +120,9 @@ alter table public.questions enable trigger questions_prepare;
 
 insert into public.answers (question_id, body) values
   ('60000000-0000-4000-8000-5ee0000000c1', '(예시) 다음 수업 때 예문으로 같이 볼게요.');
+
+-- ─── 상담 신청 (가짜) ─────────────────────────────────────────────────
+-- 두 번째 행은 7개월 전이라 private.purge_stale_consultations()를 불러 삭제를 눈으로 확인할 수 있어요.
+insert into public.consultations (parent_name, phone, grade, message, status, consent_version, consented_at, created_at) values
+  ('(가짜) 박보호', '010-0000-0091', '중2', '(예시) 주말반이 있나요?', 'new', '2026-11-05', now() - interval '1 day', now() - interval '1 day'),
+  ('(가짜) 최보호', '010-0000-0092', '고1', null, 'contacted', '2026-11-05', now() - interval '7 months', now() - interval '7 months');
