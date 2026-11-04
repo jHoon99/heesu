@@ -77,5 +77,8 @@ describe("student mutations invalidate attendance and points", () => {
       await result.current.mutateAsync({} as never);
     });
     await expectBothInvalidated(client);
+    expect(
+      client.getQueryState(["guardian", "status", "s1"])?.isInvalidated,
+    ).toBe(true);
   });
 });

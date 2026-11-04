@@ -13,18 +13,25 @@ const issue = vi.mocked(issueGuardianToken);
 const TOKEN = "A".repeat(10) + "b-_".repeat(11);
 let client: QueryClient;
 const writeText = vi.fn();
+let rerenderCard: (left: boolean) => void = () => {};
 
-function setup(left = false) {
-  client = new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
-  });
-  render(
+function tree(left: boolean) {
+  return (
     <QueryClientProvider client={client}>
       <ToastProvider>
         <GuardianLinkCard studentId="s1" left={left} />
       </ToastProvider>
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
+}
+
+function setup(left = false, prime?: () => void) {
+  client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  prime?.();
+  const view = render(tree(left));
+  rerenderCard = (l: boolean) => view.rerender(tree(l));
   const user = userEvent.setup();
   // userEvent.setup()이 clipboard를 가짜로 바꾸므로 그 뒤에 덮는다.
   Object.defineProperty(navigator, "clipboard", {
@@ -107,6 +114,80 @@ describe("GuardianLinkCard", () => {
     expect(screen.getByLabelText("학부모 링크")).toHaveValue(
       `${window.location.origin}/g#t=${TOKEN}`,
     );
+  });
+
+  it("formats dates in Seoul time whatever the browser zone", async () => {
+    status.mockResolvedValue({
+      createdAt: "2026-11-04T16:00:00Z",
+      expiresAt: "2027-02-02T16:00:00Z",
+    });
+    setup();
+    expect(
+      await screen.findByText("2026.11.05 만듦 · 2027.02.03까지 열려요."),
+    ).toBeInTheDocument();
+  });
+
+  it("does not offer issuing while a stale cached null is being refetched", async () => {
+    status.mockReturnValue(new Promise(() => {}));
+    setup(false, () => client.setQueryData(["guardian", "status", "s1"], null));
+    await screen.findByRole("heading", { name: "학부모 링크" });
+    expect(status).toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "링크 만들기" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "새 링크 만들기" })).toBeNull();
+  });
+
+  it("does not resurrect an issued link after left then active", async () => {
+    const user = setup();
+    await user.click(
+      await screen.findByRole("button", { name: "링크 만들기" }),
+    );
+    await screen.findByLabelText("학부모 링크");
+    rerenderCard(true);
+    expect(screen.queryByLabelText("학부모 링크")).toBeNull();
+    rerenderCard(false);
+    await screen.findByRole("button", { name: "링크 만들기" });
+    expect(screen.queryByLabelText("학부모 링크")).toBeNull();
+  });
+
+  it("does not read the status for a student who left", async () => {
+    setup(true);
+    await screen.findByText("퇴원한 학생은 학부모 링크를 만들 수 없어요.");
+    expect(status).not.toHaveBeenCalled();
+  });
+
+  it("shows the error with a retry button", async () => {
+    status.mockRejectedValueOnce({
+      code: "P0001",
+      message: "읽지 못했어요. 다시 시도해 주세요.",
+    });
+    const user = setup();
+    expect(
+      await screen.findByText("읽지 못했어요. 다시 시도해 주세요."),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "링크 만들기" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "다시 시도" }));
+    expect(
+      await screen.findByRole("button", { name: "링크 만들기" }),
+    ).toBeInTheDocument();
+  });
+
+  it("toasts a fix when the clipboard is unavailable and keeps the link", async () => {
+    const user = setup();
+    await user.click(
+      await screen.findByRole("button", { name: "링크 만들기" }),
+    );
+    await screen.findByLabelText("학부모 링크");
+    Object.defineProperty(navigator, "clipboard", {
+      value: undefined,
+      configurable: true,
+    });
+    await user.click(screen.getByRole("button", { name: "링크 복사" }));
+    expect(
+      await screen.findByText(
+        "복사하지 못했어요. 링크 칸을 눌러 직접 복사해 주세요.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("학부모 링크")).toBeInTheDocument();
   });
 
   describe("with an active link", () => {

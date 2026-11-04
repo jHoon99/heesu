@@ -1,6 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
 import { useState } from "react";
 import { Button, Card, Input, Modal, useToast } from "@/design-system";
 import { classifyError } from "@/core/supabase/error";
@@ -10,8 +9,19 @@ import {
   useIssueGuardianToken,
 } from "../../state/useGuardian";
 
-const DATE = "yyyy.MM.dd";
+const SEOUL_DATE = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Seoul",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
 
+// 브라우저 시간대와 상관없이 서울 날짜로 yyyy.MM.dd.
+function seoulDate(iso: string): string {
+  return SEOUL_DATE.format(new Date(iso)).replaceAll("-", ".");
+}
+
+// 퇴원이면 안쪽 카드를 아예 그리지 않는다: 발급한 링크·확인창 state가 함께 사라지고 상태 조회도 안 한다.
 export function GuardianLinkCard({
   studentId,
   left,
@@ -19,6 +29,19 @@ export function GuardianLinkCard({
   studentId: string;
   left: boolean;
 }) {
+  if (left) {
+    return (
+      <Card tone="raised" title="학부모 링크">
+        <p className="text-body-sm text-text-muted">
+          퇴원한 학생은 학부모 링크를 만들 수 없어요.
+        </p>
+      </Card>
+    );
+  }
+  return <ActiveLinkCard studentId={studentId} />;
+}
+
+function ActiveLinkCard({ studentId }: { studentId: string }) {
   const toast = useToast();
   const status = useGuardianLinkStatus(studentId);
   const issue = useIssueGuardianToken(studentId);
@@ -56,24 +79,16 @@ export function GuardianLinkCard({
     }
   }
 
-  if (left) {
-    return (
-      <Card tone="raised" title="학부모 링크">
-        <p className="text-body-sm text-text-muted">
-          퇴원한 학생은 학부모 링크를 만들 수 없어요.
-        </p>
-      </Card>
-    );
-  }
-
   const active = status.data ?? null;
-  const loaded = status.isFetchedAfterMount || status.data !== undefined;
+  // 캐시에 남은 옛 null로 확인 없이 발급하면 다른 곳에서 만든 살아 있는 링크를 없앨 수 있다.
+  const loaded = status.isFetchedAfterMount && !status.isPending;
+  const failed = status.isError && status.data === undefined;
   let line: string | null = null;
-  if (status.isError && status.data === undefined) {
+  if (failed) {
     line = classifyError(status.error).message;
   } else if (loaded) {
     line = active
-      ? `${format(new Date(active.createdAt), DATE)} 만듦 · ${format(new Date(active.expiresAt), DATE)}까지 열려요.`
+      ? `${seoulDate(active.createdAt)} 만듦 · ${seoulDate(active.expiresAt)}까지 열려요.`
       : "아직 만든 링크가 없어요. 링크를 만들어 학부모님께 카톡으로 보내 주세요.";
   }
 
@@ -81,7 +96,16 @@ export function GuardianLinkCard({
     <Card tone="raised" title="학부모 링크">
       <div className="flex flex-col items-start gap-3">
         {line ? <p className="text-body-sm text-text-muted">{line}</p> : null}
-        {loaded && !(status.isError && status.data === undefined) ? (
+        {failed ? (
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={() => void status.refetch()}
+          >
+            다시 시도
+          </Button>
+        ) : null}
+        {loaded && !failed ? (
           <Button
             variant="secondary"
             size="md"

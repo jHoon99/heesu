@@ -11,7 +11,6 @@ import {
   saveStudentPrivate,
   setStudentClasses,
 } from "../data/detail";
-import { getGuardianLinkStatus } from "@/features/guardian/data/guardian";
 import { resetStudentPassword } from "../data/functions";
 import { getStudent } from "../data/students";
 import { StudentFunctionError, type StudentSummary } from "../model/students";
@@ -25,7 +24,14 @@ vi.mock("next/navigation", () => ({
 vi.mock("../data/students");
 vi.mock("../data/detail");
 vi.mock("../data/functions");
-vi.mock("@/features/guardian/data/guardian");
+vi.mock("@/features/guardian", () => ({
+  GuardianLinkCard: ({ left }: { left: boolean }) => (
+    <section>
+      <h2>학부모 링크</h2>
+      {left ? <p>퇴원한 학생은 학부모 링크를 만들 수 없어요.</p> : null}
+    </section>
+  ),
+}));
 let recordsResult: { isPending: boolean; isError: boolean; data?: unknown[] } =
   {
     isPending: false,
@@ -105,7 +111,6 @@ describe("StudentDetailScreen", () => {
     savePriv.mockResolvedValue(undefined);
     add.mockResolvedValue(undefined);
     reset.mockResolvedValue(undefined);
-    vi.mocked(getGuardianLinkStatus).mockResolvedValue(null);
   });
 
   it("shows the not-found card without an id", () => {
@@ -143,7 +148,6 @@ describe("StudentDetailScreen", () => {
     expect(
       await screen.findByText("퇴원한 학생은 학부모 링크를 만들 수 없어요."),
     ).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "링크 만들기" })).toBeNull();
   });
 
   it("shows recent records with status chips", async () => {
