@@ -2,7 +2,7 @@
 begin;
 set local client_min_messages = warning;
 create extension if not exists pgtap with schema extensions;
-select plan(17);
+select plan(21);
 
 -- seed.sql의 예시 행을 비우고 이 테스트의 두 행만 둔다 (rollback으로 되돌아간다).
 delete from public.site_content;
@@ -32,13 +32,14 @@ select is((select count(*)::int from public.site_content), 2,
 select throws_ok($$insert into public.site_content (key, value) values ('x', '{}')$$,
   '42501', null, 'authenticated(원장 아님): insert는 RLS 에러');
 update public.site_content set value = '{}' where key = 'notice';
-delete from public.site_content;
+select throws_ok($$delete from public.site_content$$,
+  '42501', null, 'authenticated(원장 아님): delete는 권한 에러');
 
 reset role;
 select is((select value->>'title' from public.site_content where key = 'notice'), 't',
   'authenticated(원장 아님): update가 값을 바꾸지 못한다');
 select is((select count(*)::int from public.site_content), 2,
-  'authenticated(원장 아님): delete가 행을 지우지 못한다');
+  'authenticated(원장 아님): 행이 그대로 2개다');
 
 -- ─── 원장 + aal1: 쓰기 불가 ──────────────────────────────────────────
 set local role authenticated;
@@ -52,14 +53,14 @@ select lives_ok($$insert into public.site_content (key, value) values ('tuition'
   '원장 + aal2: insert 성공');
 select lives_ok($$update public.site_content set value = '{"title":"바뀜"}' where key = 'notice'$$,
   '원장 + aal2: update 성공');
-select lives_ok($$delete from public.site_content where key = 'tuition'$$,
-  '원장 + aal2: delete 성공');
+select throws_ok($$delete from public.site_content where key = 'tuition'$$,
+  '42501', null, '원장 + aal2: delete는 권한 에러 (delete 권한 없음)');
 
 reset role;
 select is((select value->>'title' from public.site_content where key = 'notice'), '바뀜',
   '원장 + aal2: update 뒤 값이 바뀐다');
-select is((select count(*)::int from public.site_content where key = 'tuition'), 0,
-  '원장 + aal2: delete 뒤 행이 없다');
+select is((select count(*)::int from public.site_content where key = 'tuition'), 1,
+  '원장 + aal2: delete가 막혀 행이 남는다');
 
 -- updated_at 트리거: update하면 now()로 갱신된다.
 update public.site_content set updated_at = '2000-01-01' where key = 'contact';
@@ -71,8 +72,7 @@ select throws_ok($$insert into public.site_content (key, value) values ('Bad-Key
   '23514', null, '키 형식: 대문자·하이픈은 check 위반');
 select throws_ok($$insert into public.site_content (key, value) values ('a' || repeat('b', 40), '{}')$$,
   '23514', null, '키 형식: 41자는 check 위반');
-select lives_ok($$insert into public.site_content (key, value) values ('a' || repeat('b', 39), '{}')$$,
-  '키 형식: 40자는 허용');
+-- (40자 허용 검사는 키가 고정 목록(site_content_key_known)이 되어 15_site_content_write로 옮겼다.)
 
 -- set_updated_at()은 anon·authenticated가 직접 실행할 수 없다.
 select is(
@@ -82,6 +82,16 @@ select is(
   '{}'::text[],
   'private.set_updated_at(): anon·authenticated EXECUTE 없음'
 );
+
+-- 권한 표: authenticated는 key·value만 쓰고 delete는 없다.
+select table_privs_are('public', 'site_content', 'authenticated', ARRAY['SELECT'],
+  'site_content: authenticated 테이블 권한 = SELECT뿐 (delete 없음)');
+select column_privs_are('public', 'site_content', 'key', 'authenticated', ARRAY['INSERT', 'SELECT', 'UPDATE'],
+  'site_content.key: authenticated INSERT·SELECT·UPDATE');
+select column_privs_are('public', 'site_content', 'value', 'authenticated', ARRAY['INSERT', 'SELECT', 'UPDATE'],
+  'site_content.value: authenticated INSERT·SELECT·UPDATE');
+select column_privs_are('public', 'site_content', 'updated_at', 'authenticated', ARRAY['SELECT'],
+  'site_content.updated_at: authenticated SELECT뿐');
 
 select * from finish();
 rollback;
