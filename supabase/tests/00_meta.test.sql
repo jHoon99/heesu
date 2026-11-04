@@ -189,7 +189,7 @@ select is(
       and pn.nspname = 'private'
       and p.proname = 'audit'
       and not t.tgisinternal),
-  '{consents,consultations,guardian_tokens,student_private,students}'::text[],
+  '{consents,consultations,guardian_tokens,payments,student_private,students}'::text[],
   'S12: 감사 트리거가 달린 public 테이블 = 허용 목록'
 );
 

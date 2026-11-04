@@ -201,6 +201,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"payments": {
+                  Row: {
+                    "amount": number,"created_at": string,"id": string,"memo": string | null,"month": string,"paid_at": string | null,"student_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount": number,"created_at"?: string,"id"?: string,"memo"?: string | null,"month": string,"paid_at"?: string | null,"student_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "amount"?: number,"created_at"?: string,"id"?: string,"memo"?: string | null,"month"?: string,"paid_at"?: string | null,"student_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "payments_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "student_point_totals"
+      referencedColumns: ["student_id"]
+    },{
+      foreignKeyName: "payments_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"points": {
                   Row: {
                     "amount": number,"created_at": string,"id": string,"reason": string,"session_id": string | null,"student_id": string

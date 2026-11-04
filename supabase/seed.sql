@@ -126,3 +126,12 @@ insert into public.answers (question_id, body) values
 insert into public.consultations (parent_name, phone, grade, message, status, consent_version, consented_at, created_at) values
   ('(가짜) 박보호', '010-0000-0091', '중2', '(예시) 주말반이 있나요?', 'new', '2026-11-05', now() - interval '1 day', now() - interval '1 day'),
   ('(가짜) 최보호', '010-0000-0092', '고1', null, 'contacted', '2026-11-05', now() - interval '7 months', now() - interval '7 months');
+
+-- ─── 수납 기록 (가짜) ─────────────────────────────────────────────────
+-- 서울 기준 지난달(납부 완료)과 이번 달(미납). 수기 기록이라 실제 결제와 무관해요.
+insert into public.payments (student_id, month, amount, paid_at, memo) values
+  ('10000000-0000-4000-8000-5ee0000000c1',
+   to_char((now() at time zone 'Asia/Seoul') - interval '1 month', 'YYYY-MM'), 250000,
+   (date_trunc('month', (now() at time zone 'Asia/Seoul') - interval '1 month') + interval '4 days')::date, '(예시) 카드'),
+  ('10000000-0000-4000-8000-5ee0000000c1',
+   to_char(now() at time zone 'Asia/Seoul', 'YYYY-MM'), 250000, null, '(예시) 카드');
