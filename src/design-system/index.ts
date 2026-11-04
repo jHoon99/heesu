@@ -52,3 +52,8 @@ export {
   progressPercent,
   type PointsProgressProps,
 } from "./components/PointsProgress/PointsProgress";
+export {
+  VideoCard,
+  clampProgress,
+  type VideoCardProps,
+} from "./components/VideoCard/VideoCard";
