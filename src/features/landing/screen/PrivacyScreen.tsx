@@ -39,7 +39,7 @@ export function PrivacyScreen() {
               <Link
                 href="/"
                 aria-label="희수영어 처음으로"
-                className="flex items-center gap-2 text-text-brand no-underline"
+                className="flex min-h-11 items-center gap-2 text-text-brand no-underline"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기, 최적화 없음 */}
                 <img

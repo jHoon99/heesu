@@ -17,7 +17,7 @@ export function SiteFooter({ content }: { content: SiteContent }) {
 
   return (
     <footer className="bg-brown-900 text-brown-100">
-      <div className="mx-auto flex max-w-[720px] flex-col gap-6 px-4 pt-12 pb-28">
+      <div className="mx-auto flex max-w-[720px] flex-col gap-6 px-4 pt-12 pb-[calc(3rem+env(safe-area-inset-bottom))]">
         <div className="flex items-center justify-between gap-4">
           <span className="font-serif text-h2 text-white">희수영어</span>
           <a
@@ -42,7 +42,10 @@ export function SiteFooter({ content }: { content: SiteContent }) {
         </div>
         <div className="h-px bg-brown-100/16" />
         <div className="flex flex-wrap items-center justify-between gap-2 text-caption text-brown-200">
-          <a href="/privacy" className="font-semibold text-brown-100">
+          <a
+            href="/privacy"
+            className="inline-flex min-h-11 items-center font-semibold text-brown-100"
+          >
             개인정보처리방침
           </a>
           <span>© 2027 희수영어</span>
