@@ -32,7 +32,10 @@ describe("LandingScreen", () => {
   it("renders the hero headline", () => {
     render(<LandingScreen />);
     expect(
-      screen.getByRole("heading", { level: 1, name: "한 문장씩, 깊이 있게." }),
+      screen.getByRole("heading", {
+        level: 1,
+        name: "기본부터 깊이 있게, 실력으로 증명합니다.",
+      }),
     ).toBeInTheDocument();
   });
 
