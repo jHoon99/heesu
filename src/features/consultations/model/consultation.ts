@@ -5,8 +5,16 @@ export const GRADES = ["중1", "중2", "중3", "고1", "고2", "고3"] as const;
 export type Grade = (typeof GRADES)[number];
 
 export const CONSENT_VERSION = "2026-11-05";
-// 공개값(Cloudflare 테스트 사이트 키). 실제 키는 배포 전에 바꾼다.
-export const TURNSTILE_SITE_KEY = "1x00000000000000000000AA";
+// 둘 다 공개값이에요. 운영(heesu.pages.dev, dev.heesu.pages.dev)은 실제 키를 써요.
+// 로컬(localhost)은 실제 키 도메인에 없어서, 로컬 Edge Function의 테스트 비밀 키와 맞는 테스트 키를 써요.
+export const TURNSTILE_SITE_KEY = "0x4AAAAAAFzKIcojRfibxs9W";
+export const TURNSTILE_TEST_SITE_KEY = "1x00000000000000000000AA";
+
+export function turnstileSiteKeyFor(hostname: string): string {
+  return hostname === "localhost" || hostname === "127.0.0.1"
+    ? TURNSTILE_TEST_SITE_KEY
+    : TURNSTILE_SITE_KEY;
+}
 
 /** 입력 중인 값을 010-1234-5678 모양으로 맞춘다. 숫자 외 문자는 버린다. */
 export function formatPhoneInput(raw: string): string {

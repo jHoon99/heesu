@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
-import { TURNSTILE_SITE_KEY } from "../model/consultation";
+import { turnstileSiteKeyFor } from "../model/consultation";
 
 type TurnstileOptions = {
   sitekey: string;
@@ -61,7 +61,7 @@ export function Turnstile({
     const el = containerRef.current;
     if (!el || !window.turnstile || widgetId.current !== null) return;
     widgetId.current = window.turnstile.render(el, {
-      sitekey: TURNSTILE_SITE_KEY,
+      sitekey: turnstileSiteKeyFor(window.location.hostname),
       language: "ko",
       callback: (token) => onTokenRef.current(token),
       "expired-callback": () => onTokenRef.current(null),

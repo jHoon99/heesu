@@ -7,6 +7,7 @@ import {
   formatPhoneInput,
   SubmitConsultationError,
   submitErrorMessage,
+  turnstileSiteKeyFor,
 } from "./consultation";
 
 describe("formatPhoneInput", () => {
@@ -124,5 +125,16 @@ describe("CONSENT_VERSION", () => {
       (m) => m[1],
     );
     expect(versions).toContain(CONSENT_VERSION);
+  });
+});
+
+describe("turnstileSiteKeyFor", () => {
+  it("uses the real key on the deployed sites", () => {
+    for (const host of ["heesu.pages.dev", "dev.heesu.pages.dev"])
+      expect(turnstileSiteKeyFor(host)).toBe("0x4AAAAAAFzKIcojRfibxs9W");
+  });
+  it("uses Cloudflare's test key locally", () => {
+    for (const host of ["localhost", "127.0.0.1"])
+      expect(turnstileSiteKeyFor(host)).toBe("1x00000000000000000000AA");
   });
 });
