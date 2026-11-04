@@ -11,6 +11,7 @@
     "test": "vitest run",
     "format": "prettier --write .",
     "db:test": "supabase test db",
+    "db:demo-check": "sh scripts/seed-demo-check.sh",
     "fn:check": "sh scripts/fn-check.sh",
     "db:types": "supabase gen types typescript --local --schema public > src/core/supabase/database.types.ts"
   },
