@@ -1,5 +1,5 @@
-import { ComingSoonScreen } from "@/features/admin-shell";
+import { AdminConsultationsScreen } from "@/features/consultations";
 
 export default function Page() {
-  return <ComingSoonScreen title="상담" />;
+  return <AdminConsultationsScreen />;
 }
