@@ -43,10 +43,11 @@ vi.mock("@/features/attendance", () => ({
 }));
 
 let newCount: number | undefined = 2;
+let refetchFailed = false;
 vi.mock("@/features/consultations", () => ({
   useNewConsultationCount: () => ({
     data: newCount,
-    isError: newCount === undefined,
+    isError: refetchFailed || newCount === undefined,
   }),
 }));
 
@@ -54,7 +55,7 @@ let unansweredCount: number | undefined = 3;
 vi.mock("@/features/questions", () => ({
   useUnansweredQuestionCount: () => ({
     data: unansweredCount,
-    isError: unansweredCount === undefined,
+    isError: refetchFailed || unansweredCount === undefined,
   }),
 }));
 
@@ -73,6 +74,7 @@ beforeEach(() => {
   mutateAsync.mockResolvedValue(undefined);
   progress = {};
   newCount = 2;
+  refetchFailed = false;
   unansweredCount = 3;
   classList = [
     mk("a", "수요반", [3, 5]),
@@ -179,6 +181,17 @@ describe("TodayScreen", () => {
     render(<TodayScreen />);
     expect(screen.getByRole("link", { name: /미답변 질문/ })).toHaveTextContent(
       "-",
+    );
+  });
+
+  it("keeps the counts when a background refetch fails", () => {
+    refetchFailed = true;
+    render(<TodayScreen />);
+    expect(screen.getByRole("link", { name: /새 상담/ })).toHaveTextContent(
+      "2건",
+    );
+    expect(screen.getByRole("link", { name: /미답변 질문/ })).toHaveTextContent(
+      "3개",
     );
   });
 

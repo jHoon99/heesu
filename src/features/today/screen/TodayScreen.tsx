@@ -83,15 +83,10 @@ export function TodayScreen() {
 
   const rows = todaysClasses(classes.data ?? [], isoDayOf(today));
   const invalid = (classes.data ?? []).filter((c) => c.scheduleInvalid);
-  const newCount =
-    consults.isError || consults.data === undefined
-      ? "-"
-      : `${consults.data}건`;
+  const newCount = consults.data === undefined ? "-" : `${consults.data}건`;
 
   const unansweredText =
-    unanswered.isError || unanswered.data === undefined
-      ? "-"
-      : `${unanswered.data}개`;
+    unanswered.data === undefined ? "-" : `${unanswered.data}개`;
 
   let body;
   if (classes.isError && classes.data === undefined) {
