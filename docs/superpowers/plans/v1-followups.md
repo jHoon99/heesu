@@ -50,6 +50,7 @@
 - Visual pass: section tab row scroll back to left when none active; icon differences vs mock (Quote glyph, single-person icon), footer privacy link underline; `text-h2` + `text-[20px]` conflict without cn in SiteHeader and PrivacyScreen.
 - StrictMode Turnstile re-render check in a browser (QA item).
 - README: local build needs `.env.local`.
+- SiteFooter hard-codes 대표 and 사업자등록번호 as null (not editable from 랜딩 관리): fill via a code change or the legal site_content before public launch.
 - Hard gate before public launch: /privacy Blank values filled, claims about unbuilt features removed or built, legal review, then re-enable indexing.
 - Re-verify on cloud that an old refresh token fails after reset; code comment: access token valid ≤1h.
 - `getUser` network failure maps to 401 not 500 on the HS256 fallback path.

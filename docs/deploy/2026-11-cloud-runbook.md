@@ -297,8 +297,11 @@ read -r PK                            # publishable 키(공개 값)를 붙여 �
 - [ ] §5의 상담 신청 스모크 테스트를 지금 해요(원장 목록 확인과 가짜 행 삭제까지).
 - [ ] `demo_haneul` 상세 > 학부모 링크 만들기 → 시연 때 누나 폰으로 열어 봐요(링크는 `/g#t=…` 형태이고 URL 조각에만 토큰이 들어가요).
 - [ ] **시연 전날 밤 (1)** QA가 시연 상태를 써 버려요(+3 축하, 수업 시작, 첫 로그인 비밀번호 변경, 숙제 제출, 답변). 시연 전날 밤에 SQL Editor(역할 `postgres`)로 `supabase/seed-demo-clear.sql` **전체**를 한 번 Run → 이어서 `supabase/seed-demo.sql` **전체**를 한 번 Run 해요(날짜가 모두 그날 서울 날짜 기준이라 빈 날이 없어요).
-  - 첫 로그인 비밀번호 변경 화면은 계정마다 **한 번만** 보여 줄 수 있어요. 시연에서 보여 주려면 QA에서 쓰지 말고 아껴 두거나, `demo_haneul`·`demo_minjun`의 비밀번호를 원장 화면 "비밀번호 재설정"으로 다시 만들어 임시 비밀번호 상태로 되돌려요.
+  - 첫 로그인 비밀번호 변경 화면은 계정마다 **한 번만** 보여 줄 수 있어요. 시연에서 보여 주려면 QA에서 쓰지 말고 아껴 두거나, `demo_haneul`·`demo_minjun`의 비밀번호를 학생 상세의 "비밀번호 초기화"로 다시 만들어 임시 비밀번호 상태로 되돌려요.
   - 지우기·다시 넣기는 두 학생 행과 로그인 계정은 남겨 두므로 학생을 다시 만들 필요가 없어요. 학부모 링크는 지워지니 `demo_haneul` 상세에서 다시 만들어요.
+  - **영상은 사라져요.** clear가 시연 반을 지우면 영상도 같이 지워지고 시드는 영상을 넣지 않아요. 위 "영상:" 단계대로 두 반에 짧은 mp4를 다시 올려요.
+  - **랜딩 관리 편집은 되돌아오지 않아요.** QA에서 바꾼 공지·반·수강료·연락처·법정 표시는 원래 값으로 손으로 되돌리고, 보상 목표는 반드시 30으로 해요(그래야 +3 축하 시연이 돼요).
+  - QA용 학생(`qa_test1`)과 QA용 반이 시연 반에 남아 있으면 clear가 "시연 반에 실제 학생이 배정돼 있어요. 그 학생을 다른 반으로 먼저 옮긴 뒤 다시 실행해 주세요."라고 멈춰요. 먼저 시연 반에서 빼거나 지워요.
   - **확인:** 위 `demo\_%` 쿼리가 `8`.
 - [ ] **시연 전날 밤 (2)** 준비용 TOTP를 지워 누나가 첫 로그인 때 자기 폰으로 등록하게 해요.
 
@@ -332,6 +335,7 @@ read -r PK                            # publishable 키(공개 값)를 붙여 �
   - 3) 함수를 재배포해요: `supabase functions deploy submit-consultation --no-verify-jwt`.
   - **확인:** `$H`에서 실제 신청 1건이 성공하고, 테스트 비밀을 쓰던 때와 달리 Turnstile 위젯이 실제로 검증해요.
 - [ ] 시연 데이터를 지워요(공개 전 필수). SQL Editor(역할 `postgres`)에서 `supabase/seed-demo-clear.sql` 전체를 Run → 원장 화면에서 `demo_haneul`·`demo_minjun` 을 지우거나 퇴원 처리 → Authentication > Users에서 `demo_haneul@student.heesu.internal`, `demo_minjun@student.heesu.internal` 사용자를 지우고 Storage `videos` 의 시연 영상 파일도 지워요. **확인:** `select count(*) from public.students where login_id like 'demo\_%';` 가 `0`(퇴원 처리만 했다면 원장 화면에서 목록에 안 보여요).
+- [ ] 랜딩과 `/privacy`에 빈칸 자리표시가 남아 있지 않아요. 푸터의 "대표"와 "사업자등록번호"는 코드에 비어 있는 값으로 박혀 있어 랜딩 관리로 못 채워요 — 코드 수정 PR이 필요해요. **확인:** 두 곳을 눈으로 훑어 빈칸 자리표시(회색 칸)가 없어요.
 - [ ] `/privacy` 관문: 빈칸 채움 · 없는 기능 문구 제거 · 법률 검토 → `src/app/(landing)/privacy/page.tsx` 의 `robots: { index: false, … }` 를 제거하고 `public/sitemap.xml` 에 `/privacy` 를 다시 넣어요(`src/test/seo.test.ts` 가 이 상태를 고정하고 있어 같이 고쳐요). **확인:** 배포 후 `curl -s $H/privacy | grep -i noindex` 가 비어 있어요.
 
 ## §9 되돌리기
