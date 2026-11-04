@@ -19,7 +19,7 @@ export function ConsultationTable({
   onOpen: (id: string) => void;
 }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-border bg-bg-surface-raised">
+    <div className="relative overflow-x-auto rounded-lg border border-border bg-bg-surface-raised">
       <table className="w-full text-left text-table">
         <thead>
           <tr className="h-10 border-b border-border text-text-muted">
