@@ -24,7 +24,13 @@ export function VideoPlayerScreen() {
   const [el, setEl] = useState<HTMLVideoElement | null>(null);
   const [failedOnce, setFailedOnce] = useState(false);
   const errorCount = useRef(0);
-  useWatchProgress(el, video);
+  const liveWatched = useWatchProgress(el, video);
+
+  const onPlaying = () => {
+    // 다시 재생되면 이후 오류도 한 번씩 다시 발급해 봐요(발급 간격 제한은 refresh가 지켜요).
+    errorCount.current = 0;
+    setFailedOnce(false);
+  };
 
   const onVideoError = () => {
     errorCount.current += 1;
@@ -110,6 +116,7 @@ export function VideoPlayerScreen() {
           preload="metadata"
           src={playback.url}
           onError={onVideoError}
+          onPlaying={onPlaying}
           className="aspect-video w-full rounded-xl bg-brown-900"
         />
       )}
@@ -117,7 +124,7 @@ export function VideoPlayerScreen() {
         <h1 className="text-h2 break-words text-text">{video.title}</h1>
         <p className="text-body-sm text-text-muted">{videoSubtitle(video)}</p>
         <p className="text-body-sm text-text-muted">
-          {formatDuration(video.watchedSeconds)} /{" "}
+          {formatDuration(Math.max(video.watchedSeconds, liveWatched ?? 0))} /{" "}
           {formatDuration(video.durationSeconds)} 봤어요
         </p>
       </div>

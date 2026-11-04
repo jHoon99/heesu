@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/design-system";
+import { classifyError } from "@/core/supabase/error";
 import { saveVideoProgress, type MyVideo } from "../data/videos";
 import { videoKeys } from "./keys";
 import { advanceFurthest, resumePosition } from "../model/watch";
@@ -19,11 +20,16 @@ function seekTo(media: HTMLVideoElement, seconds: number): void {
 /**
  * 시청 위치와 "본 구간"을 저장해요. 건너뛴 구간은 본 것으로 치지 않아요.
  * 저장 실패는 삼키고 다음 주기에 다시 해요.
+ * 마지막으로 저장한 "본 구간" 초를 돌려줘요(저장 전이면 null).
  */
 export function useWatchProgress(
   el: HTMLVideoElement | null,
   video: MyVideo | null,
-): void {
+): number | null {
+  const [savedWatched, setSavedWatched] = useState<{
+    id: string;
+    seconds: number;
+  } | null>(null);
   const client = useQueryClient();
   const toast = useToast();
   const showRef = useRef(toast.show);
@@ -62,14 +68,20 @@ export function useWatchProgress(
       return saveVideoProgress(id, p, w).then(
         () => {
           failures = 0;
+          setSavedWatched({ id, seconds: w });
         },
-        () => {
+        (e: unknown) => {
           // 다음 주기에 다시 저장하도록 마지막 저장값을 무효화해요.
           saved = { position: -1, watched: -1 };
           failures += 1;
           if (failures >= FAILURES_BEFORE_TOAST && !toasted) {
             toasted = true;
-            showRef.current({ tone: "danger", message: FAILURE_MESSAGE });
+            // 서버가 고치는 방법을 알려 준 오류(P0001)는 그대로 보여줘요.
+            const server = (e as { code?: unknown } | null)?.code === "P0001";
+            showRef.current({
+              tone: "danger",
+              message: server ? classifyError(e).message : FAILURE_MESSAGE,
+            });
           }
         },
       );
@@ -123,4 +135,8 @@ export function useWatchProgress(
       );
     };
   }, [el, videoId, client]);
+
+  return savedWatched !== null && savedWatched.id === videoId
+    ? savedWatched.seconds
+    : null;
 }

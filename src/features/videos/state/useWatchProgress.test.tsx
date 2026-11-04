@@ -134,6 +134,41 @@ describe("useWatchProgress", () => {
     });
   });
 
+  it("shows the server message when saving fails with P0001", async () => {
+    save.mockRejectedValue({
+      code: "P0001",
+      message: "공개 전 영상은 볼 수 없어요. 목록에서 다시 골라 주세요.",
+    });
+    const { el, fire } = setup();
+    fire("loadedmetadata");
+    for (let i = 1; i <= 4; i += 1) {
+      el.currentTime = 120 + i;
+      fire("timeupdate");
+      fire("pause");
+      await act(async () => {
+        await Promise.resolve();
+      });
+    }
+    expect(show).toHaveBeenCalledTimes(1);
+    expect(show).toHaveBeenCalledWith({
+      tone: "danger",
+      message: "공개 전 영상은 볼 수 없어요. 목록에서 다시 골라 주세요.",
+    });
+  });
+
+  it("returns the furthest watched seconds after a successful save", async () => {
+    const { el, view, fire } = setup();
+    expect(view.result.current).toBeNull();
+    fire("loadedmetadata");
+    el.currentTime = 121;
+    fire("timeupdate");
+    fire("pause");
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(view.result.current).toBe(121);
+  });
+
   it("keeps the session position when the url is refreshed", () => {
     const { el, fire } = setup();
     fire("loadedmetadata");

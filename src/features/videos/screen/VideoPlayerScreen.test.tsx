@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useMyVideo, usePlaybackUrl } from "../state/useMyVideos";
+import { useWatchProgress } from "../state/useWatchProgress";
 import { VideoPlayerScreen } from "./VideoPlayerScreen";
 
 vi.mock("next/navigation", () => ({
@@ -49,6 +50,10 @@ describe("VideoPlayerScreen", () => {
     });
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("renders the player with the signed url and a question link", () => {
     const { container } = render(<VideoPlayerScreen />);
     const el = container.querySelector("video");
@@ -70,6 +75,23 @@ describe("VideoPlayerScreen", () => {
     fireEvent.error(container.querySelector("video") as HTMLVideoElement);
     expect(refresh).toHaveBeenCalledTimes(1);
     expect(screen.getByText(/영상을 열 수 없어요/)).toBeInTheDocument();
+  });
+
+  it("allows another refresh after playback recovers", () => {
+    const { container } = render(<VideoPlayerScreen />);
+    const el = () => container.querySelector("video") as HTMLVideoElement;
+    fireEvent.error(el());
+    expect(refresh).toHaveBeenCalledTimes(1);
+    fireEvent.playing(el());
+    fireEvent.error(el());
+    expect(refresh).toHaveBeenCalledTimes(2);
+    expect(screen.queryByText(/영상을 열 수 없어요/)).toBeNull();
+  });
+
+  it("shows the live watched seconds from the progress hook", () => {
+    vi.mocked(useWatchProgress).mockReturnValue(125);
+    render(<VideoPlayerScreen />);
+    expect(screen.getByText(/2:05 \/ 10:00 봤어요/)).toBeInTheDocument();
   });
 
   it("explains when the video is missing", () => {
