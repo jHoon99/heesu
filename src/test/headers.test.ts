@@ -96,3 +96,33 @@ describe("public/_headers /sw.js", () => {
     expect(block("/sw.js")).toContain("Cache-Control: no-cache");
   });
 });
+
+// 랜딩 관리 미리보기: 랜딩(/)만 같은 사이트 안에서 띄울 수 있고, 띄우는 쪽은 /admin/site뿐이에요.
+describe("public/_headers landing preview", () => {
+  const cspOf = (lines: string[]) =>
+    lines.find((l) => l.startsWith("Content-Security-Policy:")) ?? "";
+  const directives = (c: string) => c.split(";").map((d) => d.trim());
+  const without = (c: string, name: string) =>
+    directives(c).filter((d) => !d.startsWith(name));
+
+  it("/ replaces the CSP and allows framing only by the same site", () => {
+    const root = block("/");
+    expect(root.indexOf("! Content-Security-Policy")).toBe(0);
+    const c = cspOf(root);
+    expect(directives(c)).toContain("frame-ancestors 'self'");
+    expect(without(c, "frame-ancestors")).toEqual(
+      without(csp, "frame-ancestors"),
+    );
+  });
+
+  it("/admin/site replaces the CSP and may frame only itself and Turnstile", () => {
+    const site = block("/admin/site");
+    expect(site.indexOf("! Content-Security-Policy")).toBe(0);
+    const c = cspOf(site);
+    expect(directives(c)).toContain(
+      "frame-src 'self' https://challenges.cloudflare.com",
+    );
+    expect(directives(c)).toContain("frame-ancestors 'none'");
+    expect(without(c, "frame-src")).toEqual(without(csp, "frame-src"));
+  });
+});

@@ -12,6 +12,9 @@ import type { PointTotal } from "../model/points";
 import { PointsScreen } from "./PointsScreen";
 
 vi.mock("../data/points");
+vi.mock("@/features/site-content", () => ({
+  PointsGoalSettings: () => <h2>보상 목표</h2>,
+}));
 
 const totals = vi.mocked(listPointTotals);
 const history = vi.mocked(listPointHistory);
@@ -58,6 +61,13 @@ async function pick(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe("PointsScreen", () => {
+  it("keeps the reward goal card on the points screen", async () => {
+    setup();
+    expect(
+      await screen.findByRole("heading", { name: "보상 목표" }),
+    ).toBeInTheDocument();
+  });
+
   it("badges ranks 1 to 3 and leaves 4th as plain text", async () => {
     setup();
     const fourth = await screen.findByRole("row", { name: /최노을/ });

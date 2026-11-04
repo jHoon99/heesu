@@ -30,6 +30,7 @@ export function NoticeEditor({
   return (
     <EditorCard
       title="공지"
+      where="랜딩 첫 화면 바로 아래 공지 띠에 보여요. 체크를 끄면 숨겨요."
       saveLabel="공지 저장"
       pending={pending}
       error={error}

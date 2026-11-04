@@ -13,3 +13,4 @@ export type {
 } from "./model/siteContent";
 export { useSiteContent } from "./state/useSiteContent";
 export { AdminSiteContentScreen } from "./screen/AdminSiteContentScreen";
+export { PointsGoalSettings } from "./components/admin/PointsGoalSettings";

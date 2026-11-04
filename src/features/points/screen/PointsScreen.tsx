@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Card } from "@/design-system";
 import { classifyError } from "@/core/supabase/error";
+import { PointsGoalSettings } from "@/features/site-content";
 import { ManualPointForm } from "../components/ManualPointForm";
 import { PointHistoryList } from "../components/PointHistoryList";
 import { PointRankingTable } from "../components/PointRankingTable";
@@ -77,6 +78,9 @@ export function PointsScreen() {
         </p>
       </div>
       {body}
+      <div className="max-w-[560px]">
+        <PointsGoalSettings />
+      </div>
     </div>
   );
 }

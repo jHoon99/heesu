@@ -44,6 +44,7 @@ export function ClassesEditor({ initial }: { initial: EditableClass[] }) {
   return (
     <EditorCard
       title="반·시간표"
+      where="랜딩 ‘반·시간표’ 섹션에 보여요."
       saveLabel="반·시간표 저장"
       pending={pending}
       error={error}

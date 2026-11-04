@@ -30,6 +30,7 @@ export function TuitionEditor({
   return (
     <EditorCard
       title="수강료·교재비"
+      where="랜딩 ‘수강료’ 섹션에 보여요."
       saveLabel="수강료 저장"
       pending={pending}
       error={error}

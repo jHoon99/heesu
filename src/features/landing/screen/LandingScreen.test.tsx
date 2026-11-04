@@ -111,4 +111,55 @@ describe("LandingScreen", () => {
       "true",
     );
   });
+
+  it("keeps the tapped tab active while the page scrolls past other sections", () => {
+    vi.useFakeTimers();
+    let callback: IntersectionObserverCallback = () => {};
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(cb: IntersectionObserverCallback) {
+          callback = cb;
+        }
+        observe() {}
+        disconnect() {}
+        unobserve() {}
+      },
+    );
+    vi.stubGlobal("matchMedia", () => ({ matches: true }));
+    const scrollTo = vi.fn();
+    Element.prototype.scrollTo = scrollTo;
+    const { container } = render(<LandingScreen />);
+    const nav = screen.getByRole("navigation", { name: "섹션 바로가기" });
+    const tuition = within(nav).getByRole("link", { name: "수강료" });
+    act(() => tuition.click());
+    expect(tuition).toHaveAttribute("aria-current", "true");
+    const callsAfterTap = scrollTo.mock.calls.length;
+
+    // 내려가는 동안 '원장' 섹션을 지나가도 칩 줄은 그대로예요.
+    const director = container.querySelector("section#director") as HTMLElement;
+    act(() => {
+      callback(
+        [
+          {
+            isIntersecting: true,
+            target: director,
+          } as unknown as IntersectionObserverEntry,
+        ],
+        {} as IntersectionObserver,
+      );
+      window.dispatchEvent(new Event("scroll"));
+      vi.advanceTimersByTime(100);
+    });
+    expect(tuition).toHaveAttribute("aria-current", "true");
+    expect(scrollTo.mock.calls.length).toBe(callsAfterTap);
+
+    // 스크롤이 멈추면 다시 보이는 섹션을 따라가요.
+    act(() => vi.advanceTimersByTime(200));
+    expect(within(nav).getByRole("link", { name: "원장" })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    vi.useRealTimers();
+  });
 });

@@ -30,6 +30,7 @@ export function ContactEditor({
   return (
     <EditorCard
       title="연락처"
+      where="주소는 ‘소개’·‘오시는 길’과 맨 아래 정보에, 전화번호는 ‘상담’ 섹션·하단 전화 버튼·맨 아래 정보에 보여요."
       saveLabel="연락처 저장"
       pending={pending}
       error={error}

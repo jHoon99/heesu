@@ -25,6 +25,7 @@ export function PointsGoalEditor({ initial }: { initial: string }) {
   return (
     <EditorCard
       title="보상 목표"
+      where="학생 홈의 포인트 카드에 보여요."
       saveLabel="목표 저장"
       pending={pending}
       error={error}
