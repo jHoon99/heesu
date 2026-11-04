@@ -112,6 +112,29 @@ describe("LandingScreen", () => {
     );
   });
 
+  it("drops the chip-row fade once the row is scrolled to its end", () => {
+    render(<LandingScreen />);
+    const nav = screen.getByRole("navigation", { name: "섹션 바로가기" });
+    Object.defineProperty(nav, "scrollWidth", {
+      value: 500,
+      configurable: true,
+    });
+    Object.defineProperty(nav, "clientWidth", {
+      value: 375,
+      configurable: true,
+    });
+    act(() => {
+      nav.scrollLeft = 0;
+      nav.dispatchEvent(new Event("scroll"));
+    });
+    expect(nav).toHaveAttribute("data-fade", "true");
+    act(() => {
+      nav.scrollLeft = 125;
+      nav.dispatchEvent(new Event("scroll"));
+    });
+    expect(nav).not.toHaveAttribute("data-fade");
+  });
+
   it("keeps the tapped tab active while the page scrolls past other sections", () => {
     vi.useFakeTimers();
     let callback: IntersectionObserverCallback = () => {};
