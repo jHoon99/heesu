@@ -104,4 +104,14 @@ describe("HomeworkScreen", () => {
     await user.click(await screen.findByRole("button", { name: "다시 시도" }));
     expect(await screen.findByText("아직 숙제가 없어요.")).toBeVisible();
   });
+
+  it("links each item to ask a question about its session", async () => {
+    list.mockResolvedValue([item("s1"), item("s2")]);
+    setup();
+    const links = await screen.findAllByRole("link", { name: "질문하기" });
+    expect(links.map((l) => l.getAttribute("href"))).toEqual([
+      "/s/questions?session=s1",
+      "/s/questions?session=s2",
+    ]);
+  });
 });

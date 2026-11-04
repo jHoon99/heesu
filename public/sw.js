@@ -1,6 +1,8 @@
 // Shell-only service worker for the student app (scope /s).
-// Never touches non-GET or cross-origin requests (all Supabase traffic).
+// Never touches non-GET, Range or cross-origin requests (all Supabase traffic).
 const CACHE = "hs-shell-v1";
+const STATIC_CACHE = "hs-static-v1";
+const STATIC_MAX = 120;
 const PRECACHE = ["/s", "/manifest.webmanifest", "/icons/icon-192.png"];
 const OFFLINE_HTML =
   '<!doctype html><html lang="ko"><head><meta charset="utf-8">' +
@@ -20,25 +22,42 @@ function isStudentPath(p) {
   return p === "/s" || p.startsWith("/s/");
 }
 
-async function networkFirst(request, fallback, canStore) {
+// Navigations are keyed by origin+pathname: the static export serves the same
+// HTML for every query string (the client reads ?id= etc.).
+function shellKey(url) {
+  return url.origin + url.pathname;
+}
+
+async function networkFirst(request, fallback, canStore, key) {
   const cache = await caches.open(CACHE);
+  const cacheKey = key || request;
   try {
     const res = await fetch(request);
-    if (canStore(res)) await cache.put(request, res.clone());
+    if (canStore(res)) await cache.put(cacheKey, res.clone());
     return res;
   } catch {
-    const hit = await caches.match(request);
+    const hit = await cache.match(cacheKey);
     return hit || fallback();
   }
 }
 
+// Bounded FIFO (cache.keys() is insertion order): the SW cannot know the
+// current build's asset list in a static export, so old chunks age out.
+async function trimStatic(cache) {
+  const keys = await cache.keys();
+  for (let i = 0; i < keys.length - STATIC_MAX; i++) {
+    await cache.delete(keys[i]);
+  }
+}
+
 async function cacheFirst(request) {
-  const hit = await caches.match(request);
+  const cache = await caches.open(STATIC_CACHE);
+  const hit = await cache.match(request);
   if (hit) return hit;
   const res = await fetch(request);
   if (res.ok && res.type === "basic") {
-    const cache = await caches.open(CACHE);
     await cache.put(request, res.clone());
+    await trimStatic(cache);
   }
   return res;
 }
@@ -55,7 +74,11 @@ self.addEventListener("activate", (event) => {
       .then((names) =>
         Promise.all(
           names
-            .filter((n) => n.startsWith("hs-shell-") && n !== CACHE)
+            .filter(
+              (n) =>
+                (n.startsWith("hs-shell-") && n !== CACHE) ||
+                (n.startsWith("hs-static-") && n !== STATIC_CACHE),
+            )
             .map((n) => caches.delete(n)),
         ),
       )
@@ -66,6 +89,7 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
+  if (request.headers.has("range")) return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   const p = url.pathname;
@@ -76,6 +100,7 @@ self.addEventListener("fetch", (event) => {
         request,
         offlineResponse,
         (res) => res.ok && !res.redirected,
+        shellKey(url),
       ),
     );
     return;

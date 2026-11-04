@@ -1,5 +1,5 @@
-import { ComingSoonScreen } from "@/features/admin-shell";
+import { AdminQuestionsScreen } from "@/features/questions";
 
 export default function Page() {
-  return <ComingSoonScreen title="질문" />;
+  return <AdminQuestionsScreen />;
 }

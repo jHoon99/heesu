@@ -43,10 +43,19 @@ vi.mock("@/features/attendance", () => ({
 }));
 
 let newCount: number | undefined = 2;
+let refetchFailed = false;
 vi.mock("@/features/consultations", () => ({
   useNewConsultationCount: () => ({
     data: newCount,
-    isError: newCount === undefined,
+    isError: refetchFailed || newCount === undefined,
+  }),
+}));
+
+let unansweredCount: number | undefined = 3;
+vi.mock("@/features/questions", () => ({
+  useUnansweredQuestionCount: () => ({
+    data: unansweredCount,
+    isError: refetchFailed || unansweredCount === undefined,
   }),
 }));
 
@@ -65,6 +74,8 @@ beforeEach(() => {
   mutateAsync.mockResolvedValue(undefined);
   progress = {};
   newCount = 2;
+  refetchFailed = false;
+  unansweredCount = 3;
   classList = [
     mk("a", "수요반", [3, 5]),
     mk("b", "수요반2", [3]),
@@ -81,7 +92,13 @@ describe("TodayScreen", () => {
     expect(screen.getByRole("heading", { name: "오늘" })).toBeInTheDocument();
     expect(screen.getByText("11월 4일 수요일")).toBeInTheDocument();
     expect(screen.getByText("2개")).toBeInTheDocument();
-    expect(screen.getByText("0개")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /미답변 질문/ })).toHaveTextContent(
+      "미답변 질문3개",
+    );
+    expect(screen.getByRole("link", { name: /미답변 질문/ })).toHaveAttribute(
+      "href",
+      "/admin/questions",
+    );
     expect(screen.getByText("2건")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /새 상담/ })).toHaveAttribute(
       "href",
@@ -156,6 +173,25 @@ describe("TodayScreen", () => {
     render(<TodayScreen />);
     expect(screen.getByRole("link", { name: /새 상담/ })).toHaveTextContent(
       "-",
+    );
+  });
+
+  it("shows a dash for the unanswered count on error", () => {
+    unansweredCount = undefined;
+    render(<TodayScreen />);
+    expect(screen.getByRole("link", { name: /미답변 질문/ })).toHaveTextContent(
+      "-",
+    );
+  });
+
+  it("keeps the counts when a background refetch fails", () => {
+    refetchFailed = true;
+    render(<TodayScreen />);
+    expect(screen.getByRole("link", { name: /새 상담/ })).toHaveTextContent(
+      "2건",
+    );
+    expect(screen.getByRole("link", { name: /미답변 질문/ })).toHaveTextContent(
+      "3개",
     );
   });
 

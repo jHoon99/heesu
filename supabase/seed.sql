@@ -102,3 +102,21 @@ drop table seed_marks;
 -- 수동 가감 하나
 insert into public.points (student_id, amount, reason) values
   ('10000000-0000-4000-8000-5ee0000000c1', 2, '(예시) 발표 참여');
+
+-- ─── 질문·답변 (가짜) ────────────────────────────────────────────────
+-- 학생 질문은 원래 학생 로그인으로만 들어간다(트리거가 student_id를 정한다). 시드는 postgres로 넣으므로 이 구간만 트리거를 끈다.
+-- 김하늘: 답변 하나(트리거가 answered_at을 채운다). 이민준: 그 반 최근 수업에 연결, 미답변.
+alter table public.questions disable trigger questions_prepare;
+insert into public.questions (id, student_id, body) values
+  ('60000000-0000-4000-8000-5ee0000000c1', '10000000-0000-4000-8000-5ee0000000c1',
+   '(예시) 현재완료랑 과거형 차이를 잘 모르겠어요.');
+insert into public.questions (student_id, session_id, body)
+select '10000000-0000-4000-8000-5ee0000000d1', s.id, '(예시) 숙제 3번 해석이 맞는지 궁금해요.'
+  from public.sessions s
+ where s.class_id = '20000000-0000-4000-8000-5ee0000000b1'
+ order by s.date desc
+ limit 1;
+alter table public.questions enable trigger questions_prepare;
+
+insert into public.answers (question_id, body) values
+  ('60000000-0000-4000-8000-5ee0000000c1', '(예시) 다음 수업 때 예문으로 같이 볼게요.');

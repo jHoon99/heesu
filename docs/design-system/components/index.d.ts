@@ -28,7 +28,7 @@ export interface AttendanceTableProps {
 }
 export interface AdminSidebarProps { active?: string; items?: ({ group: string } | { value: string; label: string; icon: IconName; count?: number })[]; onNavigate?: (v: string) => void; logoSrc?: string; academyName?: string; userName?: string; userRole?: string }
 export interface StudentTabBarProps { items: { value: string; label: string; href: string; icon: LucideIcon; dot?: boolean }[]; active?: string; linkComponent?: ElementType; className?: string }
-export interface VideoCardProps { title: ReactNode; subtitle?: ReactNode; unit?: string; duration?: string; progress?: number; isNew?: boolean; layout?: "column" | "row"; onClick?: () => void }
+export interface VideoCardProps { title: ReactNode; subtitle?: ReactNode; unit?: string; duration?: string; progress?: number; isNew?: boolean; layout?: "column" | "row"; href?: string; linkComponent?: ElementType; onClick?: () => void; className?: string }
 export interface PointsProgressProps { points: number; goal: number; goalLabel?: string; rank?: number; rankTotal?: number; rankScope?: string; delta?: number; label?: string; compact?: boolean; className?: string }
 export interface ConsultFormProps { onSubmit?: (data: { parent: string; phone: string; grade: string; school?: string; time: string; message?: string; agree: "y" }) => void; submitLabel?: string }
 

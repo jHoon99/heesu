@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Check } from "lucide-react";
 import { Button, StatusChip } from "@/design-system";
 import {
@@ -41,6 +42,12 @@ export function HomeworkItemRow({
       <p className="min-w-0 text-body break-words whitespace-pre-line text-text">
         {item.homework}
       </p>
+      <Link
+        href={`/s/questions?session=${item.sessionId}`}
+        className="inline-flex min-h-12 items-center self-start text-body-sm text-text-brand"
+      >
+        질문하기
+      </Link>
       {item.due ? (
         <p className="text-body-sm text-text-muted">
           마감 {dateLabel(item.due)}

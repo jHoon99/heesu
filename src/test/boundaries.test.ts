@@ -93,6 +93,18 @@ describe("architecture boundaries", { timeout: 20_000 }, () => {
     expect(await lint("src/core/supabase/x.ts", code)).toHaveLength(0);
   });
 
+  it("forbids tus-js-client outside feature data", async () => {
+    const code =
+      'import { Upload } from "tus-js-client";\nexport const u = Upload;\n';
+    const errors = await lint("src/features/zz-fixture/screen/x.tsx", code);
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0]?.ruleId).toBe("no-restricted-imports");
+    expect(errors[0]?.message).toContain("tus-js-client");
+    expect(await lint("src/features/zz-fixture/data/x.ts", code)).toHaveLength(
+      0,
+    );
+  });
+
   it("warns when admin UI imports entrance motion", async () => {
     const reveal =
       'import { Reveal } from "@/design-system";\nexport const r = Reveal;\n';
@@ -117,6 +129,22 @@ describe("architecture boundaries", { timeout: 20_000 }, () => {
         (m) => m.severity === 1,
       ),
     ).toHaveLength(1);
+
+    for (const file of [
+      "src/features/videos/components/admin/x.tsx",
+      "src/features/videos/screen/AdminX.tsx",
+      "src/features/questions/components/admin/x.tsx",
+      "src/features/questions/screen/AdminX.tsx",
+    ]) {
+      expect(
+        (await lintAll(file, reveal)).filter((m) => m.severity === 1),
+      ).toHaveLength(1);
+    }
+    expect(
+      (await lintAll("src/features/videos/screen/WatchX.tsx", reveal)).filter(
+        (m) => m.severity === 1,
+      ),
+    ).toHaveLength(0);
 
     expect(
       (await lintAll("src/features/landing/screen/x.tsx", reveal)).filter(

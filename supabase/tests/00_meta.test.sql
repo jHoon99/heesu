@@ -9,7 +9,7 @@
 begin;
 set local client_min_messages = warning;
 create extension if not exists pgtap with schema extensions;
-select plan(15);
+select plan(19);
 
 -- S2: public의 모든 테이블은 RLS가 켜져 있고, RLS를 걸 수 없는 foreign table은 없다.
 select is(
@@ -41,7 +41,7 @@ select is(
      join pg_catalog.pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public'
       and has_function_privilege('authenticated', p.oid, 'execute')),
-  '{my_rank,my_role,password_changed,submit_homework}'::text[],
+  '{my_rank,my_role,password_changed,save_video_progress,submit_homework}'::text[],
   'public: authenticated가 실행할 수 있는 함수 = 허용 목록'
 );
 
@@ -63,7 +63,7 @@ select is(
      join pg_catalog.pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'private'
       and has_function_privilege('authenticated', p.oid, 'execute')),
-  '{is_admin,my_student_id}'::text[],
+  '{can_join_question_topic,is_admin,my_student_id}'::text[],
   'private: authenticated가 실행할 수 있는 함수 = 허용 목록'
 );
 
@@ -139,6 +139,42 @@ select is(
         or (c.relkind = 'S' and has_sequence_privilege(r.rolname, c.oid, 'usage, select, update')))),
   '{}'::text[],
   'private: anon·authenticated 권한이 있는 테이블이 없다'
+);
+
+-- S9: storage.objects 정책 = 허용 목록(버킷 videos뿐). 새 버킷 정책을 만들 때 여기에 이름을 알파벳 순으로 추가한다.
+-- storage.buckets에는 정책을 두지 않는다(클라이언트가 버킷 목록을 볼 일이 없다).
+select is(
+  (select coalesce(array_agg(policyname::text order by policyname), '{}')
+     from pg_catalog.pg_policies
+    where schemaname = 'storage'),
+  '{videos_admin_delete,videos_admin_insert,videos_admin_select,videos_admin_update,videos_member_select}'::text[],
+  'storage: 정책 = 허용 목록'
+);
+
+-- S9: 공개 버킷이 없다(공개 버킷의 파일은 정책 없이 누구나 URL로 읽는다).
+select is(
+  (select coalesce(array_agg(id order by id), '{}') from storage.buckets where public),
+  '{}'::text[],
+  'storage: 공개 버킷이 없다'
+);
+
+-- S8: Realtime publication = questions·answers뿐. 다른 테이블을 실으면 postgres_changes로 새어 나갈 수 있다.
+select is(
+  (select coalesce(array_agg(schemaname || '.' || tablename order by schemaname, tablename), '{}')
+     from pg_catalog.pg_publication_tables
+    where pubname = 'supabase_realtime'),
+  '{public.answers,public.questions}'::text[],
+  'realtime: publication = questions, answers'
+);
+
+-- S8: REPLICA IDENTITY FULL 금지(변경 전 행 전체가 WAL에 실리고 delete 이벤트로 새어 나간다).
+select is(
+  (select count(*)::int
+     from pg_catalog.pg_class c
+     join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relkind = 'r' and c.relreplident = 'f'),
+  0,
+  'REPLICA IDENTITY FULL 테이블이 없다'
 );
 
 -- S2: 쓰지 않는 pg_graphql은 꺼져 있다.

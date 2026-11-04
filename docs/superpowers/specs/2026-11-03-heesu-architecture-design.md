@@ -243,11 +243,13 @@ usecase·domain 층은 두지 않는다. 화면 → 훅 → data 함수 → Supa
 **S8. Realtime**
 - `postgres_changes`만 쓴다(구독자 RLS 적용). `supabase_realtime` publication에는 `questions`, `answers`만 넣는다. `REPLICA IDENTITY FULL` 금지.
 - 프로젝트 Realtime 설정에서 public 채널을 끄고, broadcast·presence는 쓰지 않는다.
+- 알려진 한계: DELETE 이벤트는 RLS가 적용되지 않아 구독자에게 PK만 전달된다. 학생 삭제 cascade로만 생기며, 클라이언트는 이벤트를 무효화 신호로만 쓰고 내용을 믿지 않는다.
 
 **S9. 영상**
 - signed URL은 재생 직전에 발급하고 만료는 3시간. 저장·캐시하지 않는다.
 - storage 정책은 경로 문자열을 파싱하지 않고 `videos.storage_path`로 조인해 반 소속을 판단한다. 학생은 `storage.objects`에 insert·update·delete 권한이 없다.
 - 버킷 `public = false`, `allowed_mime_types = ['video/mp4']`.
+- 알려진 한계: 이미 발급된 signed URL은 영상을 삭제·비공개로 바꿔도 만료(최대 3시간)까지 열린다.
 - 등록 서류에 수업 녹화·게시 동의 항목을 넣는다(누나 확인).
 
 **S10. 프론트 보안 헤더와 XSS**

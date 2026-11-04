@@ -19,6 +19,12 @@ function fakeCaches() {
       put: async (req: { url: string }, res: Response) => {
         s.set(keyOf(req), res);
       },
+      match: async (req: string | { url: string }) => {
+        const hit = s.get(keyOf(req));
+        return hit ? hit.clone() : undefined;
+      },
+      keys: async () => [...s.keys()].map((url) => ({ url })),
+      delete: async (req: string | { url: string }) => s.delete(keyOf(req)),
       addAll: async (urls: string[]) => {
         for (const u of urls) s.set(keyOf(u), new Response("shell"));
       },
@@ -62,10 +68,20 @@ function load() {
   return { handlers, caches, fetchMock, self };
 }
 
-function fetchEvent(url: string, method = "GET", mode = "navigate") {
+function fetchEvent(
+  url: string,
+  method = "GET",
+  mode = "navigate",
+  headers: Record<string, string> = {},
+) {
   let pending: Promise<Response> | undefined;
   const event = {
-    request: { url, method, mode },
+    request: {
+      url,
+      method,
+      mode,
+      headers: { has: (k: string) => k.toLowerCase() in headers },
+    },
     respondWith: vi.fn((p: Promise<Response>) => {
       pending = Promise.resolve(p);
     }),
@@ -142,6 +158,50 @@ describe("public/sw.js student pages (network first)", () => {
   });
 });
 
+describe("public/sw.js never intercepts storage or Range", () => {
+  it("does not handle a cross-origin Storage signed URL", () => {
+    const { event } = fetchEvent(
+      "https://pudxtxzcftehxicfthmf.supabase.co/storage/v1/object/sign/videos/a.mp4",
+      "GET",
+      "no-cors",
+    );
+    sw.handlers.fetch(event);
+    expect(event.respondWith).not.toHaveBeenCalled();
+  });
+
+  it("does not handle a same-origin Range request", () => {
+    const { event } = fetchEvent(
+      `${ORIGIN}/_next/static/chunks/a.js`,
+      "GET",
+      "no-cors",
+      { range: "bytes=0-" },
+    );
+    sw.handlers.fetch(event);
+    expect(event.respondWith).not.toHaveBeenCalled();
+  });
+});
+
+describe("public/sw.js navigation cache key", () => {
+  it("keeps one entry for different ?id= and serves it offline", async () => {
+    sw.fetchMock.mockResolvedValueOnce(new Response("shellA", { status: 200 }));
+    const a = fetchEvent(`${ORIGIN}/s/videos/watch?id=A`);
+    sw.handlers.fetch(a.event);
+    await a.response();
+    sw.fetchMock.mockResolvedValueOnce(new Response("shellB", { status: 200 }));
+    const b = fetchEvent(`${ORIGIN}/s/videos/watch?id=B`);
+    sw.handlers.fetch(b.event);
+    await b.response();
+    const shell = sw.caches.stores.get("hs-shell-v1")!;
+    expect(
+      [...shell.keys()].filter((k) => k.includes("/s/videos/watch")),
+    ).toEqual([`${ORIGIN}/s/videos/watch`]);
+    sw.fetchMock.mockRejectedValue(new Error("offline"));
+    const c = fetchEvent(`${ORIGIN}/s/videos/watch?id=C`);
+    sw.handlers.fetch(c.event);
+    expect(await (await c.response()).text()).toBe("shellB");
+  });
+});
+
 describe("public/sw.js static assets", () => {
   function basic(body: string) {
     const r = new Response(body, { status: 200 });
@@ -159,6 +219,20 @@ describe("public/sw.js static assets", () => {
     sw.handlers.fetch(b.event);
     expect(await (await b.response()).text()).toBe("chunk");
     expect(sw.fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("caps hs-static-v1 at 120 entries, dropping the oldest", async () => {
+    sw.fetchMock.mockImplementation(async () => basic("x"));
+    for (let i = 0; i < 121; i++) {
+      const e = fetchEvent(`${ORIGIN}/_next/static/x${i}.js`, "GET", "no-cors");
+      sw.handlers.fetch(e.event);
+      await e.response();
+    }
+    const st = sw.caches.stores.get("hs-static-v1")!;
+    expect(st.size).toBe(120);
+    expect(st.has(`${ORIGIN}/_next/static/x0.js`)).toBe(false);
+    expect(st.has(`${ORIGIN}/_next/static/x120.js`)).toBe(true);
+    expect(sw.caches.stores.get("hs-shell-v1")?.size ?? 0).toBe(0);
   });
 
   it.each([
@@ -191,15 +265,18 @@ describe("public/sw.js lifecycle", () => {
     expect(sw.self.skipWaiting).toHaveBeenCalled();
   });
 
-  it("activate deletes only old hs-shell caches and claims clients", async () => {
+  it("activate deletes only old hs-shell/hs-static caches and claims clients", async () => {
     await sw.caches.open("hs-shell-v0");
+    await sw.caches.open("hs-static-v0");
     await sw.caches.open("other");
     await sw.caches.open("hs-shell-v1");
+    await sw.caches.open("hs-static-v1");
     const waits: Promise<unknown>[] = [];
     sw.handlers.activate({ waitUntil: (p: Promise<unknown>) => waits.push(p) });
     await Promise.all(waits);
     expect([...sw.caches.stores.keys()].sort()).toEqual([
       "hs-shell-v1",
+      "hs-static-v1",
       "other",
     ]);
     expect(sw.self.clients.claim).toHaveBeenCalled();

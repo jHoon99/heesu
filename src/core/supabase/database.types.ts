@@ -5,7 +5,27 @@ export type Database = {
   
   "public": {
           Tables: {
-            "attendance": {
+            "answers": {
+                  Row: {
+                    "body": string,"created_at": string,"id": string,"question_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body": string,"created_at"?: string,"id"?: string,"question_id": string
+                  }
+                  Update: {
+                    "body"?: string,"created_at"?: string,"id"?: string,"question_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "answers_question_id_fkey"
+      columns: ["question_id"]
+isOneToOne: false
+      referencedRelation: "questions"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"attendance": {
                   Row: {
                     "session_id": string,"status": Database["public"]['Enums']["attendance_status"],"student_id": string,"updated_at": string
                   }
@@ -187,6 +207,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"questions": {
+                  Row: {
+                    "answered_at": string | null,"body": string,"created_at": string,"id": string,"session_id": string | null,"student_id": string,"video_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "answered_at"?: string | null,"body": string,"created_at"?: string,"id"?: string,"session_id"?: string | null,"student_id": string,"video_id"?: string | null
+                  }
+                  Update: {
+                    "answered_at"?: string | null,"body"?: string,"created_at"?: string,"id"?: string,"session_id"?: string | null,"student_id"?: string,"video_id"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "questions_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "sessions"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "questions_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "student_point_totals"
+      referencedColumns: ["student_id"]
+    },{
+      foreignKeyName: "questions_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "questions_video_id_fkey"
+      columns: ["video_id"]
+isOneToOne: false
+      referencedRelation: "videos"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"sessions": {
                   Row: {
                     "class_id": string,"created_at": string,"date": string,"homework": string | null,"homework_due": string | null,"id": string,"summary": string | null,"updated_at": string
@@ -261,6 +319,58 @@ isOneToOne: true
                   Relationships: [
                     
                   ]
+                },"video_views": {
+                  Row: {
+                    "position_seconds": number,"student_id": string,"updated_at": string,"video_id": string,"watched_seconds": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "position_seconds"?: number,"student_id": string,"updated_at"?: string,"video_id": string,"watched_seconds"?: number
+                  }
+                  Update: {
+                    "position_seconds"?: number,"student_id"?: string,"updated_at"?: string,"video_id"?: string,"watched_seconds"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "video_views_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "student_point_totals"
+      referencedColumns: ["student_id"]
+    },{
+      foreignKeyName: "video_views_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "video_views_video_id_fkey"
+      columns: ["video_id"]
+isOneToOne: false
+      referencedRelation: "videos"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"videos": {
+                  Row: {
+                    "class_id": string,"created_at": string,"duration_seconds": number,"id": string,"published_at": string,"storage_path": string,"title": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "class_id": string,"created_at"?: string,"duration_seconds": number,"id"?: string,"published_at"?: string,"storage_path": string,"title": string
+                  }
+                  Update: {
+                    "class_id"?: string,"created_at"?: string,"duration_seconds"?: number,"id"?: string,"published_at"?: string,"storage_path"?: string,"title"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "videos_class_id_fkey"
+      columns: ["class_id"]
+isOneToOne: false
+      referencedRelation: "classes"
+      referencedColumns: ["id"]
+    }
+                  ]
                 }
           }
           Views: {
@@ -314,6 +424,9 @@ isOneToOne: false
                            },
 "password_changed":
 { Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"save_video_progress":
+{ Args: { "p_position_seconds": number,"p_video_id": string,"p_watched_seconds": number }; Returns: number
                            },
 "submit_consultation":
 { Args: { "p_consent_version": string,"p_grade": Database["public"]['Enums']["school_grade"],"p_message": string,"p_parent_name": string,"p_phone": string }; Returns: string

@@ -25,7 +25,7 @@
 
 ## Guardian / storage plans
 - Re-check `curl -sI https://<host>/g` returns `Referrer-Policy: no-referrer` and `X-Robots-Tag: noindex` once `/g` exists.
-- Storage: meta test that `storage.objects` policies match an allowlist (S9).
+- [x] Storage: meta test that `storage.objects` policies match an allowlist (S9). (Task 2)
 - Staging project (S13): generate `_headers` CSP per environment (project ref is hardcoded).
 
 ## Cloud checklist (before first `supabase db push` / opening)
