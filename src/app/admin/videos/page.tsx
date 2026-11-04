@@ -1,5 +1,10 @@
-import { ComingSoonScreen } from "@/features/admin-shell";
+import { Suspense } from "react";
+import { AdminVideoListScreen } from "@/features/videos";
 
 export default function Page() {
-  return <ComingSoonScreen title="영상" />;
+  return (
+    <Suspense>
+      <AdminVideoListScreen />
+    </Suspense>
+  );
 }
