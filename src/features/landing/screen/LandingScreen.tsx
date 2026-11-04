@@ -4,6 +4,7 @@ import { AboutSection } from "../components/AboutSection";
 import { ConsultSection } from "../components/ConsultSection";
 import { CtaBar } from "../components/CtaBar";
 import { DirectorSection } from "../components/DirectorSection";
+import { GallerySection } from "../components/GallerySection";
 import { Hero } from "../components/Hero";
 import { LeafDivider } from "../components/LeafDivider";
 import { NoticeBand } from "../components/NoticeBand";
@@ -26,6 +27,7 @@ export function LandingScreen() {
             <TuitionSection content={content} />
             <ConsultSection content={content} />
           </main>
+          <GallerySection />
           <CtaBar content={content} />
         </>
       )}

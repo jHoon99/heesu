@@ -249,6 +249,16 @@
   --ease-in: var(--ease-in);
   --animate-rise: hs-rise var(--dur-slow) var(--ease-out) both;
   --animate-fade: hs-fade var(--dur-base) var(--ease-out) both;
+  /* 홈페이지 맨 아래 사진 띠: 목록을 두 번 이어 붙이고 절반만큼 흘려서 끊김 없이 돌아요. */
+  --animate-marquee: hs-marquee 60s linear infinite;
+  @keyframes hs-marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
   @keyframes hs-rise {
     from {
       opacity: 0;

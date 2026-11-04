@@ -10,6 +10,7 @@ import {
 import { AboutSection } from "../components/AboutSection";
 import { ConsultSection } from "../components/ConsultSection";
 import { DirectorSection } from "../components/DirectorSection";
+import { GallerySection } from "../components/GallerySection";
 import { Hero } from "../components/Hero";
 import { LeafDivider } from "../components/LeafDivider";
 import { NoticeBand } from "../components/NoticeBand";
@@ -73,6 +74,7 @@ export function AdminLandingScreen() {
             <ConsultSection content={content} preview />
           </EditableRegion>
         </div>
+        <GallerySection />
         <EditableRegion label="학원 정보" onEdit={edit("footer")}>
           <SiteFooter content={content} />
         </EditableRegion>
