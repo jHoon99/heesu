@@ -6,6 +6,7 @@ import {
   createPlaybackUrl,
   createVideo,
   deleteVideo,
+  listAdminVideos,
   listMyVideos,
   saveVideoProgress,
   updateVideo,
@@ -213,5 +214,26 @@ describe("student video data", () => {
       watchedSeconds: 0,
       positionSeconds: 0,
     });
+  });
+
+  it("puts the latest upload first when videos share a publish day", async () => {
+    // 같은 날 공개한 영상은 published_at이 같아서, 나중에 올린 것을 앞에 둬요(홈 '새 영상' 카드).
+    const orders: unknown[][] = [];
+    const builder: Record<string, unknown> = {};
+    for (const m of ["select", "eq"]) builder[m] = () => builder;
+    builder.order = (...a: unknown[]) => {
+      orders.push(a);
+      return builder;
+    };
+    builder.limit = () => Promise.resolve({ data: [], error: null });
+    builder.then = (r: (v: unknown) => unknown) => r({ data: [], error: null });
+    from.mockReturnValue(builder as never);
+    await listMyVideos("st1");
+    await listAdminVideos("c1");
+    const expected = [
+      ["published_at", { ascending: false }],
+      ["created_at", { ascending: false }],
+    ];
+    expect(orders).toEqual([...expected, ...expected]);
   });
 });

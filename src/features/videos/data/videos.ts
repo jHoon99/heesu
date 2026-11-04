@@ -72,7 +72,8 @@ export async function listAdminVideos(classId: string): Promise<AdminVideo[]> {
     .from("videos")
     .select(ADMIN_COLUMNS)
     .eq("class_id", classId)
-    .order("published_at", { ascending: false });
+    .order("published_at", { ascending: false })
+    .order("created_at", { ascending: false });
   if (error) throw error;
   return data.map(toAdminVideo);
 }
@@ -192,6 +193,8 @@ export async function listMyVideos(studentId: string): Promise<MyVideo[]> {
     .select(MY_COLUMNS)
     .eq("video_views.student_id", studentId)
     .order("published_at", { ascending: false })
+    // 같은 날 공개한 영상은 나중에 올린 것이 앞이에요.
+    .order("created_at", { ascending: false })
     .limit(100);
   if (error) throw error;
   return (data as unknown as MyRow[]).map(toMyVideo);
