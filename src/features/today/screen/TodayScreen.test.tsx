@@ -50,6 +50,14 @@ vi.mock("@/features/consultations", () => ({
   }),
 }));
 
+let unansweredCount: number | undefined = 3;
+vi.mock("@/features/questions", () => ({
+  useUnansweredQuestionCount: () => ({
+    data: unansweredCount,
+    isError: unansweredCount === undefined,
+  }),
+}));
+
 const mutateAsync = vi.fn();
 vi.mock("@/features/sessions", async (orig) => ({
   ...(await orig<typeof import("@/features/sessions")>()),
@@ -65,6 +73,7 @@ beforeEach(() => {
   mutateAsync.mockResolvedValue(undefined);
   progress = {};
   newCount = 2;
+  unansweredCount = 3;
   classList = [
     mk("a", "수요반", [3, 5]),
     mk("b", "수요반2", [3]),
@@ -81,7 +90,13 @@ describe("TodayScreen", () => {
     expect(screen.getByRole("heading", { name: "오늘" })).toBeInTheDocument();
     expect(screen.getByText("11월 4일 수요일")).toBeInTheDocument();
     expect(screen.getByText("2개")).toBeInTheDocument();
-    expect(screen.getByText("0개")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /미답변 질문/ })).toHaveTextContent(
+      "미답변 질문3개",
+    );
+    expect(screen.getByRole("link", { name: /미답변 질문/ })).toHaveAttribute(
+      "href",
+      "/admin/questions",
+    );
     expect(screen.getByText("2건")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /새 상담/ })).toHaveAttribute(
       "href",
@@ -155,6 +170,14 @@ describe("TodayScreen", () => {
     newCount = undefined;
     render(<TodayScreen />);
     expect(screen.getByRole("link", { name: /새 상담/ })).toHaveTextContent(
+      "-",
+    );
+  });
+
+  it("shows a dash for the unanswered count on error", () => {
+    unansweredCount = undefined;
+    render(<TodayScreen />);
+    expect(screen.getByRole("link", { name: /미답변 질문/ })).toHaveTextContent(
       "-",
     );
   });

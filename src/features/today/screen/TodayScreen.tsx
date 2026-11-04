@@ -19,11 +19,8 @@ import {
   toLocalDateKey,
   useStartSession,
 } from "@/features/sessions";
-import {
-  UNANSWERED_QUESTIONS_PLACEHOLDER,
-  formatTodayHeading,
-  todaysClasses,
-} from "../model/today";
+import { useUnansweredQuestionCount } from "@/features/questions";
+import { formatTodayHeading, todaysClasses } from "../model/today";
 
 const attendancePath = (classId: string) =>
   `/admin/attendance?class=${encodeURIComponent(classId)}`;
@@ -63,6 +60,7 @@ export function TodayScreen() {
   const classes = useClasses();
   const progress = useDayProgress(today);
   const consults = useNewConsultationCount();
+  const unanswered = useUnansweredQuestionCount();
   const start = useStartSession();
   const busy = useRef(false);
 
@@ -89,6 +87,11 @@ export function TodayScreen() {
     consults.isError || consults.data === undefined
       ? "-"
       : `${consults.data}건`;
+
+  const unansweredText =
+    unanswered.isError || unanswered.data === undefined
+      ? "-"
+      : `${unanswered.data}개`;
 
   let body;
   if (classes.isError && classes.data === undefined) {
@@ -193,7 +196,8 @@ export function TodayScreen() {
         />
         <Stat
           label="미답변 질문"
-          value={`${UNANSWERED_QUESTIONS_PLACEHOLDER}개`}
+          value={unansweredText}
+          href="/admin/questions"
         />
         <Stat label="새 상담" value={newCount} href="/admin/consultations" />
       </div>

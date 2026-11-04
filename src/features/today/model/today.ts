@@ -2,9 +2,6 @@ import { format, parseISO } from "date-fns";
 import { ko } from "date-fns/locale";
 import type { ClassSummary, ScheduleSlot } from "@/features/classes";
 
-/** 계획 5가 미답변 질문 수 훅으로 바꾼다. */
-export const UNANSWERED_QUESTIONS_PLACEHOLDER = 0;
-
 /** 그 요일 칸이 있는 반을 그날 가장 이른 칸의 시작 시각순(같으면 이름순)으로. */
 export function todaysClasses(
   classes: ClassSummary[],
