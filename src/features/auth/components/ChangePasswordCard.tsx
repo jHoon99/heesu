@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button, Card, Input, useToast } from "@/design-system";
 import {
@@ -14,6 +14,8 @@ import { useChangePassword } from "../state/useChangePassword";
 export function ChangePasswordCard() {
   const toast = useToast();
   const mutation = useChangePassword();
+  // isPending은 렌더 뒤에야 바뀌어서, 빠른 두 번 제출은 ref로 먼저 막아요.
+  const inFlight = useRef(false);
   const [failure, setFailure] = useState<unknown>(null);
   const {
     register,
@@ -52,11 +54,14 @@ export function ChangePasswordCard() {
       <form
         noValidate
         onSubmit={(e) => {
-          if (mutation.isPending) {
+          if (inFlight.current || mutation.isPending) {
             e.preventDefault();
             return;
           }
-          void handleSubmit(onValid)(e);
+          inFlight.current = true;
+          void handleSubmit(onValid)(e).finally(() => {
+            inFlight.current = false;
+          });
         }}
         className="flex flex-col gap-4"
       >

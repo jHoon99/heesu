@@ -1,5 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "@/design-system";
@@ -98,6 +104,25 @@ describe("ChangePasswordCard", () => {
     await fill(user, "new-pass-123");
     await waitFor(() => expect(update).toHaveBeenCalledTimes(1));
     await user.type(screen.getByLabelText("새 비밀번호"), "{Enter}");
+    resolve();
+    await screen.findByText("비밀번호를 바꿨어요.");
+    expect(update).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores a second submit fired before the first finishes", async () => {
+    let resolve!: () => void;
+    update.mockReturnValue(new Promise<void>((r) => (resolve = r)));
+    const user = setup();
+    await user.type(screen.getByLabelText("새 비밀번호"), "new-pass-123");
+    await user.type(screen.getByLabelText("새 비밀번호 확인"), "new-pass-123");
+    const form = screen
+      .getByRole("button", { name: "비밀번호 바꾸기" })
+      .closest("form") as HTMLFormElement;
+    act(() => {
+      fireEvent.submit(form);
+      fireEvent.submit(form);
+    });
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1));
     resolve();
     await screen.findByText("비밀번호를 바꿨어요.");
     expect(update).toHaveBeenCalledTimes(1);
