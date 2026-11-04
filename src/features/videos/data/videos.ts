@@ -106,11 +106,15 @@ export async function listRoster(
 
 export async function updateVideo(
   id: string,
-  patch: { title: string; publishedAt: string },
+  patch: { title: string; publishedAt?: string },
 ): Promise<void> {
   const { data, error } = await supabase
     .from("videos")
-    .update({ title: patch.title, published_at: patch.publishedAt })
+    .update(
+      patch.publishedAt === undefined
+        ? { title: patch.title }
+        : { title: patch.title, published_at: patch.publishedAt },
+    )
     .eq("id", id)
     .select("id");
   if (error) throw error;

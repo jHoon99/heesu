@@ -89,7 +89,11 @@ function EditCard({ video }: { video: AdminVideo }) {
         id: video.id,
         patch: {
           title: values.title,
-          publishedAt: publishedAtFromDate(values.publishedDate),
+          // 날짜를 안 바꿨으면 공개 시각은 그대로 둬요.
+          publishedAt:
+            values.publishedDate === toLocalDateKey(new Date(video.publishedAt))
+              ? undefined
+              : publishedAtFromDate(values.publishedDate),
         },
       });
       toast.show({ tone: "success", message: "저장했어요." });

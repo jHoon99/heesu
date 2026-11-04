@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "@/design-system";
+import { SaveNotAppliedError } from "@/core/supabase/saveNotApplied";
 import { useClasses } from "@/features/classes";
 import {
   useAdminVideo,
@@ -117,9 +118,36 @@ describe("AdminVideoDetailScreen", () => {
     await waitFor(() => expect(updateAsync).toHaveBeenCalledTimes(1));
     expect(updateAsync).toHaveBeenCalledWith({
       id: "v1",
-      patch: { title: "새 제목", publishedAt: "2026-11-04T00:00:00+09:00" },
+      patch: { title: "새 제목", publishedAt: undefined },
     });
     expect(await screen.findByText("저장했어요.")).toBeInTheDocument();
+  });
+
+  it("sends published_at only when the date changed", async () => {
+    render(ui());
+    fireEvent.change(screen.getByLabelText(/공개일/), {
+      target: { value: "2026-11-10" },
+    });
+    await userEvent.click(screen.getByRole("button", { name: "저장" }));
+    await waitFor(() => expect(updateAsync).toHaveBeenCalledTimes(1));
+    expect(updateAsync).toHaveBeenCalledWith({
+      id: "v1",
+      patch: { title: "1단원", publishedAt: "2026-11-10T00:00:00+09:00" },
+    });
+  });
+
+  it("shows the error and stays when the delete is not applied", async () => {
+    deleteAsync.mockRejectedValueOnce(new SaveNotAppliedError());
+    render(ui());
+    await userEvent.click(screen.getByRole("button", { name: "영상 지우기" }));
+    await userEvent.click(
+      await screen.findByRole("button", { name: "지우기" }),
+    );
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "저장하지 못했어요",
+    );
+    expect(push).not.toHaveBeenCalled();
+    expect(screen.queryByText("영상을 지웠어요.")).toBeNull();
   });
 
   it("confirms, deletes once, then goes back to the class list", async () => {
