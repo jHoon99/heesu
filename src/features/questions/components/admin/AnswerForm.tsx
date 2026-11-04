@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Button, Input, useToast } from "@/design-system";
-import { classifyError } from "@/core/supabase/error";
 import { saveErrorMessage } from "@/core/supabase/saveNotApplied";
 import { bodySchema, QUESTION_BODY_MAX } from "../../model/questions";
 import { useAnswerQuestion } from "../../state/useQuestions";
@@ -21,15 +20,17 @@ export function AnswerForm({ questionId }: { questionId: string }) {
       return;
     }
     setError(null);
+    const sentRaw = text;
     try {
       const sent = await answer.submit({ questionId, body: parsed.data });
       if (!sent) return;
-      setText("");
+      // 보내는 동안 더 쓴 내용은 지우지 않아요.
+      setText((cur) => (cur === sentRaw ? "" : cur));
       toast.show({ tone: "success", message: "답변을 보냈어요." });
     } catch (err) {
       toast.show({
         tone: "danger",
-        message: saveErrorMessage(err) || classifyError(err).message,
+        message: saveErrorMessage(err),
       });
     }
   }

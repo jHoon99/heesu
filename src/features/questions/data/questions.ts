@@ -42,6 +42,7 @@ export async function listAdminQuestions(): Promise<AdminQuestion[]> {
   const { data, error } = await supabase
     .from("questions")
     .select(COLUMNS)
+    .order("answered_at", { ascending: false, nullsFirst: true })
     .order("created_at", { ascending: false })
     .order("created_at", { referencedTable: "answers", ascending: true })
     .limit(200);
@@ -135,14 +136,18 @@ export async function askQuestion(input: {
   videoId: string | null;
   sessionId: string | null;
 }): Promise<void> {
+  const row = {
+    body: input.body,
+    video_id: input.videoId,
+    session_id: input.sessionId,
+  } satisfies Pick<
+    TablesInsert<"questions">,
+    "body" | "video_id" | "session_id"
+  >;
   const { data, error } = await supabase
     .from("questions")
-    .insert({
-      body: input.body,
-      video_id: input.videoId,
-      session_id: input.sessionId,
-      // student_id는 트리거가 채워서 생성 타입의 필수 키만 맞춰요.
-    } as TablesInsert<"questions">)
+    // student_id는 트리거가 채워서 생성 타입의 필수 키만 맞춰요.
+    .insert(row as TablesInsert<"questions">)
     .select("id");
   if (error) throw error;
   if (!data || data.length === 0) throw new SaveNotAppliedError();

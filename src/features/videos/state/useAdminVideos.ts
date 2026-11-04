@@ -27,7 +27,7 @@ export function useAdminVideo(id: string) {
 
 export function useRoster(classId: string | null) {
   return useQuery({
-    queryKey: [...videoKeys.all, "roster", classId ?? ""] as const,
+    queryKey: videoKeys.roster(classId ?? ""),
     queryFn: () => listRoster(classId as string),
     enabled: classId !== null,
     refetchOnMount: "always",

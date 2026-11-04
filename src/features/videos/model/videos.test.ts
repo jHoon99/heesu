@@ -4,6 +4,7 @@ import {
   formatDuration,
   isMp4File,
   publishedAtFromDate,
+  VIDEO_MAX_BYTES,
   VIDEO_TITLE_MAX,
   videoFormSchema,
 } from "./videos";
@@ -65,5 +66,11 @@ describe("isMp4File", () => {
     expect(
       isMp4File(new File(["x"], "a.mov", { type: "video/quicktime" })),
     ).toBe(false);
+  });
+});
+
+describe("VIDEO_MAX_BYTES", () => {
+  it("matches the cloud Free per-file cap of 50 MiB", () => {
+    expect(VIDEO_MAX_BYTES).toBe(50 * 1024 * 1024);
   });
 });

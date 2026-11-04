@@ -3,8 +3,11 @@ import { CONTROL_CHAR_MESSAGE, hasControlChars } from "@/core/text";
 
 export const VIDEO_TITLE_MAX = 100;
 
-/** 버킷 `videos`의 file_size_limit(1 GiB)과 같아요. */
-export const VIDEO_MAX_BYTES = 1073741824;
+/**
+ * 클라우드 Free의 파일당 전역 한도(50 MiB)예요. 버킷 `videos`의 file_size_limit은 1 GiB(Pro 목표)지만
+ * 전역 한도가 우선해서, 올리기 전에 먼저 막아요. Pro 전환 때 1 GiB로 되돌려요.
+ */
+export const VIDEO_MAX_BYTES = 50 * 1024 * 1024;
 
 export const MP4_ONLY_MESSAGE =
   "mp4 파일만 올릴 수 있어요. 파일 형식을 확인해 주세요.";

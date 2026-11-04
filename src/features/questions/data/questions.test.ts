@@ -79,6 +79,12 @@ describe("listAdminQuestions", () => {
     });
     expect(out[2]?.answers).toEqual([{ id: "a", body: "x", createdAt: "t2" }]);
     expect(h.calls).toContainEqual(["limit", 200]);
+    const orders = h.calls.filter((c) => c[0] === "order");
+    expect(orders).toEqual([
+      ["order", "answered_at", { ascending: false, nullsFirst: true }],
+      ["order", "created_at", { ascending: false }],
+      ["order", "created_at", { referencedTable: "answers", ascending: true }],
+    ]);
   });
 });
 

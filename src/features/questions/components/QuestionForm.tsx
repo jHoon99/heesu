@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Button, Card, Input, Select, useToast } from "@/design-system";
-import { classifyError } from "@/core/supabase/error";
 import { saveErrorMessage } from "@/core/supabase/saveNotApplied";
 import { useMyVideos } from "@/features/videos";
 import {
@@ -55,7 +54,7 @@ export function QuestionForm({
     } catch (err) {
       toast.show({
         tone: "danger",
-        message: saveErrorMessage(err) || classifyError(err).message,
+        message: saveErrorMessage(err),
       });
     }
   }

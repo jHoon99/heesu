@@ -146,6 +146,15 @@ describe("updateVideo", () => {
     );
   });
 
+  it("omits published_at when no date is given", async () => {
+    const log = mockChain(["update", "eq", "select"], {
+      data: [{ id: "v1" }],
+      error: null,
+    });
+    await updateVideo("v1", { title: "새 제목" });
+    expect(log[0]).toBe('update({"title":"새 제목"})');
+  });
+
   it("throws SaveNotAppliedError on 0 rows", async () => {
     mockChain(["update", "eq", "select"], { data: [], error: null });
     await expect(
