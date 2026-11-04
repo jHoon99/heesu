@@ -44,6 +44,7 @@ describe("parseSiteContent", () => {
         tuitionNotice: "게시",
       },
       pointsGoal: 30,
+      about: { intro: null, items: [] },
     });
   });
 
@@ -121,5 +122,66 @@ describe("parseSiteContent", () => {
     expect(goal(50)).toBe(50);
     for (const bad of ["50", 0, 10001, 2.5, null]) expect(goal(bad)).toBe(30);
     expect(parseSiteContent([]).pointsGoal).toBe(30);
+  });
+
+  it("reads the about intro and https link cards", () => {
+    const { about } = parseSiteContent([
+      {
+        key: "about",
+        value: {
+          intro: "  첫 줄\n둘째 줄 ",
+          items: [
+            { title: " 블로그 ", url: "https://blog.naver.com/heesu/1" },
+            { title: "인스타", url: "https://www.instagram.com/heesu" },
+          ],
+        },
+      },
+    ]);
+    expect(about).toEqual({
+      intro: "첫 줄\n둘째 줄",
+      items: [
+        { title: "블로그", url: "https://blog.naver.com/heesu/1" },
+        { title: "인스타", url: "https://www.instagram.com/heesu" },
+      ],
+    });
+  });
+
+  it("drops non-https and untitled link cards and never throws", () => {
+    const { about } = parseSiteContent([
+      {
+        key: "about",
+        value: {
+          intro: 3,
+          items: [
+            { title: "js", url: "javascript:alert(1)" },
+            { title: "data", url: "data:text/html,x" },
+            { title: "http", url: "http://blog.naver.com" },
+            { title: "깨진 주소", url: "https://" },
+            { title: "", url: "https://a.example" },
+            { title: "숫자 주소", url: 1 },
+            "문자열 칸",
+            null,
+            { title: "좋아요", url: "https://ok.example" },
+          ],
+        },
+      },
+    ]);
+    expect(about).toEqual({
+      intro: null,
+      items: [{ title: "좋아요", url: "https://ok.example" }],
+    });
+    expect(parseSiteContent([{ key: "about", value: "x" }]).about).toEqual(
+      EMPTY_SITE_CONTENT.about,
+    );
+  });
+
+  it("caps link cards at 10", () => {
+    const items = Array.from({ length: 12 }, (_, i) => ({
+      title: `t${i}`,
+      url: `https://a.example/${i}`,
+    }));
+    const { about } = parseSiteContent([{ key: "about", value: { items } }]);
+    expect(about.items).toHaveLength(10);
+    expect(about.items[9]?.title).toBe("t9");
   });
 });

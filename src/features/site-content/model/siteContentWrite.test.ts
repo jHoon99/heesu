@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CONTROL_CHAR_MESSAGE } from "@/core/text";
 import { parseSiteContent } from "./siteContent";
 import {
+  aboutWriteSchema,
   classesWriteSchema,
   contactWriteSchema,
   legalWriteSchema,
@@ -196,5 +197,77 @@ describe("write schemas", () => {
     expect(
       issue(contactWriteSchema.safeParse({ phone: "", address: "a\nb" })),
     ).toBe(CONTROL_CHAR_MESSAGE);
+  });
+});
+
+describe("about", () => {
+  const link = (title: string, url: string) => ({ title, url });
+
+  it("starts the form with one empty card when nothing is saved", () => {
+    expect(readEditable([]).about).toEqual({
+      intro: "",
+      items: [{ title: "", url: "" }],
+    });
+    expect(
+      readEditable([
+        {
+          key: "about",
+          value: { intro: "안녕", items: [link("블로그", "https://a.b")] },
+        },
+      ]).about,
+    ).toEqual({ intro: "안녕", items: [link("블로그", "https://a.b")] });
+  });
+
+  it("builds the DB shape, keeps line breaks and drops untouched cards", () => {
+    expect(
+      aboutWriteSchema.parse({
+        intro: " 첫 줄\n둘째 줄 ",
+        items: [
+          link(" 블로그 ", " https://blog.naver.com/heesu "),
+          link("", "  "),
+        ],
+      }),
+    ).toEqual({
+      intro: "첫 줄\n둘째 줄",
+      items: [link("블로그", "https://blog.naver.com/heesu")],
+    });
+    expect(
+      aboutWriteSchema.parse({ intro: "", items: [link("", "")] }),
+    ).toEqual({ intro: null, items: [] });
+  });
+
+  it("says how to fix each field", () => {
+    const parse = (items: { title: string; url: string }[], intro = "") =>
+      issue(aboutWriteSchema.safeParse({ intro, items }));
+    expect(parse([link("", "https://a.b")])).toBe("제목을 입력해 주세요.");
+    expect(parse([link("가".repeat(41), "https://a.b")])).toBe(
+      "40자까지 쓸 수 있어요.",
+    );
+    expect(parse([], "가".repeat(301))).toBe("300자까지 쓸 수 있어요.");
+    const URL_MESSAGE = "https://로 시작하는 주소를 붙여 넣어 주세요.";
+    for (const url of [
+      "",
+      "javascript:alert(1)",
+      "http://blog.naver.com",
+      "data:text/html,x",
+      "https://a.b/x y",
+      "https://a.b/<script>",
+      "https://",
+    ])
+      expect(parse([link("t", url)])).toBe(URL_MESSAGE);
+    expect(
+      parse(Array.from({ length: 11 }, (_, i) => link(`t${i}`, "https://a.b"))),
+    ).toBe("링크는 10개까지 넣을 수 있어요.");
+    expect(parse([link("a\u0007", "https://a.b")])).toBe(CONTROL_CHAR_MESSAGE);
+    expect(parse([], "a\u0007")).toBe(CONTROL_CHAR_MESSAGE);
+  });
+
+  it("puts a card's error on that card's field", () => {
+    const r = aboutWriteSchema.safeParse({
+      intro: "",
+      items: [link("", ""), link("t", "javascript:x")],
+    });
+    expect(r.success).toBe(false);
+    expect(r.error?.issues[0]?.path).toEqual(["items", 1, "url"]);
   });
 });

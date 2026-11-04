@@ -33,7 +33,7 @@ export function AdminLandingScreen() {
           <h1 className="font-serif text-h2 text-text">홈페이지 관리</h1>
           <p className="mt-1 text-body-sm text-text-muted">
             학부모가 보는 홈페이지 그대로예요. 점선 상자를 누르면 그 부분을 고칠
-            수 있고, 저장하면 바로 반영돼요. 소개 글처럼 상자가 없는 부분은
+            수 있고, 저장하면 바로 반영돼요. 원장 소개처럼 상자가 없는 부분은
             고정된 글이라 개발 담당에게 요청해 주세요.
           </p>
         </div>
@@ -62,7 +62,9 @@ export function AdminLandingScreen() {
             )}
           </EditableRegion>
           <LeafDivider />
-          <AboutSection content={content} />
+          <EditableRegion label="소개" onEdit={edit("about")}>
+            <AboutSection content={content} />
+          </EditableRegion>
           <DirectorSection />
           <EditableRegion label="수강료" onEdit={edit("tuition")}>
             <TuitionSection content={content} />

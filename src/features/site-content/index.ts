@@ -4,6 +4,8 @@ export {
   parseSiteContent,
 } from "./model/siteContent";
 export type {
+  About,
+  AboutLink,
   ClassInfo,
   Contact,
   Legal,

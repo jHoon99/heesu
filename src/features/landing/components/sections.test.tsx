@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "@/design-system";
 import { EMPTY_SITE_CONTENT, type SiteContent } from "@/features/site-content";
-import { AboutSection } from "./AboutSection";
+import { AboutSection, linkHost } from "./AboutSection";
 import { ConsultSection } from "./ConsultSection";
 import { CtaBar } from "./CtaBar";
 import { NoticeBand } from "./NoticeBand";
@@ -30,6 +30,7 @@ const FILLED: SiteContent = {
     subjects: "외국어(영어)",
     tuitionNotice: "교육청 게시",
   },
+  about: { intro: null, items: [] },
 };
 
 function renderAll(content: SiteContent) {
@@ -192,5 +193,64 @@ describe("long unbroken text", () => {
     const footer = within(screen.getByRole("contentinfo"));
     for (const t of ["6", "7", "8", "9", "0"])
       expectWrapped(footer.getByText(LONG + t));
+  });
+});
+
+describe("about section", () => {
+  const about = (a: SiteContent["about"]) => {
+    renderAll({ ...EMPTY_SITE_CONTENT, about: a });
+    return document.getElementById("about") as HTMLElement;
+  };
+
+  it("shows the intro and link placeholders when empty, with no photo box", () => {
+    const section = about({ intro: null, items: [] });
+    expect(
+      within(section).getByText("학원 소개 글 2~3문장"),
+    ).toBeInTheDocument();
+    expect(within(section).getByText("소개 글 링크")).toBeInTheDocument();
+    expect(within(section).queryAllByRole("link")).toHaveLength(0);
+    expect(within(section).queryByRole("img")).toBeNull();
+  });
+
+  it("keeps the intro's line breaks and lists safe link cards in order", () => {
+    const section = about({
+      intro: "첫 줄\n둘째 줄",
+      items: [
+        { title: "개원 이야기", url: "https://blog.naver.com/heesu/1" },
+        { title: "인스타그램", url: "https://www.instagram.com/heesu" },
+      ],
+    });
+    const intro = within(section).getByText(/첫 줄/);
+    expect(intro.textContent).toBe("첫 줄\n둘째 줄");
+    expect(intro).toHaveClass("whitespace-pre-line");
+    expect(within(section).queryByText("소개 글 링크")).toBeNull();
+    const links = within(section).getAllByRole("link");
+    expect(links.map((a) => a.getAttribute("href"))).toEqual([
+      "https://blog.naver.com/heesu/1",
+      "https://www.instagram.com/heesu",
+    ]);
+    for (const a of links) {
+      expect(a).toHaveAttribute("target", "_blank");
+      expect(a).toHaveAttribute("rel", "noopener noreferrer");
+    }
+    expect(
+      within(links[0] as HTMLElement).getByText("blog.naver.com"),
+    ).toBeInTheDocument();
+    expect(
+      within(links[1] as HTMLElement).getByText("instagram.com"),
+    ).toBeInTheDocument();
+    // 링크 카드는 소개 글 뒤, 대상·개원 정보 앞에 와요.
+    const order = Array.from(section.querySelectorAll("p, ul, a, span")).map(
+      (el) => el.textContent ?? "",
+    );
+    const at = (t: string) => order.findIndex((x) => x.startsWith(t));
+    expect(at("첫 줄")).toBeLessThan(at("개원 이야기"));
+    expect(at("개원 이야기")).toBeLessThan(at("대상"));
+  });
+
+  it("strips www. from the host and never throws", () => {
+    expect(linkHost("https://www.instagram.com/x")).toBe("instagram.com");
+    expect(linkHost("https://blog.naver.com/x")).toBe("blog.naver.com");
+    expect(linkHost("not a url")).toBe("");
   });
 });

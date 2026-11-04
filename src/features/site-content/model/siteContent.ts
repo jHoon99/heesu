@@ -19,6 +19,8 @@ export type Legal = {
   subjects: string | null;
   tuitionNotice: string | null;
 };
+export type AboutLink = { title: string; url: string };
+export type About = { intro: string | null; items: AboutLink[] };
 export type SiteContent = {
   notice: Notice | null;
   classes: ClassInfo[];
@@ -26,9 +28,11 @@ export type SiteContent = {
   contact: Contact;
   legal: Legal;
   pointsGoal: number;
+  about: About;
 };
 
 export const DEFAULT_POINTS_GOAL = 30;
+export const MAX_ABOUT_LINKS = 10;
 
 export const EMPTY_SITE_CONTENT: SiteContent = {
   notice: null,
@@ -42,6 +46,7 @@ export const EMPTY_SITE_CONTENT: SiteContent = {
     tuitionNotice: null,
   },
   pointsGoal: DEFAULT_POINTS_GOAL,
+  about: { intro: null, items: [] },
 };
 
 // Trimmed non-empty string, otherwise null. Never throws.
@@ -99,6 +104,37 @@ function parseClasses(value: unknown): ClassInfo[] {
   });
 }
 
+/** https 주소만 링크로 써요. javascript:·data:·http 같은 주소와 제목 없는 칸은 버려요. */
+function safeHttpsUrl(v: unknown): string | null {
+  if (typeof v !== "string") return null;
+  try {
+    return new URL(v.trim()).protocol === "https:" ? v.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+function parseAbout(value: unknown): About {
+  const o =
+    typeof value === "object" && value !== null && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+  const intro = text.safeParse(o.intro);
+  const items = Array.isArray(o.items)
+    ? o.items.flatMap((item): AboutLink[] => {
+        if (typeof item !== "object" || item === null) return [];
+        const { title, url } = item as Record<string, unknown>;
+        const t = typeof title === "string" ? title.trim() : "";
+        const u = safeHttpsUrl(url);
+        return t !== "" && u !== null ? [{ title: t, url: u }] : [];
+      })
+    : [];
+  return {
+    intro: intro.success ? intro.data : null,
+    items: items.slice(0, MAX_ABOUT_LINKS),
+  };
+}
+
 export function parseSiteContent(
   rows: { key: string; value: unknown }[],
 ): SiteContent {
@@ -128,6 +164,9 @@ export function parseSiteContent(
         result.legal = p.success ? p.data : EMPTY_SITE_CONTENT.legal;
         break;
       }
+      case "about":
+        result.about = parseAbout(value);
+        break;
       case "points_goal":
         result.pointsGoal =
           typeof value === "number" &&

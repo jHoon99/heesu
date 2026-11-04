@@ -49,6 +49,7 @@ describe("AdminLandingScreen", () => {
     ).toBeInTheDocument();
     for (const label of [
       "공지 고치기",
+      "소개 고치기",
       "수강료 고치기",
       "주소·전화번호 고치기",
       "학원 정보 고치기",
@@ -115,5 +116,28 @@ describe("AdminLandingScreen", () => {
       await within(dialog).findByLabelText("학원 명칭"),
     ).toBeInTheDocument();
     expect(within(dialog).getByLabelText("전화번호")).toBeInTheDocument();
+  });
+
+  it("opens the about editor in a modal and saves the intro and links", async () => {
+    const user = setup();
+    await user.click(screen.getByRole("button", { name: "소개 고치기" }));
+    const dialog = await screen.findByRole("dialog", { name: "소개 고치기" });
+    await user.type(
+      await within(dialog).findByLabelText("소개 글"),
+      "전주 영어학원이에요.",
+    );
+    await user.type(within(dialog).getByLabelText("제목"), "블로그");
+    await user.type(
+      within(dialog).getByLabelText("링크 주소"),
+      "https://blog.naver.com/heesu",
+    );
+    await user.click(within(dialog).getByRole("button", { name: "소개 저장" }));
+    await waitFor(() =>
+      expect(save).toHaveBeenCalledWith("about", {
+        intro: "전주 영어학원이에요.",
+        items: [{ title: "블로그", url: "https://blog.naver.com/heesu" }],
+      }),
+    );
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   });
 });
