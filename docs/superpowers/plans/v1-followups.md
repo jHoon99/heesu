@@ -64,8 +64,9 @@
 - [x] The student homework screen shows the `submit_homework` error text (the three P0001 messages) as is (Task 5).
 
 ## videos-questions
-- Replace the `/s/videos`·`/s/questions` placeholders (ComingSoonTabScreen) and the home '새 영상' card with real screens. Keep sw.js from intercepting cross-origin (Storage signed URL) and Range requests. (verified in Task SW + Task 7: cross-origin signed URL)
-- Replace the unanswered-question count `UNANSWERED_QUESTIONS_PLACEHOLDER` (`src/features/today/model/today.ts`) with the real hook.
+- [x] Replace the `/s/videos`·`/s/questions` placeholders (ComingSoonTabScreen) and the home '새 영상' card with real screens. Keep sw.js from intercepting cross-origin (Storage signed URL) and Range requests. (verified in Task SW + Task 7: cross-origin signed URL; Task 7·9 screens, Task 10 browser E2E)
+- [x] Replace the unanswered-question count `UNANSWERED_QUESTIONS_PLACEHOLDER` (`src/features/today/model/today.ts`) with the real hook. (Task 8)
+- 웹푸시(Task 11, 계획 5) 미구현.
 
 ## student-app (from class-ops final review)
 - [x] `my_rank()` must be a security definer RPC returning only {rank,total}; active students only; ties 1,2,2,4; add to 00_meta allowlist (Task 1).
@@ -94,3 +95,15 @@
 ## demo-deploy-qa (from student-app final review)
 - iOS standalone storage is separate from Safari: install guide should say "추가한 뒤 앱에서 다시 로그인해요"; celebration may fire once per context.
 - Confirm `/s` is not redirected on Cloudflare Pages (precache of redirected response).
+
+## demo-deploy-qa (from videos-questions)
+- 클라우드 Free는 파일당 50MB가 전역 한도다(버킷 1GiB 설정보다 우선) — 시연 영상은 짧은 클립, Pro 전환 때 전역 한도를 1GiB로.
+- 대시보드 Realtime "Allow public access" 끈 상태에서 private 채널 참여·질문 실시간 갱신을 배포 미리보기에서 확인.
+- db push 뒤 storage.buckets videos(public false, video/mp4) 확인.
+- QA: 아이폰 Safari에서 영상 재생(playsinline)·이어 보기·홈 화면 앱에서 재생.
+- 업로드 성공 뒤 행 저장 전에 탭이 닫히면 Storage에 고아 영상 파일이 남는다 — 원장용 정리(행 없는 videos 객체 삭제) 추가.
+- 서비스워커는 production 빌드에서만 등록된다 — 배포 미리보기에서 /s 오프라인 셸, ?id= 영상 화면 캐시 1개, Storage 영상 재생(Range 통과) 확인.
+
+## guardian-records (from videos-questions)
+- 퇴원 처리 때 Storage 파일 정리(S12)는 영상이 반 단위라 해당 없음 — 학생별 파일이 생기면 다시 본다.
+- S9: 등록 서류에 수업 녹화·공개 동의 항목 추가(정보 동의 화면·문서).
