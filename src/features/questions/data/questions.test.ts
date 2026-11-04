@@ -7,7 +7,7 @@ const h = vi.hoisted(() => ({
 }));
 vi.mock("@/core/supabase/client", () => {
   const chain: Record<string, unknown> = {};
-  for (const m of ["select", "order", "limit", "is", "insert"]) {
+  for (const m of ["select", "order", "limit", "is", "insert", "lte"]) {
     chain[m] = (...a: unknown[]) => {
       h.calls.push([m, ...a]);
       return chain;
@@ -19,6 +19,9 @@ vi.mock("@/core/supabase/client", () => {
 });
 
 import {
+  askQuestion,
+  listMyQuestions,
+  listRecentSessions,
   answerQuestion,
   countUnansweredQuestions,
   listAdminQuestions,
@@ -101,5 +104,67 @@ describe("answerQuestion", () => {
       "insert",
       { question_id: "q1", body: "b" },
     ]);
+  });
+});
+
+describe("askQuestion", () => {
+  it("inserts only body and links, never student_id", async () => {
+    h.result = { error: null, data: [{ id: "q" }] };
+    await askQuestion({ body: "질문", videoId: "v1", sessionId: null });
+    const ins = h.calls.find((c) => c[0] === "insert");
+    expect(ins?.[1]).toEqual({
+      body: "질문",
+      video_id: "v1",
+      session_id: null,
+    });
+    expect(Object.keys(ins?.[1] as object)).not.toContain("student_id");
+  });
+  it("throws SaveNotAppliedError on 0 rows", async () => {
+    h.result = { error: null, data: [] };
+    await expect(
+      askQuestion({ body: "질문", videoId: null, sessionId: null }),
+    ).rejects.toBeInstanceOf(SaveNotAppliedError);
+  });
+});
+
+describe("listMyQuestions", () => {
+  it("maps rows without a student name", async () => {
+    h.result = {
+      error: null,
+      data: [
+        {
+          id: "q1",
+          body: "b",
+          created_at: "t",
+          answered_at: null,
+          video_id: "v1",
+          session_id: null,
+          videos: { title: "1단원" },
+          sessions: null,
+          answers: [{ id: "a", body: "x", created_at: "t2" }],
+        },
+      ],
+    };
+    const r = await listMyQuestions();
+    expect(r[0]?.link).toEqual({
+      kind: "video",
+      videoId: "v1",
+      title: "1단원",
+    });
+    expect(r[0]?.answers).toHaveLength(1);
+    expect(r[0]).not.toHaveProperty("studentName");
+  });
+});
+
+describe("listRecentSessions", () => {
+  it("maps sessions up to today", async () => {
+    h.result = {
+      error: null,
+      data: [{ id: "s1", date: "2026-11-04", classes: { name: "A반" } }],
+    };
+    await expect(listRecentSessions("2026-11-04")).resolves.toEqual([
+      { id: "s1", date: "2026-11-04", className: "A반" },
+    ]);
+    expect(h.calls).toContainEqual(["lte", "date", "2026-11-04"]);
   });
 });
