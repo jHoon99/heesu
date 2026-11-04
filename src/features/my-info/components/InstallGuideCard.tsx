@@ -28,6 +28,10 @@ export function InstallGuideCard() {
           추가&rsquo; 또는 &lsquo;앱 설치&rsquo;를 골라요.
         </p>
         <p className="text-body-sm text-text-muted">
+          아이폰은 Safari와 홈 화면 앱의 로그인이 따로예요. 추가한 뒤에는 홈
+          화면 앱에서 다시 로그인해요.
+        </p>
+        <p className="text-body-sm text-text-muted">
           카카오톡에서 열었다면 먼저 Safari나 Chrome으로 열어 주세요.
         </p>
       </div>

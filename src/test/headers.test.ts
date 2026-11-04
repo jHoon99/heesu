@@ -41,6 +41,14 @@ describe("public/_headers /*", () => {
     expect(csp).toContain(directive);
   });
 
+  it("worker-src and manifest-src are exactly 'self'", () => {
+    const directives = csp.split(";").map((d) => d.trim());
+    const workerSrc = directives.filter((d) => d.startsWith("worker-src"));
+    const manifestSrc = directives.filter((d) => d.startsWith("manifest-src"));
+    expect(workerSrc).toEqual(["worker-src 'self'"]);
+    expect(manifestSrc).toEqual(["manifest-src 'self'"]);
+  });
+
   it("frame-src allows only Turnstile (no map iframe)", () => {
     const frameSrc = csp
       .split(";")
@@ -79,6 +87,11 @@ describe("public/_headers /g", () => {
   });
 
   it("is noindex", () => {
+    expect(g).toContain("X-Robots-Tag: noindex");
+  });
+
+  it("keeps no-referrer and noindex", () => {
+    expect(g).toContain("Referrer-Policy: no-referrer");
     expect(g).toContain("X-Robots-Tag: noindex");
   });
 });

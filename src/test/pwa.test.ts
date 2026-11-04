@@ -1,5 +1,5 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readdirSync, readFileSync } from "node:fs";
+import { join, relative, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 import { metadata, viewport } from "@/app/s/layout";
 import { PWA_BACKGROUND_COLOR, PWA_THEME_COLOR } from "@/core/pwa";
@@ -54,13 +54,22 @@ describe("/s layout pwa metadata", () => {
     expect(viewport.viewportFit).toBe("cover");
   });
 
-  it("only the student layout and shell wire the manifest and service worker", () => {
-    for (const p of [
-      "src/app/layout.tsx",
-      "src/app/(landing)/page.tsx",
-      "src/app/admin/layout.tsx",
-    ]) {
-      expect(read(p).toString()).not.toMatch(/manifest|registerServiceWorker/);
+  it("no app file outside src/app/s wires the manifest or service worker", () => {
+    const tsFiles = (dir: string): string[] =>
+      readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+        const p = join(dir, e.name);
+        if (e.isDirectory()) return tsFiles(p);
+        return /\.tsx?$/.test(e.name) ? [p] : [];
+      });
+    const files = tsFiles(join(process.cwd(), "src/app")).map((p) =>
+      relative(process.cwd(), p).split(sep).join("/"),
+    );
+    expect(files.length).toBeGreaterThan(5);
+    const outside = files.filter((p) => !p.startsWith("src/app/s/"));
+    for (const p of outside) {
+      expect(read(p).toString(), p).not.toMatch(
+        /manifest\.webmanifest|registerServiceWorker/,
+      );
     }
   });
 });
