@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Badge, buttonVariants, Card, Tabs } from "@/design-system";
@@ -97,6 +98,13 @@ function Hub({ student }: { student: StudentSummary }) {
   const clinic = useStudentClinic(student.id);
   const open = clinic.data ? openCount(clinic.data) : 0;
   const heading = hubHeading(student.name, student.school, student.grade);
+  const tabRow = useRef<HTMLDivElement>(null);
+  // 폰에서는 탭 줄이 옆으로 밀려요. 고른 탭이 화면 밖이면 보이게 옮겨요.
+  useEffect(() => {
+    tabRow.current
+      ?.querySelector('[aria-selected="true"]')
+      ?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+  }, [tab]);
   const go = (next: string) =>
     router.replace(
       `${DETAIL_PATH}?id=${encodeURIComponent(student.id)}&tab=${encodeURIComponent(next)}`,
@@ -132,7 +140,7 @@ function Hub({ student }: { student: StudentSummary }) {
           </button>
         </p>
       )}
-      <div className="min-w-0 overflow-x-auto">
+      <div ref={tabRow} className="min-w-0 overflow-x-auto">
         <Tabs
           ariaLabel="학생 기록"
           value={tab}
