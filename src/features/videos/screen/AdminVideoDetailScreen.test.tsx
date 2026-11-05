@@ -29,7 +29,7 @@ const roster = vi.mocked(useRoster);
 const update = vi.mocked(useUpdateVideo);
 const del = vi.mocked(useDeleteVideo);
 const classes = vi.mocked(useClasses);
-const updateAsync = vi.fn(async () => {});
+const updateAsync = vi.fn<(vars: unknown) => Promise<void>>(async () => {});
 const deleteAsync = vi.fn(async () => ({ fileRemoved: true }));
 
 const fetched = (data: unknown) =>
@@ -48,6 +48,7 @@ const current = {
   storagePath: "c1/x.mp4",
   durationSeconds: 600,
   publishedAt: "2026-11-04T00:00:00+09:00",
+  school: null,
   views: [
     { studentId: "s2", watchedSeconds: 600, updatedAt: "2026-11-04T01:30:00Z" },
   ],
@@ -125,7 +126,7 @@ describe("AdminVideoDetailScreen", () => {
     await waitFor(() => expect(updateAsync).toHaveBeenCalledTimes(1));
     expect(updateAsync).toHaveBeenCalledWith({
       id: "v1",
-      patch: { title: "새 제목", publishedAt: undefined },
+      patch: { title: "새 제목", publishedAt: undefined, school: null },
     });
     expect(await screen.findByText("저장했어요.")).toBeInTheDocument();
   });
@@ -139,7 +140,21 @@ describe("AdminVideoDetailScreen", () => {
     await waitFor(() => expect(updateAsync).toHaveBeenCalledTimes(1));
     expect(updateAsync).toHaveBeenCalledWith({
       id: "v1",
-      patch: { title: "1단원", publishedAt: "2026-11-10T00:00:00+09:00" },
+      patch: {
+        title: "1단원",
+        publishedAt: "2026-11-10T00:00:00+09:00",
+        school: null,
+      },
+    });
+  });
+
+  it("saves a trimmed school tag for the 내신 강의실", async () => {
+    render(ui());
+    await userEvent.type(screen.getByLabelText(/내신 학교/), " 양현고 ");
+    await userEvent.click(screen.getByRole("button", { name: "저장" }));
+    await waitFor(() => expect(updateAsync).toHaveBeenCalledTimes(1));
+    expect(updateAsync.mock.calls[0]?.[0]).toMatchObject({
+      patch: { school: "양현고" },
     });
   });
 

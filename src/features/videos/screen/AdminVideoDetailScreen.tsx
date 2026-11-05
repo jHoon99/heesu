@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import type { z } from "zod";
 import {
   Button,
   buttonVariants,
@@ -27,6 +28,7 @@ import {
   publishedAtFromDate,
   VIDEO_TITLE_MAX,
   videoFormSchema,
+  schoolTagSchema,
 } from "../model/videos";
 import { buildViewRows, completeCount } from "../model/views";
 import type { AdminVideo } from "../data/videos";
@@ -37,8 +39,11 @@ import {
   useUpdateVideo,
 } from "../state/useAdminVideos";
 
-const editSchema = videoFormSchema.pick({ title: true, publishedDate: true });
-type EditValues = { title: string; publishedDate: string };
+const editSchema = videoFormSchema
+  .pick({ title: true, publishedDate: true })
+  .extend({ school: schoolTagSchema });
+type EditInput = z.input<typeof editSchema>;
+type EditValues = z.output<typeof editSchema>;
 
 function Loading() {
   return (
@@ -72,12 +77,13 @@ function EditCard({ video }: { video: AdminVideo }) {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<EditValues>({
+  } = useForm<EditInput, unknown, EditValues>({
     resolver: zodResolver(editSchema),
     mode: "onSubmit",
     defaultValues: {
       title: video.title,
       publishedDate: toLocalDateKey(new Date(video.publishedAt)),
+      school: video.school ?? "",
     },
   });
 
@@ -94,6 +100,7 @@ function EditCard({ video }: { video: AdminVideo }) {
             values.publishedDate === toLocalDateKey(new Date(video.publishedAt))
               ? undefined
               : publishedAtFromDate(values.publishedDate),
+          school: values.school,
         },
       });
       toast.show({ tone: "success", message: "저장했어요." });
@@ -133,6 +140,16 @@ function EditCard({ video }: { video: AdminVideo }) {
           hint="이 날부터 학생에게 보여요."
           error={errors.publishedDate?.message}
           {...register("publishedDate")}
+        />
+        <Input
+          size="md"
+          label="내신 학교(선택)"
+          maxLength={40}
+          autoComplete="off"
+          placeholder="예: 양현고"
+          hint="적으면 이 학교 학생은 반이 달라도 '내신 강의실'에서 볼 수 있어요. 학생 정보의 학교 이름과 똑같이 적어 주세요."
+          error={errors.school?.message}
+          {...register("school")}
         />
         <div>
           <Button type="submit" size="md" disabled={update.isPending}>

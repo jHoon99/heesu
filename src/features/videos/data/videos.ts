@@ -9,6 +9,7 @@ export type AdminVideo = {
   storagePath: string;
   durationSeconds: number;
   publishedAt: string;
+  school: string | null;
   views: { studentId: string; watchedSeconds: number; updatedAt: string }[];
 };
 
@@ -35,7 +36,7 @@ export async function createVideo(input: {
 }
 
 const ADMIN_COLUMNS =
-  "id, class_id, title, storage_path, duration_seconds, published_at, video_views(student_id, watched_seconds, updated_at)";
+  "id, class_id, title, storage_path, duration_seconds, published_at, school, video_views(student_id, watched_seconds, updated_at)";
 
 type AdminRow = {
   id: string;
@@ -44,6 +45,7 @@ type AdminRow = {
   storage_path: string;
   duration_seconds: number;
   published_at: string;
+  school: string | null;
   video_views: {
     student_id: string;
     watched_seconds: number;
@@ -59,6 +61,7 @@ function toAdminVideo(r: AdminRow): AdminVideo {
     storagePath: r.storage_path,
     durationSeconds: r.duration_seconds,
     publishedAt: r.published_at,
+    school: r.school,
     views: r.video_views.map((v) => ({
       studentId: v.student_id,
       watchedSeconds: v.watched_seconds,
@@ -107,15 +110,17 @@ export async function listRoster(
 
 export async function updateVideo(
   id: string,
-  patch: { title: string; publishedAt?: string },
+  patch: { title: string; publishedAt?: string; school?: string | null },
 ): Promise<void> {
   const { data, error } = await supabase
     .from("videos")
-    .update(
-      patch.publishedAt === undefined
-        ? { title: patch.title }
-        : { title: patch.title, published_at: patch.publishedAt },
-    )
+    .update({
+      title: patch.title,
+      ...(patch.publishedAt === undefined
+        ? {}
+        : { published_at: patch.publishedAt }),
+      ...(patch.school === undefined ? {} : { school: patch.school }),
+    })
     .eq("id", id)
     .select("id");
   if (error) throw error;
@@ -153,12 +158,14 @@ export type MyVideo = {
   storagePath: string;
   durationSeconds: number;
   publishedAt: string;
+  /** 내신 강의실 꼬리표(학교). 없으면 반 수업 영상. */
+  school: string | null;
   watchedSeconds: number;
   positionSeconds: number;
 };
 
 const MY_COLUMNS =
-  "id, class_id, title, storage_path, duration_seconds, published_at, classes(name), video_views(watched_seconds, position_seconds)";
+  "id, class_id, title, storage_path, duration_seconds, published_at, school, classes(name), video_views(watched_seconds, position_seconds)";
 
 type MyRow = {
   id: string;
@@ -167,6 +174,7 @@ type MyRow = {
   storage_path: string;
   duration_seconds: number;
   published_at: string;
+  school: string | null;
   classes: { name: string } | null;
   video_views: { watched_seconds: number; position_seconds: number }[];
 };
@@ -181,6 +189,7 @@ function toMyVideo(r: MyRow): MyVideo {
     storagePath: r.storage_path,
     durationSeconds: r.duration_seconds,
     publishedAt: r.published_at,
+    school: r.school,
     watchedSeconds: view?.watched_seconds ?? 0,
     positionSeconds: view?.position_seconds ?? 0,
   };

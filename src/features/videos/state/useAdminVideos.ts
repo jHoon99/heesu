@@ -39,7 +39,7 @@ export function useUpdateVideo() {
   return useMutation({
     mutationFn: (vars: {
       id: string;
-      patch: { title: string; publishedAt?: string };
+      patch: { title: string; publishedAt?: string; school?: string | null };
     }) => updateVideo(vars.id, vars.patch),
     onSuccess: () => client.invalidateQueries({ queryKey: videoKeys.all }),
   });

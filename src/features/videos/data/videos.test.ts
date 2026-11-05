@@ -23,6 +23,7 @@ const input = {
   storagePath: "c1/x.mp4",
   durationSeconds: 13,
   publishedAt: "2026-11-09T00:00:00+09:00",
+  school: null,
 };
 
 function mockInsert(result: unknown) {
@@ -140,9 +141,10 @@ describe("updateVideo", () => {
     await updateVideo("v1", {
       title: "새 제목",
       publishedAt: "2026-11-09T00:00:00+09:00",
+      school: null,
     });
     expect(log[0]).toBe(
-      'update({"title":"새 제목","published_at":"2026-11-09T00:00:00+09:00"})',
+      'update({"title":"새 제목","published_at":"2026-11-09T00:00:00+09:00","school":null})',
     );
   });
 

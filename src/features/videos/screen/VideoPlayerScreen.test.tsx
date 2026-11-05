@@ -25,6 +25,7 @@ const video = {
   storagePath: "c1/x.mp4",
   durationSeconds: 600,
   publishedAt: "2026-11-04T00:00:00+09:00",
+  school: null,
   watchedSeconds: 60,
   positionSeconds: 60,
 };

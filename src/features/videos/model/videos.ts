@@ -53,3 +53,13 @@ export type VideoFormValues = z.infer<typeof videoFormSchema>;
 export function isMp4File(file: File): boolean {
   return file.type === "video/mp4" || /\.mp4$/i.test(file.name);
 }
+
+const SCHOOL_TAG_MESSAGE = "학교 이름은 40자까지 쓸 수 있어요.";
+
+/** 내신 강의실 꼬리표: 빈칸이면 null(반 수업 영상). 학생 화면의 학교와 같게 적어 주세요. */
+export const schoolTagSchema = z
+  .string()
+  .trim()
+  .refine((v) => [...v].length <= 40, SCHOOL_TAG_MESSAGE)
+  .refine((v) => !hasControlChars(v), CONTROL_CHAR_MESSAGE)
+  .transform((v) => (v === "" ? null : v));

@@ -45,5 +45,6 @@ export function advanceFurthest(
 
 export function videoSubtitle(v: MyVideo): string {
   const key = toLocalDateKey(new Date(v.publishedAt));
-  return `${v.className} · ${formatShortDate(key)}(${dayLabelOf(key)})`;
+  const where = v.school ? `${v.school} 내신` : v.className;
+  return `${where} · ${formatShortDate(key)}(${dayLabelOf(key)})`;
 }

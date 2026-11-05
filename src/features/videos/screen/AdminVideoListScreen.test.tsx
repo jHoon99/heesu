@@ -35,6 +35,7 @@ const video = (over: Record<string, unknown>) => ({
   storagePath: "c1/x.mp4",
   durationSeconds: 600,
   publishedAt: "2026-11-04T00:00:00+09:00",
+  school: null,
   views: [],
   ...over,
 });
@@ -76,6 +77,7 @@ describe("AdminVideoListScreen", () => {
           id: "v2",
           title: "2단원",
           publishedAt: "2999-01-01T00:00:00+09:00",
+          school: null,
         }),
       ]) as unknown as ReturnType<typeof useAdminVideos>,
     );
