@@ -1,4 +1,4 @@
-import { Card, StatusChip } from "@/design-system";
+import { Badge, Card, StatusChip } from "@/design-system";
 import { dayLabelOf, formatShortDate } from "@/features/sessions";
 import type { GuardianView } from "../model/guardian";
 
@@ -80,6 +80,63 @@ export function GuardianRecordView({ view }: { view: GuardianView }) {
                   <StatusChip status={r.attendance} ariaLabel="출결" />
                   <StatusChip status={r.homework} ariaLabel="숙제" />
                 </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      <Card title="최근 4주 테스트">
+        {view.tests.length === 0 ? (
+          <p className="text-body text-text-muted">
+            최근 4주 동안 테스트 기록이 없어요.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {view.tests.map((t, i) => (
+              <li
+                key={`${t.date}-${i}`}
+                className="flex min-w-0 flex-wrap items-center justify-between gap-2"
+              >
+                <span className={`${text} text-body text-text`}>
+                  {day(t.date)} · {t.kind === "word" ? "단어" : "문법"} ·{" "}
+                  {t.title}
+                </span>
+                <span className="flex shrink-0 items-center gap-2">
+                  <span className="text-body text-text tabular-nums">
+                    {`${t.score}/${t.maxScore}`}
+                  </span>
+                  {t.passScore !== null && t.score < t.passScore ? (
+                    <Badge tone="warning">재시험</Badge>
+                  ) : null}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      <Card title="클리닉(재시험·보완)">
+        {view.clinic.length === 0 ? (
+          <p className="text-body text-text-muted">
+            지금 해야 할 재시험·보완이 없어요.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {view.clinic.map((c, i) => (
+              <li
+                key={`${c.createdOn}-${i}`}
+                className="flex min-w-0 flex-wrap items-center justify-between gap-2"
+              >
+                <span className={`${text} text-body text-text`}>
+                  {c.kind === "word_retest" ? "단어 재시험" : "개념 보완"} ·{" "}
+                  {day(c.createdOn)}
+                </span>
+                <Badge tone={c.status === "open" ? "warning" : "brand"}>
+                  {c.status === "open"
+                    ? "하는 중"
+                    : `${c.doneOn ? day(c.doneOn) : ""} 끝냄`.trim()}
+                </Badge>
               </li>
             ))}
           </ul>

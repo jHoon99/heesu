@@ -76,6 +76,45 @@ describe("parseGuardianView", () => {
       homeworkDue: null,
     });
   });
+  it("maps tests and clinic, and defaults them to empty", () => {
+    expect(parseGuardianView(raw).tests).toEqual([]);
+    expect(parseGuardianView(raw).clinic).toEqual([]);
+    const v = parseGuardianView({
+      ...raw,
+      tests: [
+        {
+          date: "2026-11-03",
+          kind: "word",
+          title: "Day 1",
+          score: 12,
+          max_score: 20,
+          pass_score: null,
+        },
+      ],
+      clinic: [
+        {
+          kind: "word_retest",
+          status: "done",
+          created_on: "2026-11-01",
+          done_on: "2026-11-02",
+        },
+      ],
+    });
+    expect(v.tests[0]).toEqual({
+      date: "2026-11-03",
+      kind: "word",
+      title: "Day 1",
+      score: 12,
+      maxScore: 20,
+      passScore: null,
+    });
+    expect(v.clinic[0]).toEqual({
+      kind: "word_retest",
+      status: "done",
+      createdOn: "2026-11-01",
+      doneOn: "2026-11-02",
+    });
+  });
   it("throws on a different shape", () => {
     expect(() =>
       parseGuardianView({

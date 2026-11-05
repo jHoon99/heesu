@@ -29,6 +29,8 @@ const view = (over: Partial<GuardianView> = {}): GuardianView => ({
     },
   ],
   week: [],
+  tests: [],
+  clinic: [],
   ...over,
 });
 
@@ -50,6 +52,54 @@ beforeEach(() => {
 });
 
 describe("GuardianScreen", () => {
+  it("shows tests with a retest mark and clinic status", async () => {
+    get.mockResolvedValue(
+      view({
+        tests: [
+          {
+            date: "2026-11-03",
+            kind: "word",
+            title: "Day 12",
+            score: 12,
+            maxScore: 20,
+            passScore: 16,
+          },
+        ],
+        clinic: [
+          {
+            kind: "word_retest",
+            status: "open",
+            createdOn: "2026-11-03",
+            doneOn: null,
+          },
+          {
+            kind: "concept_review",
+            status: "done",
+            createdOn: "2026-11-01",
+            doneOn: "2026-11-02",
+          },
+        ],
+      }),
+    );
+    setup();
+    expect(await screen.findByText(/단어 · Day 12/)).toBeInTheDocument();
+    expect(screen.getByText("12/20")).toBeInTheDocument();
+    expect(screen.getByText("재시험")).toBeInTheDocument();
+    expect(screen.getByText("하는 중")).toBeInTheDocument();
+    expect(screen.getByText("11/2(월) 끝냄")).toBeInTheDocument();
+  });
+
+  it("shows empty tests and clinic", async () => {
+    get.mockResolvedValue(view());
+    setup();
+    expect(
+      await screen.findByText("최근 4주 동안 테스트 기록이 없어요."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("지금 해야 할 재시험·보완이 없어요."),
+    ).toBeInTheDocument();
+  });
+
   it("shows the uniform error without a token", () => {
     useToken.mockReturnValue({ token: null, ready: true, forget });
     setup();
