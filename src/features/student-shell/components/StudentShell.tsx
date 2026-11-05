@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import { registerServiceWorker } from "@/core/pwa";
 import { StudentTabBar } from "@/design-system";
+import { InstallBanner } from "@/features/install-app";
 import { STUDENT_TABS, activeTabFor } from "../model/tabs";
 
 export function StudentShell({ children }: { children: ReactNode }) {
@@ -17,6 +18,7 @@ export function StudentShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh bg-bg-page">
       <main className="mx-auto max-w-[480px] px-4 pt-5 pb-[calc(5.5rem+env(safe-area-inset-bottom))]">
+        <InstallBanner />
         {children}
       </main>
       <StudentTabBar

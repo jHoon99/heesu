@@ -4,7 +4,10 @@ import { registerServiceWorker } from "@/core/pwa";
 import { StudentShell } from "./StudentShell";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/s/homework" }));
-vi.mock("@/core/pwa", () => ({ registerServiceWorker: vi.fn() }));
+vi.mock("@/core/pwa", async (orig) => ({
+  ...(await orig<typeof import("@/core/pwa")>()),
+  registerServiceWorker: vi.fn(),
+}));
 
 describe("StudentShell", () => {
   beforeEach(() => {

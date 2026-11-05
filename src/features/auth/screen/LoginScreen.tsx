@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/design-system";
+import { InstallAppButton } from "@/features/install-app";
 import { CredentialsForm } from "../components/CredentialsForm";
 import { TotpEnroll } from "../components/TotpEnroll";
 import { TotpVerify } from "../components/TotpVerify";
@@ -15,7 +16,7 @@ export function LoginScreen() {
   }
 
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-bg-page px-4 py-10">
+    <main className="flex min-h-dvh flex-col items-center justify-center bg-bg-page px-4 py-10">
       <Card tone="raised" size="lg" className="w-full max-w-[400px]">
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element -- 정적 내보내기 */}
@@ -48,6 +49,12 @@ export function LoginScreen() {
           />
         )}
       </Card>
+      <div className="mt-4 flex w-full max-w-[400px] flex-col items-center gap-1 text-center">
+        <p className="text-body-sm text-text-muted">
+          학생은 로그인 전에 홈 화면에 앱을 추가해 두면 편해요.
+        </p>
+        <InstallAppButton variant="ghost" />
+      </div>
     </main>
   );
 }
