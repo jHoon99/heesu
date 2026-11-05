@@ -32,9 +32,15 @@ describe("getMyProfile", () => {
         grade: "중2",
         login_id: "haneul",
         class_members: [
-          { classes: { id: "c2", name: "중등 심화반" } },
+          {
+            classes: {
+              id: "c2",
+              name: "중등 심화반",
+              schedule: [{ day: 1, start: "17:00", end: "18:30" }],
+            },
+          },
           { classes: null },
-          { classes: { id: "c1", name: "고등 독해반" } },
+          { classes: { id: "c1", name: "고등 독해반", schedule: "bad" } },
         ],
       },
       error: null,
@@ -46,14 +52,20 @@ describe("getMyProfile", () => {
       grade: "중2",
       loginId: "haneul",
       classes: [
-        { id: "c1", name: "고등 독해반" },
-        { id: "c2", name: "중등 심화반" },
+        { id: "c1", name: "고등 독해반", schedule: [] },
+        {
+          id: "c2",
+          name: "중등 심화반",
+          schedule: [{ day: 1, start: "17:00", end: "18:30" }],
+        },
       ],
     });
     expect(from).toHaveBeenCalledWith("students");
     expect(calls).toContainEqual({
       method: "select",
-      args: ["id, name, grade, login_id, class_members(classes(id, name))"],
+      args: [
+        "id, name, grade, login_id, class_members(classes(id, name, schedule))",
+      ],
     });
     expect(calls).toContainEqual({ method: "eq", args: ["user_id", "u1"] });
   });

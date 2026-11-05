@@ -18,11 +18,11 @@ describe("StudentShell", () => {
       </StudentShell>,
     );
     expect(screen.getByText("본문")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "숙제" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "나의 수업" })).toHaveAttribute(
       "aria-current",
       "page",
     );
-    expect(screen.getByRole("link", { name: "홈" })).not.toHaveAttribute(
+    expect(screen.getByRole("link", { name: "기록" })).not.toHaveAttribute(
       "aria-current",
     );
     expect(registerServiceWorker).toHaveBeenCalledTimes(1);

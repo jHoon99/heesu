@@ -53,7 +53,7 @@ describe("StudentHomeScreen", () => {
         name: "김하늘",
         grade: "중1",
         loginId: "haneul",
-        classes: [{ id: "c", name: "중등 기초반" }],
+        classes: [{ id: "c", name: "중등 기초반", schedule: [] }],
       },
     } as never);
     vi.mocked(useSiteContent).mockReturnValue({
@@ -68,7 +68,15 @@ describe("StudentHomeScreen", () => {
     expect(
       screen.getByRole("heading", { name: "하늘아, 오늘도 한 문장씩!" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/중등 기초반/)).toBeInTheDocument();
+    expect(screen.getAllByText(/중등 기초반/)).toHaveLength(2);
+    expect(
+      screen.getByRole("heading", { name: "수업 일정" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("시간표 없음")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "내 정보" })).toHaveAttribute(
+      "href",
+      "/s/me",
+    );
     expect(await screen.findByText("전체 8명 중 2등")).toBeInTheDocument();
     expect(screen.getByText("보상까지 18점 남았어요")).toBeInTheDocument();
     expect(screen.getByText("오늘 숙제 카드")).toBeInTheDocument();

@@ -2,6 +2,7 @@ export { useClasses, classKeys } from "./state/useClasses";
 export {
   DAY_LABELS,
   formatSchedule,
+  parseSchedule,
   LEVEL_LABELS,
   type ClassSummary,
   type ScheduleSlot,
