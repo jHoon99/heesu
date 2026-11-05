@@ -82,7 +82,7 @@ export function Tabs({
             onClick={() => select(i)}
             onKeyDown={(e) => onKeyDown(e, i)}
             className={cn(
-              "inline-flex items-center gap-2 text-label transition-colors duration-(--dur-instant)",
+              "inline-flex shrink-0 items-center gap-2 text-label whitespace-nowrap transition-colors duration-(--dur-instant)",
               variant === "line"
                 ? cn(
                     "-mb-px h-10 border-b-2",
