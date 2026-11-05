@@ -11,7 +11,7 @@ export async function listTestResults(
 ): Promise<TestResult[]> {
   const { data, error } = await supabase
     .from("test_results")
-    .select("id, taken_on, kind, title, score, max_score, memo")
+    .select("id, taken_on, kind, title, score, max_score, pass_score, memo")
     .eq("student_id", studentId)
     .order("taken_on", { ascending: false })
     .order("created_at", { ascending: false });
@@ -23,6 +23,7 @@ export async function listTestResults(
     title: r.title,
     score: r.score,
     maxScore: r.max_score,
+    passScore: r.pass_score,
     memo: r.memo,
   }));
 }
@@ -38,6 +39,7 @@ export async function addTestResult(
     title: input.title,
     score: input.score,
     max_score: input.maxScore,
+    pass_score: input.passScore,
     memo: input.memo,
   });
   if (error) throw error;

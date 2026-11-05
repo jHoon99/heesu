@@ -56,7 +56,32 @@ describe("StudentTestsTab", () => {
       title: "시제",
       score: 7,
       maxScore: 10,
+      passScore: 8,
       memo: null,
+    });
+    expect(
+      await screen.findByText(
+        "테스트 결과를 추가했어요. 기준보다 낮아서 클리닉에 넣었어요.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("fills 80% as the pass score until it is changed by hand", async () => {
+    const user = setup();
+    const max = await screen.findByLabelText("만점");
+    const pass = screen.getByLabelText("통과 기준");
+    await user.type(max, "25");
+    expect(pass).toHaveValue("20");
+    await user.clear(pass);
+    await user.type(max, "0");
+    expect(pass).toHaveValue("");
+    await user.type(screen.getByLabelText("제목"), "Day 1");
+    await user.type(screen.getByLabelText("점수"), "3");
+    await user.click(screen.getByRole("button", { name: "추가" }));
+    await waitFor(() => expect(add).toHaveBeenCalledTimes(1));
+    expect(add.mock.calls[0]?.[1]).toMatchObject({
+      maxScore: 250,
+      passScore: null,
     });
     expect(
       await screen.findByText("테스트 결과를 추가했어요."),
@@ -86,11 +111,14 @@ describe("StudentTestsTab", () => {
         title: "Day 12",
         score: 18,
         maxScore: 20,
+        passScore: 16,
         memo: null,
       },
     ]);
     const user = setup();
     expect(await screen.findByText("18/20 (90%)")).toBeInTheDocument();
+    expect(screen.getByText("기준 16")).toBeInTheDocument();
+    expect(screen.queryByText("재시험")).toBeNull();
     await user.click(screen.getByRole("button", { name: "삭제" }));
     expect(del).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "지우기" }));

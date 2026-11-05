@@ -15,6 +15,7 @@ export type ClinicItem = {
   studentId: string;
   sessionId: string | null;
   sessionDate: string | null;
+  testDate: string | null;
   kind: ClinicKind;
   status: ClinicStatus;
   memo: string | null;
@@ -97,12 +98,14 @@ export function parseNote(row: unknown): LessonNote {
 export function parseClinicRow(row: unknown): ClinicItem {
   const r = isRecord(row) ? row : {};
   const session = first(r.sessions);
+  const test = first(r.test_results);
   return {
     id: String(r.id),
     studentId: String(r.student_id),
     sessionId: str(r.session_id),
     sessionDate:
       str(r.session_date) ?? (isRecord(session) ? str(session.date) : null),
+    testDate: str(r.test_date) ?? (isRecord(test) ? str(test.taken_on) : null),
     kind: CLINIC_KINDS.find((k) => k === r.kind) ?? "word_retest",
     status: r.status === "done" ? "done" : "open",
     memo: str(r.memo),
@@ -126,9 +129,11 @@ export function shortDate(dateKey: string): string {
   return `${Number(m)}/${Number(d)}`;
 }
 
-/** 출처: 수업에서 생긴 건 "11/5 수업", 직접 넣은 건 "직접 추가". */
+/** 출처: 수업에서 생긴 건 "11/5 수업", 테스트 미달은 "11/5 테스트", 직접 넣은 건 "직접 추가". */
 export function clinicSource(item: ClinicItem): string {
-  return item.sessionDate ? `${shortDate(item.sessionDate)} 수업` : "직접 추가";
+  if (item.sessionDate) return `${shortDate(item.sessionDate)} 수업`;
+  if (item.testDate) return `${shortDate(item.testDate)} 테스트`;
+  return "직접 추가";
 }
 
 export function openCount(items: ClinicItem[]): number {

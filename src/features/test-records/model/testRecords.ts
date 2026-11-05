@@ -15,6 +15,7 @@ export type TestResult = {
   title: string;
   score: number;
   maxScore: number;
+  passScore: number | null;
   memo: string | null;
 };
 
@@ -24,6 +25,15 @@ const SCORE_MESSAGE = "점수를 0~1000 사이 숫자로 입력해 주세요.";
 const MAX_MESSAGE = "만점을 1~1000 사이 숫자로 입력해 주세요.";
 const OVER_MESSAGE = "점수가 만점보다 클 수 없어요. 숫자를 확인해 주세요.";
 const MEMO_MESSAGE = "메모는 200자까지 쓸 수 있어요.";
+const PASS_MESSAGE = "통과 기준을 0~1000 사이 숫자로 입력하거나 비워 주세요.";
+const PASS_OVER_MESSAGE =
+  "통과 기준이 만점보다 클 수 없어요. 숫자를 확인해 주세요.";
+
+/** 통과 기준 기본값: 만점의 80%(올림). 원장이 바꿀 수 있어요. */
+export const DEFAULT_PASS_RATE = 0.8;
+export function defaultPassScore(maxScore: number): number {
+  return Math.ceil(maxScore * DEFAULT_PASS_RATE);
+}
 
 function intField(min: number, message: string) {
   return z
@@ -48,6 +58,12 @@ export const testSchema = z
       .refine((v) => !hasControlChars(v), CONTROL_CHAR_MESSAGE),
     score: intField(0, SCORE_MESSAGE),
     maxScore: intField(1, MAX_MESSAGE),
+    passScore: z
+      .string()
+      .trim()
+      .refine((v) => v === "" || /^\d{1,4}$/.test(v), PASS_MESSAGE)
+      .transform((v) => (v === "" ? null : Number(v)))
+      .refine((n) => n === null || n <= 1000, PASS_MESSAGE),
     memo: z
       .string()
       .trim()
@@ -58,9 +74,17 @@ export const testSchema = z
   .refine((v) => v.score <= v.maxScore, {
     message: OVER_MESSAGE,
     path: ["score"],
+  })
+  .refine((v) => v.passScore === null || v.passScore <= v.maxScore, {
+    message: PASS_OVER_MESSAGE,
+    path: ["passScore"],
   });
 export type TestInput = z.input<typeof testSchema>;
 export type TestOutput = z.output<typeof testSchema>;
+
+export function isBelowPass(r: { score: number; passScore: number | null }) {
+  return r.passScore !== null && r.score < r.passScore;
+}
 
 /** 18/20 → "18/20 (90%)" */
 export function formatScore(score: number, maxScore: number): string {

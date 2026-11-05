@@ -23,8 +23,14 @@ export function useAddTestResult() {
   return useMutation({
     mutationFn: (vars: { studentId: string; input: TestOutput }) =>
       addTestResult(vars.studentId, vars.input),
+    // 기준 미달이면 DB가 클리닉에 넣어요. 클리닉 키는 순환을 피해 글자로 적는다(clinicKeys.all).
     onSuccess: (_d, vars) =>
-      client.invalidateQueries({ queryKey: testKeys.student(vars.studentId) }),
+      Promise.all([
+        client.invalidateQueries({
+          queryKey: testKeys.student(vars.studentId),
+        }),
+        client.invalidateQueries({ queryKey: ["clinic"] }),
+      ]),
   });
 }
 
@@ -34,6 +40,11 @@ export function useDeleteTestResult() {
     mutationFn: (vars: { id: string; studentId: string }) =>
       deleteTestResult(vars.id),
     onSettled: (_d, _e, vars) =>
-      client.invalidateQueries({ queryKey: testKeys.student(vars.studentId) }),
+      Promise.all([
+        client.invalidateQueries({
+          queryKey: testKeys.student(vars.studentId),
+        }),
+        client.invalidateQueries({ queryKey: ["clinic"] }),
+      ]),
   });
 }

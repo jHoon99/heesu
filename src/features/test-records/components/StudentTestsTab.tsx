@@ -8,7 +8,9 @@ import { classifyError } from "@/core/supabase/error";
 import { saveErrorMessage } from "@/core/supabase/saveNotApplied";
 import { formatShortDate, toLocalDateKey } from "@/features/sessions";
 import {
+  defaultPassScore,
   formatScore,
+  isBelowPass,
   TEST_KIND_LABELS,
   TEST_KINDS,
   testSchema,
@@ -34,6 +36,7 @@ function blank(kind: TestInput["kind"] = "word"): TestInput {
     title: "",
     score: "",
     maxScore: "",
+    passScore: "",
     memo: "",
   };
 }
@@ -42,22 +45,34 @@ function AddForm({ studentId }: { studentId: string }) {
   const toast = useToast();
   const add = useAddTestResult();
   const [error, setError] = useState<string | null>(null);
+  // 원장이 기준을 직접 고치기 전까지는 만점의 80%를 채워요.
+  const [passTouched, setPassTouched] = useState(false);
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<TestInput, unknown, TestOutput>({
     resolver: zodResolver(testSchema),
     defaultValues: blank(),
   });
 
+  const maxField = register("maxScore");
+  const passField = register("passScore");
+
   async function onSubmit(input: TestOutput) {
     setError(null);
     try {
       await add.mutateAsync({ studentId, input });
-      toast.show({ tone: "success", message: "테스트 결과를 추가했어요." });
+      toast.show({
+        tone: "success",
+        message: isBelowPass(input)
+          ? "테스트 결과를 추가했어요. 기준보다 낮아서 클리닉에 넣었어요."
+          : "테스트 결과를 추가했어요.",
+      });
       reset({ ...blank(input.kind), takenOn: input.takenOn });
+      setPassTouched(false);
     } catch (e) {
       setError(classifyError(e).message);
     }
@@ -121,9 +136,29 @@ function AddForm({ studentId }: { studentId: string }) {
           label="만점"
           inputMode="numeric"
           error={errors.maxScore?.message}
-          {...register("maxScore")}
+          {...maxField}
+          onChange={(e) => {
+            void maxField.onChange(e);
+            const n = Number(e.target.value.trim());
+            if (!passTouched && Number.isInteger(n) && n >= 1 && n <= 1000) {
+              setValue("passScore", String(defaultPassScore(n)));
+            }
+          }}
         />
       </div>
+      <Input
+        size="md"
+        label="통과 기준"
+        inputMode="numeric"
+        hint="이 점수보다 낮으면 클리닉에 재시험(문법은 개념 보완)으로 자동으로 들어가요. 기본은 만점의 80%, 비우면 넣지 않아요."
+        error={errors.passScore?.message}
+        {...passField}
+        onChange={(e) => {
+          setPassTouched(true);
+          return passField.onChange(e);
+        }}
+      />
+
       <Input
         size="md"
         label="메모"
@@ -176,6 +211,12 @@ function Row({ r, studentId }: { r: TestResult; studentId: string }) {
           <span className="text-body-sm text-text tabular-nums">
             {formatScore(r.score, r.maxScore)}
           </span>
+          {r.passScore !== null ? (
+            <span className="text-caption text-text-muted tabular-nums">
+              {`기준 ${r.passScore}`}
+            </span>
+          ) : null}
+          {isBelowPass(r) ? <Badge tone="warning">재시험</Badge> : null}
         </div>
         {r.memo ? (
           <p className="text-body-sm break-words text-text-muted">{r.memo}</p>

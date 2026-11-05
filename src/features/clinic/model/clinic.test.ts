@@ -85,6 +85,9 @@ describe("parse", () => {
     });
     expect(item.studentName).toBe("김하늘");
     expect(clinicSource(item)).toBe("직접 추가");
+    expect(
+      clinicSource(parseBoardRow({ id: "c2", test_date: "2026-11-07" })),
+    ).toBe("11/7 테스트");
   });
 });
 

@@ -103,7 +103,7 @@ export async function saveLessonNote(
 }
 
 const CLINIC_COLUMNS =
-  "id, student_id, session_id, kind, status, memo, done_at, created_at, sessions(date)";
+  "id, student_id, session_id, kind, status, memo, done_at, created_at, sessions(date), test_results(taken_on)";
 
 export async function listStudentClinic(
   studentId: string,
@@ -118,7 +118,7 @@ export async function listStudentClinic(
 }
 
 const BOARD_COLUMNS =
-  "id, student_id, session_id, kind, status, memo, done_at, created_at, student_name, grade, session_date";
+  "id, student_id, session_id, kind, status, memo, done_at, created_at, student_name, grade, session_date, test_date";
 
 /** 전체 클리닉 명단: 안 끝낸 것 전부(오래된 것 먼저) + 끝낸 것 최근 30개. 퇴원생은 view가 빼요. */
 export async function listClinicBoard(): Promise<{

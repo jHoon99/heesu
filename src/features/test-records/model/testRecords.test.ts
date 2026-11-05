@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { formatScore, testSchema } from "./testRecords";
+import {
+  defaultPassScore,
+  formatScore,
+  isBelowPass,
+  testSchema,
+} from "./testRecords";
 
 const valid = {
   takenOn: "2026-11-05",
@@ -7,6 +12,7 @@ const valid = {
   title: " Day 12 ",
   score: "18",
   maxScore: "20",
+  passScore: "",
   memo: "",
 } as const;
 
@@ -18,6 +24,7 @@ describe("testSchema", () => {
       title: "Day 12",
       score: 18,
       maxScore: 20,
+      passScore: null,
       memo: null,
     });
   });
@@ -51,5 +58,25 @@ describe("formatScore", () => {
   it("shows the percent rounded", () => {
     expect(formatScore(18, 20)).toBe("18/20 (90%)");
     expect(formatScore(2, 3)).toBe("2/3 (67%)");
+  });
+});
+
+describe("pass score", () => {
+  it("defaults to 80% rounded up", () => {
+    expect(defaultPassScore(20)).toBe(16);
+    expect(defaultPassScore(25)).toBe(20);
+    expect(defaultPassScore(7)).toBe(6);
+  });
+  it("rejects a pass score above the max", () => {
+    const r = testSchema.safeParse({ ...valid, passScore: "21" });
+    expect(r.error?.issues[0]).toMatchObject({
+      path: ["passScore"],
+      message: "통과 기준이 만점보다 클 수 없어요. 숫자를 확인해 주세요.",
+    });
+  });
+  it("is below only when a pass score exists", () => {
+    expect(isBelowPass({ score: 15, passScore: 16 })).toBe(true);
+    expect(isBelowPass({ score: 16, passScore: 16 })).toBe(false);
+    expect(isBelowPass({ score: 0, passScore: null })).toBe(false);
   });
 });

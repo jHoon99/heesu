@@ -16,6 +16,7 @@ const item: ClinicBoardItem = {
   studentId: "s1",
   sessionId: "x1",
   sessionDate: "2026-11-05",
+  testDate: null,
   kind: "word_retest",
   status: "open",
   memo: "Day 12",
