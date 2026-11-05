@@ -1,6 +1,7 @@
 import {
   BookOpen,
   ClipboardList,
+  FolderOpen,
   CalendarDays,
   ClipboardCheck,
   House,
@@ -22,6 +23,7 @@ export type MenuValue =
   | "students"
   | "classes"
   | "videos"
+  | "materials"
   | "questions"
   | "consultations"
   | "clinic"
@@ -57,6 +59,12 @@ export const ADMIN_MENU: MenuEntry[] = [
   { value: "students", label: "학생", href: "/admin/students", icon: Users },
   { value: "classes", label: "반", href: "/admin/classes", icon: CalendarDays },
   { value: "videos", label: "영상", href: "/admin/videos", icon: Video },
+  {
+    value: "materials",
+    label: "자료실",
+    href: "/admin/materials",
+    icon: FolderOpen,
+  },
   {
     value: "questions",
     label: "질문",

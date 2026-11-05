@@ -50,6 +50,7 @@ const ADMIN_UI_FILES = [
   "src/features/clinic/**",
   "src/features/test-records/**",
   "src/features/counsel-notes/**",
+  "src/features/materials/screen/Admin*",
 ];
 
 const ENTRANCE_MOTION = [

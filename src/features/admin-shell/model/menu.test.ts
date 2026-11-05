@@ -14,6 +14,7 @@ describe("ADMIN_MENU", () => {
       "학생",
       "반",
       "영상",
+      "자료실",
       "질문",
       "클리닉",
       "포인트",
@@ -39,6 +40,7 @@ describe("activeMenuFor", () => {
     ["/admin/classes/edit", "classes"],
     ["/admin/site", "site"],
     ["/admin/clinic", "clinic"],
+    ["/admin/materials", "materials"],
   ])("%s -> %s", (path, expected) => {
     expect(activeMenuFor(path)).toBe(expected);
   });
