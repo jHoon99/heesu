@@ -17,7 +17,7 @@ describe("parseSiteContent", () => {
       },
       {
         key: "tuition",
-        value: { monthly: "월 1", textbook: "별도", note: "안내" },
+        value: { middle: "월 1", high: "별도", note: "안내" },
       },
       { key: "contact", value: { phone: "063", address: "전주" } },
       {
@@ -35,7 +35,7 @@ describe("parseSiteContent", () => {
       classes: [
         { name: "기초반", grades: "중1", schedule: "월 17:00", capacity: 8 },
       ],
-      tuition: { monthly: "월 1", textbook: "별도", note: "안내" },
+      tuition: { middle: "월 1", high: "별도", note: "안내" },
       contact: { phone: "063", address: "전주" },
       legal: {
         academyName: "희수",
@@ -103,8 +103,8 @@ describe("parseSiteContent", () => {
       { key: "contact", value: { phone: "063", address: "전주" } },
     ]);
     expect(content.tuition).toEqual({
-      monthly: null,
-      textbook: null,
+      middle: null,
+      high: null,
       note: null,
     });
     expect(content.contact).toEqual({ phone: "063", address: "전주" });

@@ -22,7 +22,7 @@ export type EditableClass = {
 export type EditableSiteContent = {
   notice: { title: string; body: string; visible: boolean };
   classes: EditableClass[];
-  tuition: { monthly: string; textbook: string; note: string };
+  tuition: { middle: string; high: string; note: string };
   contact: { phone: string; address: string };
   legal: {
     academyName: string;
@@ -108,8 +108,8 @@ export function readEditable(
     },
     classes,
     tuition: {
-      monthly: str(tuition.monthly),
-      textbook: str(tuition.textbook),
+      middle: str(tuition.middle),
+      high: str(tuition.high),
       note: str(tuition.note),
     },
     contact: { phone: str(contact.phone), address: str(contact.address) },
@@ -186,8 +186,8 @@ export const classesWriteSchema = z
   .max(MAX_CLASSES, "반은 10개까지 넣을 수 있어요.");
 
 export const tuitionWriteSchema = z.object({
-  monthly: line(100),
-  textbook: line(100),
+  middle: line(100),
+  high: line(100),
   note: multi(500),
 });
 

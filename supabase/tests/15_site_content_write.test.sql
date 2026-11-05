@@ -3,7 +3,7 @@
 begin;
 set local client_min_messages = warning;
 create extension if not exists pgtap with schema extensions;
-select plan(35);
+select plan(37);
 
 insert into auth.users (id, email) values
   ('00000000-0000-4000-8000-00000000a015', 'admin15@example.test'),
@@ -24,7 +24,7 @@ select lives_ok($$insert into public.site_content (key, value) values ('classes'
   on conflict (key) do update set value = excluded.value$$, 'classes 10칸·정원 빈칸 upsert');
 select lives_ok($$insert into public.site_content (key, value) values ('classes', '[{"name":"a","capacity":1},{"capacity":50}]')
   on conflict (key) do update set value = excluded.value$$, 'classes 정원 1·50 upsert');
-select lives_ok($$insert into public.site_content (key, value) values ('tuition', '{"monthly":"m","textbook":null,"note":"n"}')
+select lives_ok($$insert into public.site_content (key, value) values ('tuition', '{"middle":"m","high":null,"note":"n"}')
   on conflict (key) do update set value = excluded.value$$, 'tuition 정상 upsert');
 select lives_ok($$insert into public.site_content (key, value) values ('contact', '{"phone":"063-000-0000","address":"a"}')
   on conflict (key) do update set value = excluded.value$$, 'contact 정상 upsert');
@@ -48,6 +48,8 @@ insert into bad values
   ('classes 정원 1.5', 'classes', '[{"capacity":1.5}]'),
   ('classes 배열 아님', 'classes', '{"name":"n"}'),
   ('contact 전화 형식', 'contact', '{"phone":"010-1234"}'),
+  ('tuition 교재비(뺀 필드)', 'tuition', '{"textbook":"t"}'),
+  ('tuition 예전 월 수강료', 'tuition', '{"monthly":"m"}'),
   ('points_goal 0', 'points_goal', '0'),
   ('points_goal 10001', 'points_goal', '10001'),
   ('points_goal 1.5', 'points_goal', '1.5'),

@@ -35,7 +35,7 @@ beforeEach(() => {
   get.mockResolvedValue([
     {
       key: "tuition",
-      value: { monthly: "월 30만원", textbook: null, note: null },
+      value: { middle: "월 30만원", high: null, note: null },
     },
   ]);
   save.mockResolvedValue();
@@ -75,17 +75,17 @@ describe("AdminLandingScreen", () => {
     const user = setup();
     await user.click(screen.getByRole("button", { name: "수강료 고치기" }));
     const dialog = await screen.findByRole("dialog", { name: "수강료 고치기" });
-    const monthly = await within(dialog).findByLabelText("월 수강료");
-    expect(monthly).toHaveValue("월 30만원");
-    await user.clear(monthly);
-    await user.type(monthly, "월 32만원");
+    const middle = await within(dialog).findByLabelText("중등 수강료");
+    expect(middle).toHaveValue("월 30만원");
+    await user.clear(middle);
+    await user.type(middle, "월 32만원");
     await user.click(
       within(dialog).getByRole("button", { name: "수강료 저장" }),
     );
     await waitFor(() =>
       expect(save).toHaveBeenCalledWith(
         "tuition",
-        expect.objectContaining({ monthly: "월 32만원" }),
+        expect.objectContaining({ middle: "월 32만원" }),
       ),
     );
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());

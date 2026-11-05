@@ -8,6 +8,7 @@ import {
   type SiteContent,
 } from "@/features/site-content";
 import { Blank } from "./Blank";
+import { OurSystem } from "./OurSystem";
 import { SectionHeading } from "./SectionHeading";
 
 function InfoRow({
@@ -168,6 +169,10 @@ export function AboutSection({ content }: { content: SiteContent }) {
             {content.about.intro}
           </p>
         ) : null}
+        <OurSystem />
+        <p className="pt-2 text-body-sm text-text-muted">
+          더 자세한 이야기는 원장이 직접 쓴 글에서 읽어보세요.
+        </p>
         <StoryCards items={content.about.items} />
         <div className="flex flex-col rounded-lg border border-border bg-bg-surface px-4 py-1">
           <InfoRow icon={Users} label="대상">

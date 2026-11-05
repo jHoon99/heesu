@@ -49,7 +49,7 @@ select throws_ok($$insert into public.site_content (key, value) values ('x', '{}
 
 -- ─── 원장 + aal2: 쓰기 가능 ──────────────────────────────────────────
 set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-00000000a002","role":"authenticated","aal":"aal2"}';
-select lives_ok($$insert into public.site_content (key, value) values ('tuition', '{"monthly":"m"}')$$,
+select lives_ok($$insert into public.site_content (key, value) values ('tuition', '{"middle":"m"}')$$,
   '원장 + aal2: insert 성공');
 select lives_ok($$update public.site_content set value = '{"title":"바뀜"}' where key = 'notice'$$,
   '원장 + aal2: update 성공');

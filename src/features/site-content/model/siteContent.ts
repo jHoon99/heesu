@@ -9,8 +9,10 @@ export type ClassInfo = {
   capacity: number | null;
 };
 export type Tuition = {
-  monthly: string | null;
-  textbook: string | null;
+  /** 중등 월 수강료 */
+  middle: string | null;
+  /** 고등 월 수강료 */
+  high: string | null;
   note: string | null;
 };
 export type Contact = { phone: string | null; address: string | null };
@@ -45,7 +47,7 @@ export const MAX_ABOUT_LINKS = 10;
 export const EMPTY_SITE_CONTENT: SiteContent = {
   notice: null,
   classes: [],
-  tuition: { monthly: null, textbook: null, note: null },
+  tuition: { middle: null, high: null, note: null },
   contact: { phone: null, address: null },
   legal: {
     academyName: null,
@@ -88,7 +90,7 @@ const classItemSchema = z
     v.name === null ? null : { ...v, name: v.name },
   );
 
-const tuitionSchema = z.object({ monthly: text, textbook: text, note: text });
+const tuitionSchema = z.object({ middle: text, high: text, note: text });
 const contactSchema = z.object({ phone: text, address: text });
 const legalSchema = z
   .object({

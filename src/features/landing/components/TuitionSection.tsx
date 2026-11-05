@@ -16,14 +16,14 @@ function PriceRow({ label, value }: { label: string; value: string | null }) {
 }
 
 export function TuitionSection({ content }: { content: SiteContent }) {
-  const { monthly, textbook, note } = content.tuition;
+  const { middle, high, note } = content.tuition;
   return (
     <section id="tuition" className="scroll-mt-31">
       <Reveal className="flex flex-col gap-4">
         <SectionHeading eyebrow="TUITION" title="수강료" />
         <div className="flex flex-col rounded-lg border border-border bg-bg-surface px-4 py-1">
-          <PriceRow label="수강료 (월)" value={monthly} />
-          <PriceRow label="교재비" value={textbook} />
+          <PriceRow label="중등 (월)" value={middle} />
+          <PriceRow label="고등 (월)" value={high} />
         </div>
         <p className="flex min-w-0 items-start gap-1.5 text-body-sm text-text-muted">
           <Info

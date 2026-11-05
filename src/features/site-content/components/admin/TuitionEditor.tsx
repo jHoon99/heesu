@@ -32,7 +32,7 @@ export function TuitionEditor({
   return (
     <EditorCard
       bare={bare}
-      title="수강료·교재비"
+      title="수강료"
       saveLabel="수강료 저장"
       pending={pending}
       error={error}
@@ -40,15 +40,17 @@ export function TuitionEditor({
     >
       <Input
         size="md"
-        label="월 수강료"
-        error={errors.monthly?.message}
-        {...register("monthly")}
+        label="중등 수강료"
+        placeholder="월 00만원"
+        error={errors.middle?.message}
+        {...register("middle")}
       />
       <Input
         size="md"
-        label="교재비"
-        error={errors.textbook?.message}
-        {...register("textbook")}
+        label="고등 수강료"
+        placeholder="월 00만원"
+        error={errors.high?.message}
+        {...register("high")}
       />
       <Input
         size="md"

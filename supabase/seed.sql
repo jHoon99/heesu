@@ -7,7 +7,7 @@ insert into public.site_content (key, value) values
      {"name": "(예시) 중등 기초반", "grades": "(예시) 중1·중2", "schedule": "(예시) 월·수 17:00–19:00", "capacity": 8},
      {"name": "(예시) 고등 독해반", "grades": "(예시) 고1·고2", "schedule": "(예시) 화·목 19:00–21:00", "capacity": null}
    ]'),
-  ('tuition', '{"monthly": "(예시) 월 00만 원", "textbook": "(예시) 교재비 별도", "note": "(예시) 수강료 안내 문구예요."}'),
+  ('tuition', '{"middle": "(예시) 월 00만 원", "high": "(예시) 월 00만 원", "note": "(예시) 수강료 안내 문구예요."}'),
   ('contact', '{"phone": "063-000-0000", "address": "전북 전주시 (예시 주소)"}'),
   ('legal', '{"academy_name": "(예시) 희수영어", "registration_no": "(예시) 제0000-00호", "subjects": "(예시) 영어", "tuition_notice": "(예시) 교습비 게시 문구예요."}'),
   ('points_goal', '30');

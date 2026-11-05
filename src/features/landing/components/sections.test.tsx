@@ -23,7 +23,7 @@ const FILLED: SiteContent = {
     { name: "기초반", grades: "중1", schedule: "월·수 17:00", capacity: 8 },
     { name: "심화반", grades: "고1", schedule: "화·목 19:00", capacity: null },
   ],
-  tuition: { monthly: "월 30만원", textbook: "교재 3만원", note: "분기 납부" },
+  tuition: { middle: "월 30만원", high: "월 35만원", note: "분기 납부" },
   contact: { phone: "063-000-0000", address: ADDRESS },
   legal: {
     academyName: "희수영어학원",
@@ -53,7 +53,7 @@ describe("filled content", () => {
   it("shows tuition values", () => {
     renderAll(FILLED);
     expect(screen.getByText("월 30만원")).toBeInTheDocument();
-    expect(screen.getByText("교재 3만원")).toBeInTheDocument();
+    expect(screen.getByText("월 35만원")).toBeInTheDocument();
     expect(screen.queryByText("금액")).toBeNull();
     expect(screen.getByText(/분기 납부/)).toBeInTheDocument();
   });
@@ -179,7 +179,7 @@ describe("long unbroken text", () => {
   it("wraps tuition, address and legal values", () => {
     const content: SiteContent = {
       ...FILLED,
-      tuition: { monthly: LONG + "3", textbook: LONG + "4", note: LONG + "5" },
+      tuition: { middle: LONG + "3", high: LONG + "4", note: LONG + "5" },
       contact: { phone: null, address: LONG + "6" },
       legal: {
         academyName: LONG + "7",
@@ -353,5 +353,41 @@ describe("director and consult guide", () => {
     expect(
       within(section).getByRole("complementary", { name: "안내 말씀" }),
     ).toHaveTextContent("등록이 제한될 수 있습니다");
+  });
+});
+
+describe("tuition", () => {
+  it("shows middle and high school fees and no textbook row", () => {
+    renderAll(FILLED);
+    const section = document.getElementById("tuition") as HTMLElement;
+    expect(within(section).getByText("중등 (월)")).toBeInTheDocument();
+    expect(within(section).getByText("월 30만원")).toBeInTheDocument();
+    expect(within(section).getByText("고등 (월)")).toBeInTheDocument();
+    expect(within(section).getByText("월 35만원")).toBeInTheDocument();
+    expect(within(section).queryByText(/교재/)).toBeNull();
+  });
+});
+
+describe("our system", () => {
+  it("shows the four steps above the blog cards", () => {
+    renderAll(FILLED);
+    const section = document.getElementById("about") as HTMLElement;
+    const titles = Array.from(section.querySelectorAll("h4")).map(
+      (h) => h.textContent,
+    );
+    expect(titles).toEqual([
+      "정규 수업",
+      "반복 테스트",
+      "매주 개별 클리닉",
+      "내신 집중 관리",
+    ]);
+    const system = within(section).getByText("OUR SYSTEM");
+    const stories = within(section).getByRole("list", {
+      name: "희수영어 이야기",
+    });
+    expect(
+      system.compareDocumentPosition(stories) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 });

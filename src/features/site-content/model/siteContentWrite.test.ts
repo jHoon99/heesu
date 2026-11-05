@@ -25,7 +25,7 @@ describe("readEditable", () => {
         key: "classes",
         value: [{ name: "기초", grades: "중1", schedule: "월", capacity: 8 }],
       },
-      { key: "tuition", value: { monthly: "1", textbook: "2", note: "3" } },
+      { key: "tuition", value: { middle: "1", high: "2", note: "3" } },
       { key: "contact", value: { phone: "063-000-0000", address: "전주" } },
       {
         key: "legal",
@@ -61,7 +61,7 @@ describe("readEditable", () => {
     ]);
     expect(e.classes).toEqual([]);
     expect(e.pointsGoal).toBe("");
-    expect(e.tuition).toEqual({ monthly: "", textbook: "", note: "" });
+    expect(e.tuition).toEqual({ middle: "", high: "", note: "" });
     expect(e.notice).toEqual({ title: "", body: "", visible: false });
   });
 });
@@ -91,8 +91,8 @@ describe("write schemas", () => {
 
   it("turns blanks into null", () => {
     expect(
-      tuitionWriteSchema.parse({ monthly: " ", textbook: "", note: "" }),
-    ).toEqual({ monthly: null, textbook: null, note: null });
+      tuitionWriteSchema.parse({ middle: " ", high: "", note: "" }),
+    ).toEqual({ middle: null, high: null, note: null });
     expect(contactWriteSchema.parse({ phone: "", address: "" })).toEqual({
       phone: null,
       address: null,
@@ -185,8 +185,8 @@ describe("write schemas", () => {
     expect(
       issue(
         tuitionWriteSchema.safeParse({
-          monthly: "",
-          textbook: "",
+          middle: "",
+          high: "",
           note: "a\u0007",
         }),
       ),
