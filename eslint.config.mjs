@@ -47,6 +47,9 @@ const ADMIN_UI_FILES = [
   "src/features/site-content/components/admin/**",
   "src/features/site-content/screen/Admin*",
   "src/features/payments/**",
+  "src/features/clinic/**",
+  "src/features/test-records/**",
+  "src/features/counsel-notes/**",
 ];
 
 const ENTRANCE_MOTION = [

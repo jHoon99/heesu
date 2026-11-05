@@ -29,6 +29,11 @@ const classX: ClassSummary = {
   capacity: null,
   memberCount: 0,
 };
+vi.mock("@/features/clinic", () => ({
+  SessionNotesCard: ({ sessionId }: { sessionId: string }) => (
+    <h2>{`학생별 기록 ${sessionId}`}</h2>
+  ),
+}));
 vi.mock("@/features/classes", async (orig) => ({
   ...(await orig<typeof import("@/features/classes")>()),
   useClasses: () => ({ data: [classX], isPending: false, isError: false }),
@@ -108,6 +113,7 @@ describe("SessionFormScreen", () => {
     await user.click(screen.getByRole("button", { name: "저장" }));
     expect(await screen.findByText("반을 골라 주세요.")).toBeInTheDocument();
     expect(create).not.toHaveBeenCalled();
+    expect(screen.queryByRole("heading", { name: /학생별 기록/ })).toBeNull();
   });
 
   it.each([[""], ["id=abc"]])("shows the not-found card for %j", (qs) => {
@@ -137,6 +143,9 @@ describe("SessionFormScreen", () => {
     const user = setup("edit");
     expect(await screen.findByDisplayValue("분수")).toBeInTheDocument();
     expect(dueInput().value).toBe("2026-11-06");
+    expect(
+      screen.getByRole("heading", { name: `학생별 기록 ${SID}` }),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "저장" }));
     await waitFor(() =>
       expect(push).toHaveBeenCalledWith(`/admin/sessions?class=${X}`),

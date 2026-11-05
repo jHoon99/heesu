@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Card, buttonVariants, useToast } from "@/design-system";
 import { classifyError } from "@/core/supabase/error";
 import { saveErrorMessage } from "@/core/supabase/saveNotApplied";
+import { SessionNotesCard } from "@/features/clinic";
 import { useClasses } from "@/features/classes";
 import { SessionForm } from "../components/SessionForm";
 import { toLocalDateKey, type SessionFormOutput } from "../model/sessions";
@@ -132,6 +133,14 @@ export function SessionFormScreen({ mode }: { mode: "new" | "edit" }) {
         />
       </Card>
     );
+    if (session) {
+      body = (
+        <>
+          {body}
+          <SessionNotesCard sessionId={session.id} classId={session.classId} />
+        </>
+      );
+    }
   }
 
   return (
