@@ -4,6 +4,7 @@ import { STATUS_LABELS, type StudentSummary } from "../model/students";
 export function StudentInfoCard({ student }: { student: StudentSummary }) {
   const rows: [string, string][] = [
     ["아이디", student.loginId],
+    ["학교", student.school ?? "-"],
     ["학년", student.grade],
     ["등록일", student.joinedAt],
     ["상태", STATUS_LABELS[student.status]],

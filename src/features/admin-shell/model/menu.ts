@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  ClipboardList,
   CalendarDays,
   ClipboardCheck,
   House,
@@ -23,6 +24,7 @@ export type MenuValue =
   | "videos"
   | "questions"
   | "consultations"
+  | "clinic"
   | "points"
   | "payments"
   | "site"
@@ -60,6 +62,12 @@ export const ADMIN_MENU: MenuEntry[] = [
     label: "질문",
     href: "/admin/questions",
     icon: MessageCircle,
+  },
+  {
+    value: "clinic",
+    label: "클리닉",
+    href: "/admin/clinic",
+    icon: ClipboardList,
   },
   { value: "points", label: "포인트", href: "/admin/points", icon: Trophy },
   { group: "학부모" },

@@ -17,9 +17,24 @@ import { StudentFunctionError, type StudentSummary } from "../model/students";
 import { StudentDetailScreen } from "./StudentDetailScreen";
 
 let search = new URLSearchParams();
+const replace = vi.fn();
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), replace }),
   useSearchParams: () => search,
+}));
+let clinicItems: { status: "open" | "done" }[] = [];
+vi.mock("@/features/clinic", () => ({
+  StudentLessonsTab: () => <h2>수업 일지 탭</h2>,
+  StudentClinicTab: () => <h2>클리닉 탭</h2>,
+  useStudentClinic: () => ({ data: clinicItems }),
+  openCount: (items: { status: string }[]) =>
+    items.filter((i) => i.status === "open").length,
+}));
+vi.mock("@/features/test-records", () => ({
+  StudentTestsTab: () => <h2>테스트 탭</h2>,
+}));
+vi.mock("@/features/counsel-notes", () => ({
+  StudentCounselTab: () => <h2>상담 탭</h2>,
 }));
 vi.mock("../data/students");
 vi.mock("../data/detail");
@@ -110,6 +125,7 @@ describe("StudentDetailScreen", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     search = new URLSearchParams(`id=${UUID}`);
+    clinicItems = [];
     recordsResult = { isPending: false, isError: false, data: [] };
     get.mockResolvedValue(student);
     getPriv.mockResolvedValue(null);
@@ -129,14 +145,27 @@ describe("StudentDetailScreen", () => {
     expect(get).not.toHaveBeenCalled();
   });
 
-  it("renders header and cards", async () => {
+  it("renders the header and the 기본 정보 tab by default", async () => {
     setup();
     expect(
-      await screen.findByRole("heading", { name: "김하늘" }),
+      await screen.findByRole("heading", { name: "김하늘 | 중1" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "정보 수정" })).toHaveAttribute(
       "href",
       `/admin/students/edit?id=${UUID}`,
+    );
+    expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual([
+      "기본 정보",
+      "출결",
+      "수업 일지",
+      "테스트",
+      "클리닉",
+      "상담",
+      "수납",
+    ]);
+    expect(screen.getByRole("tab", { name: "기본 정보" })).toHaveAttribute(
+      "aria-selected",
+      "true",
     );
     for (const t of [
       "반 배정",
@@ -144,10 +173,74 @@ describe("StudentDetailScreen", () => {
       "보호자 동의",
       "비밀번호 초기화",
       "학부모 링크",
-      "결제 기록",
     ]) {
       expect(screen.getByRole("heading", { name: t })).toBeInTheDocument();
     }
+    expect(screen.queryByRole("heading", { name: "결제 기록" })).toBeNull();
+  });
+
+  it("shows the school in the header", async () => {
+    get.mockResolvedValue({ ...student, school: "양현고", grade: "고1" });
+    setup();
+    expect(
+      await screen.findByRole("heading", { name: "김하늘 | 양현고 고1" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/학교가 비어 있어요/)).toBeNull();
+  });
+
+  it("points to the school field when it is empty", async () => {
+    search = new URLSearchParams(`id=${UUID}&tab=tests`);
+    const user = setup();
+    await user.click(
+      await screen.findByRole("button", {
+        name: "기본 정보의 학교·보호자에서 입력해 주세요.",
+      }),
+    );
+    expect(replace).toHaveBeenCalledWith(
+      `/admin/students/detail?id=${UUID}&tab=info`,
+      { scroll: false },
+    );
+  });
+
+  it("switches tabs through the address", async () => {
+    const user = setup();
+    await user.click(await screen.findByRole("tab", { name: "수납" }));
+    expect(replace).toHaveBeenCalledWith(
+      `/admin/students/detail?id=${UUID}&tab=payments`,
+      { scroll: false },
+    );
+  });
+
+  it.each([
+    ["payments", "결제 기록"],
+    ["lessons", "수업 일지 탭"],
+    ["tests", "테스트 탭"],
+    ["clinic", "클리닉 탭"],
+    ["counsel", "상담 탭"],
+    ["attendance", "최근 출결·숙제"],
+  ])("tab=%s shows %s", async (tab, heading) => {
+    search = new URLSearchParams(`id=${UUID}&tab=${tab}`);
+    setup();
+    expect(
+      await screen.findByRole("heading", { name: heading }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "반 배정" })).toBeNull();
+  });
+
+  it("falls back to 기본 정보 for an unknown tab", async () => {
+    search = new URLSearchParams(`id=${UUID}&tab=nope`);
+    setup();
+    expect(
+      await screen.findByRole("heading", { name: "반 배정" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the open clinic count on the tab", async () => {
+    clinicItems = [{ status: "open" }, { status: "open" }, { status: "done" }];
+    setup();
+    expect(
+      await screen.findByRole("tab", { name: /^클리닉\s*2$/ }),
+    ).toBeInTheDocument();
   });
 
   it("hides link creation for a student who left", async () => {
@@ -181,6 +274,7 @@ describe("StudentDetailScreen", () => {
         },
       ],
     };
+    search = new URLSearchParams(`id=${UUID}&tab=attendance`);
     setup();
     await screen.findByRole("heading", { name: "최근 출결·숙제" });
     const row = screen.getByText("11/4").closest("tr") as HTMLElement;
@@ -193,21 +287,21 @@ describe("StudentDetailScreen", () => {
   });
 
   it("shows the empty text when there are no records", async () => {
+    search = new URLSearchParams(`id=${UUID}&tab=attendance`);
     setup();
     expect(
       await screen.findByText("아직 수업 기록이 없어요."),
     ).toBeInTheDocument();
   });
 
-  it("puts 포인트 내역 before the guardian card", async () => {
+  it("puts 포인트 내역 in the 출결 tab", async () => {
+    search = new URLSearchParams(`id=${UUID}&tab=attendance`);
     setup();
-    const points = await screen.findByRole("heading", { name: "포인트 내역" });
-    const guardian = screen.getByRole("heading", { name: "학교·보호자" });
     expect(
-      points.compareDocumentPosition(guardian) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
+      await screen.findByRole("heading", { name: "포인트 내역" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("포인트 내역 목록")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "학교·보호자" })).toBeNull();
   });
 
   it("enables the class save only after a change and saves the diff", async () => {
@@ -414,7 +508,7 @@ describe("StudentDetailScreen", () => {
   it("keeps the content when a background refetch fails", async () => {
     setup();
     expect(
-      await screen.findByRole("heading", { name: "김하늘" }),
+      await screen.findByRole("heading", { name: "김하늘 | 중1" }),
     ).toBeInTheDocument();
     get.mockRejectedValue(new Error("x"));
     await act(() => client.refetchQueries());
@@ -428,7 +522,9 @@ describe("StudentDetailScreen", () => {
     );
     await act(() => new Promise((r) => setTimeout(r, 20)));
     expect(get).toHaveBeenCalledTimes(2);
-    expect(screen.getByRole("heading", { name: "김하늘" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "김하늘 | 중1" }),
+    ).toBeInTheDocument();
     expect(screen.queryByText("불러오지 못했어요")).toBeNull();
   });
 });

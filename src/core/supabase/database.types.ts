@@ -103,6 +103,38 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"clinic_items": {
+                  Row: {
+                    "created_at": string,"done_at": string | null,"id": string,"kind": Database["public"]['Enums']["clinic_kind"],"memo": string | null,"session_id": string | null,"status": Database["public"]['Enums']["clinic_status"],"student_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"done_at"?: string | null,"id"?: string,"kind": Database["public"]['Enums']["clinic_kind"],"memo"?: string | null,"session_id"?: string | null,"status"?: Database["public"]['Enums']["clinic_status"],"student_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"done_at"?: string | null,"id"?: string,"kind"?: Database["public"]['Enums']["clinic_kind"],"memo"?: string | null,"session_id"?: string | null,"status"?: Database["public"]['Enums']["clinic_status"],"student_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "clinic_items_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "sessions"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "clinic_items_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "student_point_totals"
+      referencedColumns: ["student_id"]
+    },{
+      foreignKeyName: "clinic_items_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"consents": {
                   Row: {
                     "consented_at": string,"created_at": string,"guardian_name": string,"id": string,"method": Database["public"]['Enums']["consent_method"],"student_id": string,"version": string
@@ -142,6 +174,32 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"counsel_notes": {
+                  Row: {
+                    "body": string,"counseled_on": string,"created_at": string,"id": string,"method": Database["public"]['Enums']["counsel_method"],"party": Database["public"]['Enums']["counsel_party"],"student_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body": string,"counseled_on": string,"created_at"?: string,"id"?: string,"method": Database["public"]['Enums']["counsel_method"],"party": Database["public"]['Enums']["counsel_party"],"student_id": string
+                  }
+                  Update: {
+                    "body"?: string,"counseled_on"?: string,"created_at"?: string,"id"?: string,"method"?: Database["public"]['Enums']["counsel_method"],"party"?: Database["public"]['Enums']["counsel_party"],"student_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "counsel_notes_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "student_point_totals"
+      referencedColumns: ["student_id"]
+    },{
+      foreignKeyName: "counsel_notes_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"guardian_tokens": {
                   Row: {
@@ -195,6 +253,38 @@ isOneToOne: false
       referencedColumns: ["student_id"]
     },{
       foreignKeyName: "homework_checks_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"lesson_notes": {
+                  Row: {
+                    "created_at": string,"needs_concept_review": boolean,"needs_word_retest": boolean,"note": string | null,"session_id": string,"student_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"needs_concept_review"?: boolean,"needs_word_retest"?: boolean,"note"?: string | null,"session_id": string,"student_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"needs_concept_review"?: boolean,"needs_word_retest"?: boolean,"note"?: string | null,"session_id"?: string,"student_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "lesson_notes_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "sessions"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "lesson_notes_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "student_point_totals"
+      referencedColumns: ["student_id"]
+    },{
+      foreignKeyName: "lesson_notes_student_id_fkey"
       columns: ["student_id"]
 isOneToOne: false
       referencedRelation: "students"
@@ -371,6 +461,32 @@ isOneToOne: true
                   Relationships: [
                     
                   ]
+                },"test_results": {
+                  Row: {
+                    "created_at": string,"id": string,"kind": Database["public"]['Enums']["test_kind"],"max_score": number,"memo": string | null,"score": number,"student_id": string,"taken_on": string,"title": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"kind": Database["public"]['Enums']["test_kind"],"max_score": number,"memo"?: string | null,"score": number,"student_id": string,"taken_on": string,"title": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"kind"?: Database["public"]['Enums']["test_kind"],"max_score"?: number,"memo"?: string | null,"score"?: number,"student_id"?: string,"taken_on"?: string,"title"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "test_results_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "student_point_totals"
+      referencedColumns: ["student_id"]
+    },{
+      foreignKeyName: "test_results_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"video_views": {
                   Row: {
                     "position_seconds": number,"student_id": string,"updated_at": string,"video_id": string,"watched_seconds": number
@@ -428,7 +544,7 @@ isOneToOne: false
           Views: {
             "class_roster": {
                   Row: {
-                    "class_id": string | null,"grade": Database["public"]['Enums']["school_grade"] | null,"name": string | null,"status": Database["public"]['Enums']["student_status"] | null,"student_id": string | null
+                    "class_id": string,"grade": Database["public"]['Enums']["school_grade"],"name": string,"status": Database["public"]['Enums']["student_status"],"student_id": string
                   }
                   ComputedFields: never
                   Relationships: [
@@ -452,9 +568,35 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"clinic_board": {
+                  Row: {
+                    "created_at": string,"done_at": string | null,"grade": Database["public"]['Enums']["school_grade"],"id": string,"kind": Database["public"]['Enums']["clinic_kind"],"memo": string | null,"session_date": string | null,"session_id": string | null,"status": Database["public"]['Enums']["clinic_status"],"student_id": string,"student_name": string
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    {
+      foreignKeyName: "clinic_items_session_id_fkey"
+      columns: ["session_id"]
+isOneToOne: false
+      referencedRelation: "sessions"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "clinic_items_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "student_point_totals"
+      referencedColumns: ["student_id"]
+    },{
+      foreignKeyName: "clinic_items_student_id_fkey"
+      columns: ["student_id"]
+isOneToOne: false
+      referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"student_point_totals": {
                   Row: {
-                    "grade": Database["public"]['Enums']["school_grade"] | null,"name": string | null,"status": Database["public"]['Enums']["student_status"] | null,"student_id": string | null,"total": number | null
+                    "grade": Database["public"]['Enums']["school_grade"],"name": string,"status": Database["public"]['Enums']["student_status"],"student_id": string,"total": number | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -494,7 +636,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "attendance_status": "none"|"present"|"late"|"absent"|"makeup","class_level": "middle"|"high","consent_method": "written"|"phone"|"kakao","consultation_status": "new"|"contacted"|"enrolled"|"on_hold","homework_status": "none"|"done"|"missing","school_grade": "중1"|"중2"|"중3"|"고1"|"고2"|"고3","student_status": "active"|"paused"|"left"
+            "attendance_status": "none"|"present"|"late"|"absent"|"makeup","class_level": "middle"|"high","clinic_kind": "word_retest"|"concept_review","clinic_status": "open"|"done","consent_method": "written"|"phone"|"kakao","consultation_status": "new"|"contacted"|"enrolled"|"on_hold","counsel_method": "in_person"|"phone"|"kakao","counsel_party": "guardian"|"student","homework_status": "none"|"done"|"missing","school_grade": "중1"|"중2"|"중3"|"고1"|"고2"|"고3","student_status": "active"|"paused"|"left","test_kind": "word"|"grammar"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -610,7 +752,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "attendance_status": ["none", "present", "late", "absent", "makeup"],"class_level": ["middle", "high"],"consent_method": ["written", "phone", "kakao"],"consultation_status": ["new", "contacted", "enrolled", "on_hold"],"homework_status": ["none", "done", "missing"],"school_grade": ["중1", "중2", "중3", "고1", "고2", "고3"],"student_status": ["active", "paused", "left"]
+            "attendance_status": ["none", "present", "late", "absent", "makeup"],"class_level": ["middle", "high"],"clinic_kind": ["word_retest", "concept_review"],"clinic_status": ["open", "done"],"consent_method": ["written", "phone", "kakao"],"consultation_status": ["new", "contacted", "enrolled", "on_hold"],"counsel_method": ["in_person", "phone", "kakao"],"counsel_party": ["guardian", "student"],"homework_status": ["none", "done", "missing"],"school_grade": ["중1", "중2", "중3", "고1", "고2", "고3"],"student_status": ["active", "paused", "left"],"test_kind": ["word", "grammar"]
           }
         }
 } as const
