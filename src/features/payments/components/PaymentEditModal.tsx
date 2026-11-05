@@ -47,7 +47,7 @@ export function PaymentEditModal({
         month,
         ...parsed.data,
       });
-      toast.show({ message: "결제 기록을 저장했어요." });
+      toast.show({ message: "수납 기록을 저장했어요." });
       onClose();
     } catch (e) {
       setError(saveErrorMessage(e));
@@ -63,7 +63,7 @@ export function PaymentEditModal({
     setError(null);
     try {
       await remove.mutateAsync(record.id);
-      toast.show({ message: "결제 기록을 지웠어요." });
+      toast.show({ message: "수납 기록을 지웠어요." });
       onClose();
     } catch (e) {
       setError(saveErrorMessage(e));

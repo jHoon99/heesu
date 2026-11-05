@@ -20,7 +20,7 @@ export function PaymentCell({
   return (
     <button
       type="button"
-      aria-label={`${studentName} ${monthNumber}월 결제 ${verb}`}
+      aria-label={`${studentName} ${monthNumber}월 수납 ${verb}`}
       onClick={onOpen}
       className="flex min-h-10 w-full min-w-24 flex-col items-start justify-center rounded-md px-2 py-1 text-left hover:bg-bg-subtle"
     >

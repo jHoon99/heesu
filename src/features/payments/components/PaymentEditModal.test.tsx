@@ -67,7 +67,7 @@ describe("PaymentEditModal", () => {
       }),
     );
     expect(
-      await screen.findByText("결제 기록을 저장했어요."),
+      await screen.findByText("수납 기록을 저장했어요."),
     ).toBeInTheDocument();
     expect(onClose).toHaveBeenCalled();
   });
@@ -103,7 +103,7 @@ describe("PaymentEditModal", () => {
     await waitFor(() => expect(del).toHaveBeenCalledTimes(1));
     expect(del).toHaveBeenCalledWith("p1");
     expect(
-      await screen.findByText("결제 기록을 지웠어요."),
+      await screen.findByText("수납 기록을 지웠어요."),
     ).toBeInTheDocument();
     expect(onClose).toHaveBeenCalled();
   });

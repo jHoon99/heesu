@@ -28,7 +28,7 @@ export function PaymentHistoryCard({ studentId }: { studentId: string }) {
     );
   } else if (rows.length === 0) {
     body = (
-      <p className="text-body-sm text-text-muted">아직 결제 기록이 없어요.</p>
+      <p className="text-body-sm text-text-muted">아직 수납 기록이 없어요.</p>
     );
   } else {
     body = (
@@ -74,14 +74,14 @@ export function PaymentHistoryCard({ studentId }: { studentId: string }) {
   }
 
   return (
-    <Card tone="raised" title="결제 기록">
+    <Card tone="raised" title="수납 기록">
       <div className="flex min-w-0 flex-col items-start gap-3">
         {body}
         <Link
           href="/admin/payments"
           className={buttonVariants({ variant: "secondary", size: "md" })}
         >
-          결제 화면에서 입력
+          수납 화면에서 입력
         </Link>
       </div>
     </Card>

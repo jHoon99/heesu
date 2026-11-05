@@ -120,9 +120,9 @@ export function PaymentsScreen() {
   const fresh = students.isFetchedAfterMount && payments.isFetchedAfterMount;
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <h1 className="font-serif text-h2 text-text">결제</h1>
+      <h1 className="font-serif text-h2 text-text">수납</h1>
       <p className="text-body-sm text-text-muted">
-        금액과 납부일을 직접 적는 기록이에요. 실제 결제와 연결되지 않아요.
+        금액과 납부일을 직접 적는 기록이에요. 실제 수납와 연결되지 않아요.
       </p>
       <div className="flex items-center gap-3">
         <Button

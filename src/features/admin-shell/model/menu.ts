@@ -77,7 +77,7 @@ export const ADMIN_MENU: MenuEntry[] = [
     href: "/admin/consultations",
     icon: Phone,
   },
-  { value: "payments", label: "결제", href: "/admin/payments", icon: Receipt },
+  { value: "payments", label: "수납", href: "/admin/payments", icon: Receipt },
   { group: "운영" },
   {
     value: "site",

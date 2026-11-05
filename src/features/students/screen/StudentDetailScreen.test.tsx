@@ -50,7 +50,7 @@ vi.mock("@/features/guardian", () => ({
 vi.mock("@/features/payments", () => ({
   PaymentHistoryCard: () => (
     <section>
-      <h2>결제 기록</h2>
+      <h2>수납 기록</h2>
     </section>
   ),
 }));
@@ -176,7 +176,7 @@ describe("StudentDetailScreen", () => {
     ]) {
       expect(screen.getByRole("heading", { name: t })).toBeInTheDocument();
     }
-    expect(screen.queryByRole("heading", { name: "결제 기록" })).toBeNull();
+    expect(screen.queryByRole("heading", { name: "수납 기록" })).toBeNull();
   });
 
   it("shows the school in the header", async () => {
@@ -212,7 +212,7 @@ describe("StudentDetailScreen", () => {
   });
 
   it.each([
-    ["payments", "결제 기록"],
+    ["payments", "수납 기록"],
     ["lessons", "수업 일지 탭"],
     ["tests", "테스트 탭"],
     ["clinic", "클리닉 탭"],

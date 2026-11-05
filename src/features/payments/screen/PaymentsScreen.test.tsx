@@ -66,11 +66,11 @@ describe("PaymentsScreen", () => {
     expect(screen.queryByText("마바")).not.toBeInTheDocument();
     const m = Number(thisMonth.slice(5));
     expect(
-      screen.getByRole("button", { name: `가나 ${m}월 결제 수정` }),
+      screen.getByRole("button", { name: `가나 ${m}월 수납 수정` }),
     ).toBeVisible();
     const other = m === 1 ? 12 : m - 1;
     expect(
-      screen.getByRole("button", { name: `가나 ${other}월 결제 입력` }),
+      screen.getByRole("button", { name: `가나 ${other}월 수납 입력` }),
     ).toBeVisible();
     expect(screen.getAllByText("—").length).toBeGreaterThan(0);
   });
@@ -93,7 +93,7 @@ describe("PaymentsScreen", () => {
     const user = setup();
     const m = Number(thisMonth.slice(5));
     await user.click(
-      await screen.findByRole("button", { name: `가나 ${m}월 결제 입력` }),
+      await screen.findByRole("button", { name: `가나 ${m}월 수납 입력` }),
     );
     expect(await screen.findByLabelText("금액(원)")).toBeInTheDocument();
   });
@@ -102,16 +102,16 @@ describe("PaymentsScreen", () => {
     students.mockResolvedValue([{ id: "a", name: "가나", status: "active" }]);
     const user = setup(30_000);
     const m = Number(thisMonth.slice(5));
-    await screen.findByRole("button", { name: `가나 ${m}월 결제 입력` });
+    await screen.findByRole("button", { name: `가나 ${m}월 수납 입력` });
     await user.click(screen.getByRole("button", { name: "이전 달" }));
     await waitFor(() =>
       expect(
-        screen.queryByRole("button", { name: `가나 ${m}월 결제 입력` }),
+        screen.queryByRole("button", { name: `가나 ${m}월 수납 입력` }),
       ).not.toBeInTheDocument(),
     );
     await user.click(screen.getByRole("button", { name: "다음 달" }));
     await user.click(
-      await screen.findByRole("button", { name: `가나 ${m}월 결제 입력` }),
+      await screen.findByRole("button", { name: `가나 ${m}월 수납 입력` }),
     );
     expect(await screen.findByLabelText("금액(원)")).toBeInTheDocument();
   });
