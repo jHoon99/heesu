@@ -62,7 +62,7 @@ select is(
      join pg_catalog.pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'private'
       and has_function_privilege('authenticated', p.oid, 'execute')),
-  '{can_join_question_topic,is_admin,my_student_id}'::text[],
+  '{can_join_question_topic,is_admin,my_school,my_student_id}'::text[],
   'private: authenticated가 실행할 수 있는 함수 = 허용 목록'
 );
 
@@ -146,7 +146,7 @@ select is(
   (select coalesce(array_agg(policyname::text order by policyname), '{}')
      from pg_catalog.pg_policies
     where schemaname = 'storage'),
-  '{site_images_admin_delete,site_images_admin_insert,site_images_admin_select,videos_admin_delete,videos_admin_insert,videos_admin_select,videos_admin_update,videos_member_select}'::text[],
+  '{materials_admin_delete,materials_admin_insert,materials_admin_select,materials_member_select,site_images_admin_delete,site_images_admin_insert,site_images_admin_select,videos_admin_delete,videos_admin_insert,videos_admin_select,videos_admin_update,videos_member_select}'::text[],
   'storage: 정책 = 허용 목록'
 );
 

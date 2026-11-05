@@ -105,14 +105,14 @@ isOneToOne: false
                   ]
                 },"clinic_items": {
                   Row: {
-                    "created_at": string,"done_at": string | null,"id": string,"kind": Database["public"]['Enums']["clinic_kind"],"memo": string | null,"session_id": string | null,"status": Database["public"]['Enums']["clinic_status"],"student_id": string,"updated_at": string
+                    "created_at": string,"done_at": string | null,"id": string,"kind": Database["public"]['Enums']["clinic_kind"],"memo": string | null,"session_id": string | null,"status": Database["public"]['Enums']["clinic_status"],"student_id": string,"test_result_id": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"done_at"?: string | null,"id"?: string,"kind": Database["public"]['Enums']["clinic_kind"],"memo"?: string | null,"session_id"?: string | null,"status"?: Database["public"]['Enums']["clinic_status"],"student_id": string,"updated_at"?: string
+                    "created_at"?: string,"done_at"?: string | null,"id"?: string,"kind": Database["public"]['Enums']["clinic_kind"],"memo"?: string | null,"session_id"?: string | null,"status"?: Database["public"]['Enums']["clinic_status"],"student_id": string,"test_result_id"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "created_at"?: string,"done_at"?: string | null,"id"?: string,"kind"?: Database["public"]['Enums']["clinic_kind"],"memo"?: string | null,"session_id"?: string | null,"status"?: Database["public"]['Enums']["clinic_status"],"student_id"?: string,"updated_at"?: string
+                    "created_at"?: string,"done_at"?: string | null,"id"?: string,"kind"?: Database["public"]['Enums']["clinic_kind"],"memo"?: string | null,"session_id"?: string | null,"status"?: Database["public"]['Enums']["clinic_status"],"student_id"?: string,"test_result_id"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -132,6 +132,12 @@ isOneToOne: false
       columns: ["student_id"]
 isOneToOne: false
       referencedRelation: "students"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "clinic_items_test_result_id_fkey"
+      columns: ["test_result_id"]
+isOneToOne: false
+      referencedRelation: "test_results"
       referencedColumns: ["id"]
     }
                   ]
@@ -288,6 +294,26 @@ isOneToOne: false
       columns: ["student_id"]
 isOneToOne: false
       referencedRelation: "students"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"materials": {
+                  Row: {
+                    "class_id": string,"created_at": string,"file_name": string,"id": string,"size_bytes": number,"storage_path": string,"title": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "class_id": string,"created_at"?: string,"file_name": string,"id"?: string,"size_bytes": number,"storage_path": string,"title": string
+                  }
+                  Update: {
+                    "class_id"?: string,"created_at"?: string,"file_name"?: string,"id"?: string,"size_bytes"?: number,"storage_path"?: string,"title"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "materials_class_id_fkey"
+      columns: ["class_id"]
+isOneToOne: false
+      referencedRelation: "classes"
       referencedColumns: ["id"]
     }
                   ]
@@ -463,14 +489,14 @@ isOneToOne: true
                   ]
                 },"test_results": {
                   Row: {
-                    "created_at": string,"id": string,"kind": Database["public"]['Enums']["test_kind"],"max_score": number,"memo": string | null,"score": number,"student_id": string,"taken_on": string,"title": string
+                    "created_at": string,"id": string,"kind": Database["public"]['Enums']["test_kind"],"max_score": number,"memo": string | null,"pass_score": number | null,"score": number,"student_id": string,"taken_on": string,"title": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"kind": Database["public"]['Enums']["test_kind"],"max_score": number,"memo"?: string | null,"score": number,"student_id": string,"taken_on": string,"title": string
+                    "created_at"?: string,"id"?: string,"kind": Database["public"]['Enums']["test_kind"],"max_score": number,"memo"?: string | null,"pass_score"?: number | null,"score": number,"student_id": string,"taken_on": string,"title": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"kind"?: Database["public"]['Enums']["test_kind"],"max_score"?: number,"memo"?: string | null,"score"?: number,"student_id"?: string,"taken_on"?: string,"title"?: string
+                    "created_at"?: string,"id"?: string,"kind"?: Database["public"]['Enums']["test_kind"],"max_score"?: number,"memo"?: string | null,"pass_score"?: number | null,"score"?: number,"student_id"?: string,"taken_on"?: string,"title"?: string
                   }
                   Relationships: [
                     {
@@ -521,14 +547,14 @@ isOneToOne: false
                   ]
                 },"videos": {
                   Row: {
-                    "class_id": string,"created_at": string,"duration_seconds": number,"id": string,"published_at": string,"storage_path": string,"title": string
+                    "class_id": string,"created_at": string,"duration_seconds": number,"id": string,"published_at": string,"school": string | null,"storage_path": string,"title": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "class_id": string,"created_at"?: string,"duration_seconds": number,"id"?: string,"published_at"?: string,"storage_path": string,"title": string
+                    "class_id": string,"created_at"?: string,"duration_seconds": number,"id"?: string,"published_at"?: string,"school"?: string | null,"storage_path": string,"title": string
                   }
                   Update: {
-                    "class_id"?: string,"created_at"?: string,"duration_seconds"?: number,"id"?: string,"published_at"?: string,"storage_path"?: string,"title"?: string
+                    "class_id"?: string,"created_at"?: string,"duration_seconds"?: number,"id"?: string,"published_at"?: string,"school"?: string | null,"storage_path"?: string,"title"?: string
                   }
                   Relationships: [
                     {
@@ -544,7 +570,7 @@ isOneToOne: false
           Views: {
             "class_roster": {
                   Row: {
-                    "class_id": string,"grade": Database["public"]['Enums']["school_grade"],"name": string,"status": Database["public"]['Enums']["student_status"],"student_id": string
+                    "class_id": string | null,"grade": Database["public"]['Enums']["school_grade"] | null,"name": string | null,"status": Database["public"]['Enums']["student_status"] | null,"student_id": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -570,7 +596,7 @@ isOneToOne: false
                   ]
                 },"clinic_board": {
                   Row: {
-                    "created_at": string,"done_at": string | null,"grade": Database["public"]['Enums']["school_grade"],"id": string,"kind": Database["public"]['Enums']["clinic_kind"],"memo": string | null,"session_date": string | null,"session_id": string | null,"status": Database["public"]['Enums']["clinic_status"],"student_id": string,"student_name": string
+                    "created_at": string | null,"done_at": string | null,"grade": Database["public"]['Enums']["school_grade"] | null,"id": string | null,"kind": Database["public"]['Enums']["clinic_kind"] | null,"memo": string | null,"session_date": string | null,"session_id": string | null,"status": Database["public"]['Enums']["clinic_status"] | null,"student_id": string | null,"student_name": string | null,"test_date": string | null,"test_result_id": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -592,11 +618,17 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "students"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "clinic_items_test_result_id_fkey"
+      columns: ["test_result_id"]
+isOneToOne: false
+      referencedRelation: "test_results"
+      referencedColumns: ["id"]
     }
                   ]
                 },"student_point_totals": {
                   Row: {
-                    "grade": Database["public"]['Enums']["school_grade"],"name": string,"status": Database["public"]['Enums']["student_status"],"student_id": string,"total": number | null
+                    "grade": Database["public"]['Enums']["school_grade"] | null,"name": string | null,"status": Database["public"]['Enums']["student_status"] | null,"student_id": string | null,"total": number | null
                   }
                   ComputedFields: never
                   Relationships: [

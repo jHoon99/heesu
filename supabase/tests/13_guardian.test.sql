@@ -166,7 +166,8 @@ select lives_ok($$select public.guardian_view(current_setting('test.tok2'))$$, '
 -- ─── 조회 (anon, POST, tok2) ────────────────────────────────────────
 select set_config('test.view', public.guardian_view(current_setting('test.tok2'))::text, true);
 select is((select array_agg(k order by k) from jsonb_object_keys(current_setting('test.view')::jsonb) k),
-  ARRAY['name', 'records', 'today', 'total_points', 'week'], '조회: 키는 name·records·today·total_points·week뿐');
+  ARRAY['clinic', 'name', 'records', 'tests', 'today', 'total_points', 'week'],
+  '조회: 키는 clinic·name·records·tests·today·total_points·week뿐');
 select is(current_setting('test.view')::jsonb ->> 'name', '가짜링크A', '조회: 이름 = A');
 select is(current_setting('test.view')::jsonb ->> 'today', ((now() at time zone 'Asia/Seoul')::date)::text,
   '조회: today = 서울 날짜');
