@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { describe, expect, it } from "vitest";
+import { metadata as loginMetadata } from "@/app/login/page";
 import { metadata, viewport } from "@/app/s/layout";
 import { PWA_BACKGROUND_COLOR, PWA_THEME_COLOR } from "@/core/pwa";
 
@@ -54,7 +55,12 @@ describe("/s layout pwa metadata", () => {
     expect(viewport.viewportFit).toBe("cover");
   });
 
-  it("no app file outside src/app/s wires the manifest or service worker", () => {
+  it("login links the same manifest so installing from login gets the HS icon", () => {
+    expect(loginMetadata.manifest).toBe("/manifest.webmanifest");
+    expect(loginMetadata.icons).toEqual(metadata.icons);
+  });
+
+  it("only src/app/s and the login page wire the manifest; only src/app/s the service worker", () => {
     const tsFiles = (dir: string): string[] =>
       readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
         const p = join(dir, e.name);
@@ -67,9 +73,11 @@ describe("/s layout pwa metadata", () => {
     expect(files.length).toBeGreaterThan(5);
     const outside = files.filter((p) => !p.startsWith("src/app/s/"));
     for (const p of outside) {
-      expect(read(p).toString(), p).not.toMatch(
-        /manifest\.webmanifest|registerServiceWorker/,
-      );
+      const text = read(p).toString();
+      expect(text, p).not.toMatch(/registerServiceWorker/);
+      if (p !== "src/app/login/page.tsx") {
+        expect(text, p).not.toMatch(/manifest\.webmanifest/);
+      }
     }
   });
 });
