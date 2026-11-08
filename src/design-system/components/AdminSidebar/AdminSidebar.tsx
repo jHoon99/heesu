@@ -34,11 +34,11 @@ export function AdminSidebar({
   onSignOut,
 }: AdminSidebarProps) {
   return (
-    <aside className="flex h-full w-16 shrink-0 flex-col border-r border-border bg-bg-surface-raised lg:w-(--sidebar)">
+    <aside className="flex h-full w-16 shrink-0 flex-col border-r border-border bg-bg-surface-raised sm:w-(--sidebar)">
       <div className="flex h-16 items-center gap-3 px-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={logoSrc} alt="" className="size-8 shrink-0" />
-        <span className="font-serif text-h3 text-text max-lg:sr-only">
+        <span className="font-serif text-h3 text-text max-sm:sr-only">
           {academyName}
         </span>
       </div>
@@ -50,7 +50,7 @@ export function AdminSidebar({
               return (
                 <li
                   key={`group-${item.group}`}
-                  className="px-3 pt-4 pb-1 text-caption text-text-subtle max-lg:sr-only"
+                  className="px-3 pt-4 pb-1 text-caption text-text-subtle max-sm:sr-only"
                 >
                   {item.group}
                 </li>
@@ -71,11 +71,11 @@ export function AdminSidebar({
                   )}
                 >
                   <Icon size={20} aria-hidden="true" className="shrink-0" />
-                  <span className="max-lg:sr-only">{item.label}</span>
+                  <span className="max-sm:sr-only">{item.label}</span>
                   {item.count !== undefined ? (
                     <>
                       {" "}
-                      <Badge tone="count" className="ml-auto max-lg:sr-only">
+                      <Badge tone="count" className="ml-auto max-sm:sr-only">
                         {item.count}
                         <span className="sr-only">건</span>
                       </Badge>
@@ -90,7 +90,7 @@ export function AdminSidebar({
 
       <div className="flex flex-col gap-2 border-t border-border p-3">
         {userName ? (
-          <div className="flex flex-col px-1 max-lg:sr-only">
+          <div className="flex flex-col px-1 max-sm:sr-only">
             <span className="text-label text-text">{userName}</span>
             <span className="text-caption text-text-subtle">{userRole}</span>
           </div>
@@ -101,9 +101,9 @@ export function AdminSidebar({
             size="md"
             icon={LogOut}
             onClick={onSignOut}
-            className="max-lg:px-0"
+            className="max-sm:px-0"
           >
-            <span className="max-lg:sr-only">로그아웃</span>
+            <span className="max-sm:sr-only">로그아웃</span>
           </Button>
         ) : null}
       </div>
